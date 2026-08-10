@@ -22,11 +22,10 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthorizedHandler>();
 
-// API URL — appsettings বা Environment
+// API URL
 var apiBase = builder.Configuration["ApiBaseUrl"]
               ?? Environment.GetEnvironmentVariable("ApiBaseUrl")
               ?? "https://localhost:7102/";
-
 if (!apiBase.EndsWith("/"))
     apiBase += "/";
 
@@ -54,16 +53,16 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
-}
-
-if (!app.Environment.IsProduction())
-{
-    app.UseHttpsRedirection();
+    // HSTS Render এ দরকার নেই (proxy আগে থেকে HTTPS করে)
 }
 
 app.UseAntiforgery();
-app.MapStaticAssets();
+
+// Static files (MapStaticAssets এর বদলে এটা বেশি স্টেবল)
+app.UseStaticFiles();
+
+app.MapGet("/health", () => Results.Ok("OK"));
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
