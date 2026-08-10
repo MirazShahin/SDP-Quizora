@@ -100,7 +100,7 @@
                                            id="@($"opt_{opt.Id}")"
                                            checked="@(selectedAnswers.ContainsKey(q.Id) && selectedAnswers[q.Id] == opt.Id)"
                                            @onchange="() => SelectAnswer(q.Id, opt.Id)" />
-                                    <label class="form-check-label" for="@($"opt_{opt.Id}")">
+                                    <label class="form-check-label text-body" for="@($"opt_{opt.Id}")">
                                         @opt.Text
                                     </label>
                                 </div>
@@ -126,13 +126,11 @@
     private List<QuestionDto>? questions;
     private Dictionary<Guid, Guid> selectedAnswers = new();
     private Dictionary<Guid, string> textAnswers = new();
-
     private bool isLoading = true;
     private bool isSubmitting = false;
     private bool isSubmitted = false;
     private bool timeUp = false;
     private string? errorMessage;
-
     private int remainingSeconds = 45 * 60; // 45 minutes
     private System.Threading.Timer? timer;
 
@@ -231,7 +229,6 @@
     {
         if (questions == null || isSubmitting || isSubmitted) return;
 
-        // সব প্রশ্ন বাধ্যতামূলক নয় — যত দিয়েছে তত যাবে
         isSubmitting = true;
         errorMessage = null;
         attemptedCount = AnsweredCount;
@@ -260,11 +257,9 @@
             }
             else
             {
-                // অটো-সাবমিটেও ফেইল হলে ইউজারকে জানাই
                 errorMessage = result?.Message ?? "Failed to submit test";
                 if (auto)
                 {
-                    // টাইম শেষ — তবুও সাবমিট স্ক্রিন দেখাই
                     isSubmitted = true;
                 }
             }
@@ -281,7 +276,6 @@
         }
     }
 
-    // বাটন থেকে কল
     private async Task SubmitTest() => await SubmitTest(auto: false);
 
     public void Dispose()
