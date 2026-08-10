@@ -203,16 +203,12 @@
             animation: pulse 1s infinite;
         }
 
-    @keyframes pulse {
-        50%
-
-    {
-        opacity: .75;
+    @@keyframes pulse {
+        50% {
+            opacity: .75;
+        }
     }
 
-    }
-
-    /* Option buttons - works in both Light & Dark */
     .opt-btn {
         border: 1px solid var(--border-color, rgba(127,127,127,.35));
         border-radius: 10px;
@@ -258,7 +254,6 @@
         border-radius: 16px;
     }
 </style>
-
 @code {
     private string category = "Linux";
     private string difficulty = "EASY";
