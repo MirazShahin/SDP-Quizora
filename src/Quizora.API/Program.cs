@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Quizora.Application.Validators;
+using Quizora.Domain.Entities;
+using Quizora.Domain.Enums;
 using Quizora.Infrastructure;
 using Quizora.Infrastructure.Persistence;
 using Quizora.Infrastructure.Seed;
@@ -20,7 +22,6 @@ if (!string.IsNullOrWhiteSpace(port))
 
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -80,7 +81,6 @@ builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 
 // CORS — local + Render frontend URL (env থেকে)
 var blazorOrigins = builder.Configuration["Cors:BlazorOrigins"]
     ?? "https://localhost:7102,https://localhost:7002,http://localhost:5065,http://localhost:5001";
-
 var origins = blazorOrigins
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -97,15 +97,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
-
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quizora API v1");
-        c.RoutePrefix = "swagger";
-    });
-
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quizora API v1");
+    c.RoutePrefix = "swagger";
+});
 
 // Render এ HTTPS proxy পেছনে — redirection কখনো সমস্যা করে
 if (!app.Environment.IsProduction())
@@ -118,17 +115,34 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Auto migrate + seed (optional but useful on host)
+// Auto migrate + seed
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
     try
     {
-        await db.Database.MigrateAsync(); // Microsoft.EntityFrameworkCore
+        await db.Database.MigrateAsync();
     }
-    catch { /* log if needed */ }
+    catch
+    {
+        // log if needed
+    }
 
     await QuestionBankSeeder.SeedAsync(db);
+
+    // Default Admin user
+    if (!db.Users.Any(u => u.Email == "admin@quizora.local"))
+    {
+        db.Users.Add(new User
+        {
+            FullName = "System Admin",
+            Email = "admin@quizora.local",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@12345"),
+            Role = UserRole.Admin
+        });
+        await db.SaveChangesAsync();
+    }
 }
 
 app.Run();
