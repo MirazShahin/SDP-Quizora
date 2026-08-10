@@ -1,7 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;          // ← Add this
+using Microsoft.OpenApi.Models;
 using Quizora.Application.Validators;
 using Quizora.Infrastructure;
 using Quizora.Infrastructure.Persistence;
@@ -10,12 +11,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
-builder.Services.AddControllers();
+// Render / cloud: PORT env
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+}
 
+builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 
-// ========== SWAGGER ==========
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -26,7 +31,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Quizora Backend API"
     });
 
-    // JWT Bearer support in Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
@@ -51,12 +55,9 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-// =============================
 
-// Infrastructure (DbContext + Repositories)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -75,16 +76,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
-// CORS
+
+// CORS — local + Render frontend URL (env থেকে)
+var blazorOrigins = builder.Configuration["Cors:BlazorOrigins"]
+    ?? "https://localhost:7102,https://localhost:7002,http://localhost:5065,http://localhost:5001";
+
+var origins = blazorOrigins
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazor", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:7102",
-                "https://localhost:7002",
-                "http://localhost:5065",
-                "http://localhost:5001")
+        policy.WithOrigins(origins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -93,26 +97,38 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ========== SWAGGER UI (Development only) ==========
-if (app.Environment.IsDevelopment())
+// Production এও swagger চাইলে শর্ত সরান
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableSwagger"))
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quizora API v1");
-        c.RoutePrefix = "swagger";   // → https://localhost:xxxx/swagger
+        c.RoutePrefix = "swagger";
     });
 }
 
-app.UseHttpsRedirection();
+// Render এ HTTPS proxy পেছনে — redirection কখনো সমস্যা করে
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("AllowBlazor");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Auto migrate + seed (optional but useful on host)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        await db.Database.MigrateAsync(); // Microsoft.EntityFrameworkCore
+    }
+    catch { /* log if needed */ }
+
     await QuestionBankSeeder.SeedAsync(db);
 }
 

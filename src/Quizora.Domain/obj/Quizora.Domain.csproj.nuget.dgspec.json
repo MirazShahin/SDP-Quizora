@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj": {}
+    "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj": {}
   },
   "projects": {
-    "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj": {
+    "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
+        "projectUniqueName": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
         "projectName": "Quizora.Domain",
-        "projectPath": "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
+        "projectPath": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
         "packagesPath": "C:\\Users\\Shahin\\.nuget\\packages\\",
-        "outputPath": "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\obj\\",
+        "outputPath": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

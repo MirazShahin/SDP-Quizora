@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6U0YvkNaGH4=",
+  "dgSpecHash": "CHexbpiBeaw=",
   "success": true,
-  "projectFilePath": "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
+  "projectFilePath": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Quizora.Domain.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

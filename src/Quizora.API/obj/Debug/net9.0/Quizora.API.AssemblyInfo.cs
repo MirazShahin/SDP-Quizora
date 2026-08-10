@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Quizora.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da9f3444ba360d64ce6d202c3f2dfecca37a3af0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Quizora.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Quizora.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

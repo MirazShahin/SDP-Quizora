@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xKYI4R48RhE=",
+  "dgSpecHash": "PvQMsIDp7aU=",
   "success": true,
-  "projectFilePath": "D:\\SDP\\Quizora-With-Profile\\Quizora\\src\\Quizora.Application\\Quizora.Application.csproj",
+  "projectFilePath": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Quizora.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Shahin\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\Shahin\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
