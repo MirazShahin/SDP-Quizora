@@ -11,6 +11,8 @@ html[data-theme="light"] {
     --top-row-bg: rgba(255, 255, 255, 0.92);
     --top-link: #334155;
     --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --input-bg: #ffffff;
+    --input-text: #0f172a;
 }
 
 html[data-theme="dark"] {
@@ -24,11 +26,14 @@ html[data-theme="dark"] {
     --top-row-bg: rgba(15, 23, 42, 0.92);
     --top-link: #cbd5e1;
     --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --input-bg: #1e293b;
+    --input-text: #e2e8f0;
 }
 
 html, body {
     background-color: var(--bg-body) !important;
     color: var(--text-primary);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .page {
@@ -42,14 +47,42 @@ main {
 
 .card {
     background-color: var(--bg-card) !important;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
 }
+
+.card-title,
+.card-body,
+.card-text {
+    color: var(--text-primary) !important;
+}
+
+/* ===== Form & Options (Dark/Light both) ===== */
+.form-check-label {
+    color: var(--text-primary) !important;
+}
+
+.form-control,
+.form-select,
+textarea.form-control {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+    .form-control::placeholder {
+        color: var(--text-muted) !important;
+    }
 
 .text-muted {
     color: var(--text-muted) !important;
 }
 
+.table {
+    color: var(--text-primary);
+}
+
+/* Theme toggle */
 .theme-toggle {
     border: 1px solid var(--border-color);
     background: transparent;
@@ -60,30 +93,26 @@ main {
     cursor: pointer;
     transition: background .15s, transform .15s;
 }
-.theme-toggle:hover {
-    background: rgba(127, 127, 127, 0.12);
-    transform: translateY(-1px);
-}
+
+    .theme-toggle:hover {
+        background: rgba(127, 127, 127, 0.12);
+        transform: translateY(-1px);
+    }
 
 .top-link {
     color: var(--top-link);
     text-decoration: none;
     font-size: 0.9rem;
 }
-.top-link:hover { text-decoration: underline; }
 
-.table {
-    color: var(--text-primary);
-}
+    .top-link:hover {
+        text-decoration: underline;
+    }
 
 .alert-info {
     background: rgba(14, 165, 233, 0.12);
     border-color: rgba(14, 165, 233, 0.25);
     color: var(--text-primary);
-}
-
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 a, .btn-link {
@@ -96,8 +125,9 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -127,18 +157,20 @@ h1:focus {
 }
 
     .blazor-error-boundary::after {
-        content: "An error has occurred."
+        content: "An error has occurred.";
     }
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--text-muted);
     text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
