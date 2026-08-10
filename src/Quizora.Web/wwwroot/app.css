@@ -174,3 +174,21 @@ h1:focus {
 .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* Force readable option text in dark theme */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .card * {
+    color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] button,
+html[data-theme="dark"] .btn {
+    color: inherit;
+}
+
+/* Option boxes (custom style) */
+html[data-theme="dark"] [class*="option"],
+html[data-theme="dark"] .list-group-item,
+html[data-theme="dark"] .form-check,
+html[data-theme="dark"] label {
+    color: #e2e8f0 !important;
+}
