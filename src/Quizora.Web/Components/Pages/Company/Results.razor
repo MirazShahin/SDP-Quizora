@@ -1,0 +1,478 @@
+﻿@page "/company/results"
+@page "/company/tests/{TestId:guid}/results"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@using Quizora.Application.DTOs.Tests
+@inject TestService TestService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="mb-1 fw-bold">Results</h3>
+            <p class="text-muted mb-0 small">
+                All tests · scores · interview shortlist (min 35/50 or 70%+)
+            </p>
+        </div>
+        <a href="/company/dashboard" class="btn btn-outline-secondary btn-sm">← Dashboard</a>
+    </div>
+
+    @if (selectedTestId == null)
+    {
+        @if (loadingTests)
+        {
+            <p class="text-muted">Loading tests...</p>
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+        else if (tests == null || tests.Count == 0)
+        {
+            <div class="alert alert-info">No tests found. Create a test first.</div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <input class="form-control" style="max-width: 420px"
+                       placeholder="Search tests by title or description..."
+                       @bind="testQuery" @bind:event="oninput" />
+            </div>
+
+            @if (FilteredTests.Count == 0)
+            {
+                <div class="alert alert-info">No tests match your search.</div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var t in FilteredTests)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm border-0 test-card"
+                                 style="cursor:pointer"
+                                 @onclick="() => SelectTest(t)">
+                                <div class="card-body">
+                                    <h5 class="fw-semibold mb-1">@t.Title</h5>
+                                    <p class="text-muted small mb-3">@(t.Description ?? "—")</p>
+                                    <div class="d-flex flex-wrap gap-2 small text-muted">
+                                        <span class="badge bg-secondary">@t.Status</span>
+                                        <span>📝 @t.TotalQuestions Qs</span>
+                                        <span>👥 @t.TotalInvitations invited</span>
+                                        <span>✅ @t.CompletedCount done</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-0 pt-0">
+                                    <span class="text-primary small">View results →</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div>
+                <button type="button" class="btn btn-link btn-sm text-decoration-none ps-0" @onclick="BackToTests">
+                    ← All tests
+                </button>
+                <h4 class="fw-semibold mb-0">@selectedTestTitle</h4>
+                <p class="text-muted small mb-0">
+                    Interview eligibility: score ≥ 35 when total is 50 (or ≥ 70%)
+                </p>
+            </div>
+            <button type="button" class="btn btn-outline-success btn-sm"
+                    disabled="@exporting"
+                    @onclick="ExportCsv">
+                @if (exporting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                }
+                ⬇ Export CSV
+            </button>
+        </div>
+
+        @if (loadingResults)
+        {
+            <p class="text-muted">Loading candidates...</p>
+        }
+        else if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+        else if (results == null || results.Count == 0)
+        {
+            <div class="alert alert-info">No one has submitted this test yet.</div>
+        }
+        else
+        {
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <input class="form-control"
+                           placeholder="Search by name or email..."
+                           @bind="resultQuery" @bind:event="oninput" />
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" @bind="eligibilityFilter">
+                        <option value="all">All candidates</option>
+                        <option value="eligible">Interview OK only</option>
+                        <option value="not">Not eligible</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-center">
+                    <span class="text-muted small">@FilteredResults.Count shown</span>
+                </div>
+            </div>
+
+            @if (FilteredResults.Count == 0)
+            {
+                <div class="alert alert-info">No candidates match your filter.</div>
+            }
+            else
+            {
+                <div class="table-responsive card border-0 shadow-sm">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Score</th>
+                                <th>%</th>
+                                <th>Eligibility</th>
+                                <th>Submitted</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in FilteredResults)
+                            {
+                                var eligible = IsEligible(r.Score, r.TotalQuestions, r.Percentage);
+                                <tr class="@(eligible ? "table-success-subtle" : "")">
+                                    <td class="fw-semibold">@r.CandidateName</td>
+                                    <td class="small text-muted">@r.CandidateEmail</td>
+                                    <td>@r.Score / @r.TotalQuestions</td>
+                                    <td>
+                                        <span class="badge @(r.Percentage >= 70 ? "bg-success" : r.Percentage >= 50 ? "bg-warning text-dark" : "bg-danger")">
+                                            @r.Percentage%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (eligible)
+                                        {
+                                            <span class="badge bg-success">Interview OK</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Not eligible</span>
+                                        }
+                                    </td>
+                                    <td class="small text-muted">
+                                        @r.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex gap-1 justify-content-end flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    disabled="@(sendingId == r.InvitationId)"
+                                                    @onclick="() => SendResultOnly(r.InvitationId)">
+                                                Notify Score
+                                            </button>
+                                            @if (eligible)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-primary"
+                                                        disabled="@(sendingId == r.InvitationId)"
+                                                        @onclick="() => SendInterviewCall(r.InvitationId)">
+                                                    @(sendingId == r.InvitationId ? "Sending…" : "Notify Interview")
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(toast))
+            {
+                <div class="alert alert-success mt-3 py-2">@toast</div>
+            }
+        }
+    }
+</div>
+
+<style>
+    .test-card {
+        transition: transform .15s, box-shadow .15s;
+        border-radius: 12px;
+    }
+
+        .test-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.12) !important;
+        }
+
+    .table-success-subtle {
+        background-color: rgba(25, 135, 84, 0.06);
+    }
+</style>
+
+@code {
+    [Parameter] public Guid? TestId { get; set; }
+
+    private List<TestDto>? tests;
+    private List<ResultRow>? results;
+    private Guid? selectedTestId;
+    private string selectedTestTitle = "";
+    private bool loadingTests = true, loadingResults, exporting;
+    private string? error, toast;
+    private Guid? sendingId;
+
+    private string testQuery = "";
+    private string resultQuery = "";
+    private string eligibilityFilter = "all";
+
+    private List<TestDto> FilteredTests =>
+        (tests ?? new())
+            .Where(t =>
+                string.IsNullOrWhiteSpace(testQuery)
+                || (t.Title?.Contains(testQuery, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (t.Description?.Contains(testQuery, StringComparison.OrdinalIgnoreCase) ?? false))
+            .ToList();
+
+    private List<ResultRow> FilteredResults
+    {
+        get
+        {
+            var q = (results ?? new()).AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(resultQuery))
+            {
+                q = q.Where(r =>
+                    (r.CandidateName?.Contains(resultQuery, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (r.CandidateEmail?.Contains(resultQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (eligibilityFilter == "eligible")
+                q = q.Where(r => IsEligible(r.Score, r.TotalQuestions, r.Percentage));
+            else if (eligibilityFilter == "not")
+                q = q.Where(r => !IsEligible(r.Score, r.TotalQuestions, r.Percentage));
+
+            return q.OrderByDescending(x => x.Percentage).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTests();
+
+        if (TestId.HasValue && TestId != Guid.Empty)
+        {
+            var t = tests?.FirstOrDefault(x => x.Id == TestId.Value);
+            if (t != null)
+                await SelectTest(t);
+            else
+            {
+                selectedTestId = TestId;
+                selectedTestTitle = "Test";
+                await LoadResults(TestId.Value);
+            }
+        }
+    }
+
+    private async Task LoadTests()
+    {
+        loadingTests = true;
+        error = null;
+        try
+        {
+            var res = await TestService.GetMyTests();
+            if (res == null || !res.IsSuccess)
+                error = res?.Message ?? "Failed to load tests";
+            else
+                tests = res.Data ?? new();
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { loadingTests = false; }
+    }
+
+    private async Task SelectTest(TestDto t)
+    {
+        selectedTestId = t.Id;
+        selectedTestTitle = t.Title;
+        toast = null;
+        error = null;
+        resultQuery = "";
+        eligibilityFilter = "all";
+        await LoadResults(t.Id);
+    }
+
+    private void BackToTests()
+    {
+        selectedTestId = null;
+        results = null;
+        error = null;
+        toast = null;
+        resultQuery = "";
+        eligibilityFilter = "all";
+        Navigation.NavigateTo("/company/results");
+    }
+
+    private async Task LoadResults(Guid testId)
+    {
+        loadingResults = true;
+        error = null;
+        results = null;
+        try
+        {
+            var response = await Http.GetAsync($"api/Results/test/{testId}");
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                error = $"Empty response (HTTP {(int)response.StatusCode}). Re-login as Company.";
+                return;
+            }
+
+            ApiResult<List<ResultRow>>? res;
+            try
+            {
+                res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<ResultRow>>>(
+                    json,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (Exception parseEx)
+            {
+                error = $"Parse error: {parseEx.Message} | Body: {(json.Length > 150 ? json[..150] : json)}";
+                return;
+            }
+
+            if (res == null)
+            {
+                error = "Could not parse results.";
+                return;
+            }
+
+            if (!res.IsSuccess)
+            {
+                error = res.Message ?? "Failed to load results";
+                return;
+            }
+
+            results = res.Data ?? new();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loadingResults = false;
+        }
+    }
+
+    private static bool IsEligible(int score, int total, double percentage)
+    {
+        if (total <= 0) return false;
+        if (total == 50) return score >= 35;
+        return percentage >= 70.0;
+    }
+
+    private async Task ExportCsv()
+    {
+        if (selectedTestId == null) return;
+        exporting = true;
+        error = null;
+        try
+        {
+            var response = await Http.GetAsync($"api/Results/test/{selectedTestId}/export");
+            if (!response.IsSuccessStatusCode)
+            {
+                error = $"Export failed (HTTP {(int)response.StatusCode})";
+                return;
+            }
+
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                           ?? $"results-{selectedTestId}.csv";
+            var base64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("quizoraDownloadFile", fileName, "text/csv", base64);
+            toast = "CSV downloaded.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            exporting = false;
+        }
+    }
+
+    private async Task SendResultOnly(Guid invitationId)
+        => await SendNotify(invitationId, interviewCall: false);
+
+    private async Task SendInterviewCall(Guid invitationId)
+        => await SendNotify(invitationId, interviewCall: true);
+
+    private async Task SendNotify(Guid invitationId, bool interviewCall)
+    {
+        sendingId = invitationId;
+        toast = null;
+        error = null;
+        try
+        {
+            var url = interviewCall
+                ? $"api/Results/send-interview-call/{invitationId}"
+                : $"api/Results/send-email/{invitationId}";
+
+            var response = await Http.PostAsync(url, null);
+            var json = await response.Content.ReadAsStringAsync();
+
+            ApiResult<object>? res = null;
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+
+            if (res != null && res.IsSuccess)
+                toast = interviewCall
+                    ? "Interview notification sent."
+                    : "Score notification sent.";
+            else
+                error = res?.Message ?? "Failed to notify";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            sendingId = null;
+        }
+    }
+
+    public class ResultRow
+    {
+        public Guid InvitationId { get; set; }
+        public string CandidateName { get; set; } = "";
+        public string CandidateEmail { get; set; } = "";
+        public int Score { get; set; }
+        public int TotalQuestions { get; set; }
+        public double Percentage { get; set; }
+        public DateTime SubmittedAt { get; set; }
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

@@ -1,0 +1,100 @@
+﻿@page "/ai/mock-interview"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@inject AiClient Ai
+
+<div class="container py-4" style="max-width: 960px;">
+    <h3 class="fw-bold mb-1">Mock Interview (AI)</h3>
+    <p class="text-muted mb-3">Chat with an AI interviewer. Type to start.</p>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body" style="height: 560px; overflow-y: auto;" @ref="chatBox">
+            @foreach (var m in messages)
+            {
+                var isUser = m.Role == "user";
+
+                <div class="mb-3 @(isUser ? "text-end" : "")">
+                    <div class="d-inline-block px-3 py-2 rounded-3"
+                         style="@(isUser
+                                                      ? "max-width:85%; white-space:pre-wrap; text-align:left; background:#2563eb; color:#ffffff;"
+                                                      : "max-width:85%; white-space:pre-wrap; text-align:left; background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0;")">
+                    <small class="d-block mb-1" style="@(isUser ? "opacity:0.85; color:#ffffff;" : "opacity:0.7; color:#475569;")">
+                        @(isUser ? "You" : "Interviewer")
+                    </small>
+                    @m.Content
+                </div>
+            </div>
+                        }
+
+            @if (loading)
+            {
+                <div class="text-muted small">Interviewer is typing...</div>
+            }
+        </div>
+
+        <div class="card-footer bg-white">
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="alert alert-warning py-2 small mb-2">@error</div>
+            }
+            <div class="input-group">
+                <input class="form-control" @bind="input" @bind:event="oninput"
+                       @onkeydown="OnKey" placeholder="Type your message..." disabled="@loading" />
+                <button class="btn btn-primary" disabled="@loading" @onclick="Send">Send</button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="Reset">Reset chat</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<AiClient.ChatMsg> messages = new();
+    private string input = "";
+    private bool loading;
+    private string? error;
+    private ElementReference chatBox;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SendInternal("Hi, I'm ready for the mock interview. Please start with your first question.");
+    }
+
+    private async Task OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Send();
+    }
+
+    private async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(input) || loading) return;
+        var msg = input.Trim();
+        input = "";
+        await SendInternal(msg);
+    }
+
+    private async Task SendInternal(string msg)
+    {
+        messages.Add(new AiClient.ChatMsg { Role = "user", Content = msg });
+        loading = true;
+        error = null;
+        StateHasChanged();
+
+        var history = messages.Take(messages.Count - 1).ToList();
+        var (text, err) = await Ai.MockReplyAsync(history, msg);
+
+        if (!string.IsNullOrEmpty(text))
+            messages.Add(new AiClient.ChatMsg { Role = "assistant", Content = text });
+        else
+            error = err ?? "No response";
+
+        loading = false;
+        StateHasChanged();
+    }
+
+    private void Reset()
+    {
+        messages.Clear();
+        error = null;
+        _ = SendInternal("Hi, I'm ready for the mock interview. Please start with your first question.");
+    }
+}

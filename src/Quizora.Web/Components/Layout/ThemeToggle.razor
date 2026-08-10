@@ -1,0 +1,32 @@
+﻿@rendermode InteractiveServer
+@inject Quizora.Web.Services.ThemeService Theme
+@implements IDisposable
+
+<button type="button" class="theme-toggle" title="Toggle light/dark" @onclick="Toggle">
+    @if (Theme.IsDark)
+    {
+        <span>☀️ Light</span>
+    }
+    else
+    {
+        <span>🌙 Dark</span>
+    }
+</button>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Theme.OnChange += OnChanged;
+            await Theme.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task Toggle() => await Theme.ToggleAsync();
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Theme.OnChange -= OnChanged;
+}

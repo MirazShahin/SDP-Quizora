@@ -1,0 +1,121 @@
+@page "/"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<div class="home-hero container py-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <div class="badge rounded-pill bg-primary-subtle text-primary mb-3 px-3 py-2">
+                by HaMiko · Practice · Mock · Interview
+            </div>
+            <h1 class="display-5 fw-bold mb-2">Quizora</h1>
+            <p class="text-muted small mb-3">A product of <strong>HaMiko</strong></p>
+            <p class="lead text-muted mb-4" style="max-width: 34rem;">
+                Practice IT topics, take mock exams, and prepare for interviews —
+                all in one place.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <AuthorizeView>
+                    <Authorized>
+                        @if (isCompany)
+                        {
+                            <a class="btn btn-primary px-4" href="/company/dashboard">Dashboard</a>
+                            <a class="btn btn-outline-secondary px-4" href="/company/results">Results</a>
+                        }
+                        else if (isCandidate)
+                        {
+                            <a class="btn btn-primary px-4" href="/candidate/dashboard">My Tests</a>
+                            <a class="btn btn-outline-secondary px-4" href="/practice">Practice</a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-primary px-4" href="/practice">Start Practice</a>
+                        }
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="btn btn-primary px-4" href="/login">Login</a>
+                        <a class="btn btn-outline-secondary px-4" href="/register">Register</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 feature-tile">
+                        <div class="card-body">
+                            <div class="fs-3 mb-2">📝</div>
+                            <h6 class="fw-semibold">Assessments</h6>
+                            <p class="small text-muted mb-0">
+                                Timed tests, scores &amp; clear shortlist feedback.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 feature-tile">
+                        <div class="card-body">
+                            <div class="fs-3 mb-2">🎓</div>
+                            <h6 class="fw-semibold">Interview Prep</h6>
+                            <p class="small text-muted mb-0">
+                                Curated topics &amp; resources for technical interviews.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 feature-tile">
+                        <div class="card-body">
+                            <div class="fs-3 mb-2">💻</div>
+                            <h6 class="fw-semibold">Practice</h6>
+                            <p class="small text-muted mb-0">
+                                IT quizzes — Linux, Docker, SQL &amp; more.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card border-0 shadow-sm h-100 feature-tile">
+                        <div class="card-body">
+                            <div class="fs-3 mb-2">⏱️</div>
+                            <h6 class="fw-semibold">Mock Exams</h6>
+                            <p class="small text-muted mb-0">
+                                Timed papers with score analysis &amp; review.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-muted small py-4 mt-5 border-top">
+        © @DateTime.Now.Year <strong>HaMiko</strong> · Quizora
+    </footer>
+</div>
+
+<style>
+    .feature-tile {
+        border-radius: 14px;
+        transition: transform .15s;
+    }
+
+        .feature-tile:hover {
+            transform: translateY(-3px);
+        }
+</style>
+
+@code {
+    private bool isCompany, isCandidate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var user = state.User;
+        isCompany = user.IsInRole("Company");
+        isCandidate = user.IsInRole("Candidate");
+    }
+}

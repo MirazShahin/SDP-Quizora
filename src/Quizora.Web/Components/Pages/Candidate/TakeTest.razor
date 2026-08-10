@@ -1,0 +1,291 @@
+﻿@page "/candidate/test/{InvitationId:guid}"
+@rendermode InteractiveServer
+@implements IDisposable
+@using Quizora.Application.DTOs.Questions
+@using Quizora.Application.DTOs.Attempts
+@using Quizora.Web.Services
+@inject AttemptService AttemptService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Loading questions...</p>
+        </div>
+    }
+    else if (isSubmitted)
+    {
+        <div class="text-center py-5">
+            <div class="alert alert-success d-inline-block px-5 py-4 text-start">
+                <h3 class="mb-3">টেস্ট সম্পন্ন হয়েছে!</h3>
+                <p class="mb-1">
+                    <strong>Attempted:</strong> @attemptedCount / @totalQuestions
+                </p>
+                @if (timeUp)
+                {
+                    <p class="mb-3 text-muted small">Time is over. Your answers have been submitted automatically.</p>
+                }
+                else
+                {
+                    <p class="mb-3 text-muted small">Your answers have been submitted successfully.</p>
+                }
+                <p class="text-muted small mb-3">Score will be reviewed by the company.</p>
+                <a href="/candidate/dashboard" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage) && questions == null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+        <a href="/candidate/dashboard" class="btn btn-secondary">Back</a>
+    }
+    else if (questions == null || !questions.Any())
+    {
+        <div class="alert alert-warning">No questions found for this test.</div>
+        <a href="/candidate/dashboard" class="btn btn-secondary">Back</a>
+    }
+    else
+    {
+        <!-- Timer Bar -->
+        <div class="alert @(remainingSeconds <= 300 ? "alert-danger" : "alert-primary") d-flex justify-content-between align-items-center sticky-top shadow-sm">
+            <div>
+                <strong>Time Remaining</strong>
+                <span class="ms-2 badge bg-dark">@AnsweredCount / @questions.Count answered</span>
+            </div>
+            <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px;">
+                @FormatTime()
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-warning">@errorMessage</div>
+        }
+
+        @for (int i = 0; i < questions.Count; i++)
+        {
+            var q = questions[i];
+            var isShort = string.Equals(q.QuestionType, "ShortAnswer", StringComparison.OrdinalIgnoreCase);
+
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">@($"{i + 1}. {q.Text}")</h5>
+                        <span class="badge @(isShort ? "bg-info" : "bg-secondary")">
+                            @(isShort ? "Short Answer" : "MCQ")
+                        </span>
+                    </div>
+
+                    <div class="mt-3">
+                        @if (isShort)
+                        {
+                            <textarea class="form-control"
+                                      rows="2"
+                                      maxlength="500"
+                                      placeholder="Write 1-2 lines (optional)..."
+                                      value="@textAnswers.GetValueOrDefault(q.Id)"
+                                      @onchange="@((ChangeEventArgs e) => SetTextAnswer(q.Id, e.Value?.ToString() ?? string.Empty))">
+                                        </textarea>
+                        }
+                        else
+                        {
+                            @foreach (var opt in q.Options)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="@($"q_{q.Id}")"
+                                           id="@($"opt_{opt.Id}")"
+                                           checked="@(selectedAnswers.ContainsKey(q.Id) && selectedAnswers[q.Id] == opt.Id)"
+                                           @onchange="() => SelectAnswer(q.Id, opt.Id)" />
+                                    <label class="form-check-label" for="@($"opt_{opt.Id}")">
+                                        @opt.Text
+                                    </label>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between mt-4 mb-5">
+            <a href="/candidate/dashboard" class="btn btn-outline-secondary">Cancel</a>
+            <button class="btn btn-success btn-lg" @onclick="SubmitTest" disabled="@isSubmitting">
+                @(isSubmitting ? "Submitting..." : "Submit Test")
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid InvitationId { get; set; }
+
+    private List<QuestionDto>? questions;
+    private Dictionary<Guid, Guid> selectedAnswers = new();
+    private Dictionary<Guid, string> textAnswers = new();
+
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private bool isSubmitted = false;
+    private bool timeUp = false;
+    private string? errorMessage;
+
+    private int remainingSeconds = 45 * 60; // 45 minutes
+    private System.Threading.Timer? timer;
+
+    private int totalQuestions => questions?.Count ?? 0;
+    private int attemptedCount = 0;
+
+    private int AnsweredCount
+    {
+        get
+        {
+            if (questions == null) return 0;
+            int n = 0;
+            foreach (var q in questions)
+            {
+                if (string.Equals(q.QuestionType, "ShortAnswer", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (textAnswers.TryGetValue(q.Id, out var t) && !string.IsNullOrWhiteSpace(t))
+                        n++;
+                }
+                else if (selectedAnswers.ContainsKey(q.Id))
+                {
+                    n++;
+                }
+            }
+            return n;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var result = await AttemptService.StartTest(InvitationId);
+            if (result != null && result.IsSuccess)
+            {
+                questions = result.Data;
+                StartTimer();
+            }
+            else
+            {
+                errorMessage = result?.Message ?? "Failed to load test";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StartTimer()
+    {
+        timer = new System.Threading.Timer(async _ =>
+        {
+            if (remainingSeconds > 0)
+            {
+                remainingSeconds--;
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                timeUp = true;
+                timer?.Dispose();
+                timer = null;
+                await InvokeAsync(async () => await SubmitTest(auto: true));
+            }
+        }, null, 1000, 1000);
+    }
+
+    private string FormatTime()
+    {
+        var m = remainingSeconds / 60;
+        var s = remainingSeconds % 60;
+        return $"{m:D2}:{s:D2}";
+    }
+
+    private void SelectAnswer(Guid questionId, Guid optionId)
+    {
+        selectedAnswers[questionId] = optionId;
+        errorMessage = null;
+    }
+
+    private void SetTextAnswer(Guid questionId, string text)
+    {
+        textAnswers[questionId] = text;
+        errorMessage = null;
+    }
+
+    private async Task SubmitTest(bool auto = false)
+    {
+        if (questions == null || isSubmitting || isSubmitted) return;
+
+        // সব প্রশ্ন বাধ্যতামূলক নয় — যত দিয়েছে তত যাবে
+        isSubmitting = true;
+        errorMessage = null;
+        attemptedCount = AnsweredCount;
+
+        try
+        {
+            var dto = new SubmitTestDto
+            {
+                InvitationId = InvitationId,
+                Answers = questions.Select(q => new SubmitAnswerDto
+                {
+                    QuestionId = q.Id,
+                    SelectedOptionId = selectedAnswers.TryGetValue(q.Id, out var optId) ? optId : null,
+                    AnswerText = textAnswers.TryGetValue(q.Id, out var txt) ? txt : null
+                }).Where(a => a.SelectedOptionId != null || !string.IsNullOrWhiteSpace(a.AnswerText))
+                  .ToList()
+            };
+
+            var result = await AttemptService.SubmitTest(InvitationId, dto);
+
+            if (result != null && result.IsSuccess)
+            {
+                isSubmitted = true;
+                timer?.Dispose();
+                timer = null;
+            }
+            else
+            {
+                // অটো-সাবমিটেও ফেইল হলে ইউজারকে জানাই
+                errorMessage = result?.Message ?? "Failed to submit test";
+                if (auto)
+                {
+                    // টাইম শেষ — তবুও সাবমিট স্ক্রিন দেখাই
+                    isSubmitted = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+            if (auto) isSubmitted = true;
+        }
+        finally
+        {
+            isSubmitting = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // বাটন থেকে কল
+    private async Task SubmitTest() => await SubmitTest(auto: false);
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

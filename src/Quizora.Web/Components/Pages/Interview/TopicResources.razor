@@ -1,0 +1,70 @@
+﻿@page "/interview/{Slug}"
+@using Quizora.Web.Data
+@rendermode InteractiveServer
+
+<div class="container py-4">
+    <a href="/interview" class="text-decoration-none small text-muted">← All topics</a>
+
+    @if (topic == null)
+    {
+        <div class="alert alert-warning mt-3">Topic not found.</div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center gap-3 mt-2 mb-2">
+            <span class="fs-1">@topic.Icon</span>
+            <div>
+                <h2 class="fw-bold mb-0">@topic.Name</h2>
+                <p class="text-muted mb-0">@topic.Description</p>
+            </div>
+        </div>
+
+        <p class="text-muted small mb-4">Open any resource in a new tab · compare and learn</p>
+
+        <div class="row g-3">
+            @foreach (var r in topic.Resources)
+            {
+                <div class="col-md-6">
+                    <a href="@r.Url" target="_blank" rel="noopener noreferrer"
+                       class="card h-100 shadow-sm border-0 text-decoration-none resource-card">
+                        <div class="card-body d-flex gap-3 align-items-start">
+                            <div class="fs-3">@r.Icon</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="fw-semibold text-body mb-1">@r.Title</h5>
+                                    <span class="badge @r.BadgeClass">@r.Tag</span>
+                                </div>
+                                <p class="text-muted small mb-2">@r.Description</p>
+                                <span class="small text-primary">Open ↗</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .resource-card {
+        transition: transform .15s, box-shadow .15s;
+        border-radius: 12px;
+        color: inherit;
+    }
+
+        .resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.12) !important;
+        }
+</style>
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private InterviewData.TopicItem? topic;
+
+    protected override void OnParametersSet()
+    {
+        topic = InterviewData.Get(Slug);
+    }
+}

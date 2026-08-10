@@ -1,0 +1,245 @@
+﻿@page "/company/dashboard"
+@rendermode InteractiveServer
+@using Quizora.Application.DTOs.Tests
+@using Quizora.Web.Services
+@inject TestService TestService
+@inject NavigationManager Navigation
+
+<div class="container py-4">
+    <div class="company-hero mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-6">
+                <div class="small text-uppercase opacity-75 mb-1" style="letter-spacing:.08em">Company workspace</div>
+                <h2 class="fw-bold mb-2">Dashboard</h2>
+                <p class="mb-3 opacity-90" style="max-width:26rem">
+                    Create assessments, invite talent, and shortlist with clear scores.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/company/tests/create" class="btn btn-light btn-sm px-3">+ New Test</a>
+                    <a href="/company/results" class="btn btn-outline-light btn-sm px-3">📊 Results</a>
+                    <a href="/company/cvs" class="btn btn-outline-light btn-sm px-3">📄 CVs</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="row g-2">
+                    <div class="col-6 col-md-3"><div class="stat-pill"><div class="fs-4 fw-bold">@totalTests</div><small class="opacity-75">Tests</small></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-pill"><div class="fs-4 fw-bold">@totalInvited</div><small class="opacity-75">Invited</small></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-pill"><div class="fs-4 fw-bold">@totalCompleted</div><small class="opacity-75">Done</small></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-pill"><div class="fs-4 fw-bold">@activeTests</div><small class="opacity-75">Active</small></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center text-muted py-5">
+            <div class="spinner-border text-primary mb-2"></div>
+            <div>Loading tests...</div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (tests == null || !tests.Any())
+    {
+        <div class="card border-0 shadow-sm empty-card">
+            <div class="card-body text-center py-5">
+                <div class="fs-1 mb-2">📋</div>
+                <h5 class="mb-2">No tests yet</h5>
+                <p class="text-muted mb-3">Create your first assessment to start inviting candidates.</p>
+                <a href="/company/tests/create" class="btn btn-primary px-4">Create New Test</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h5 class="mb-0 fw-semibold">Your Tests</h5>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <input class="form-control form-control-sm" style="min-width: 200px; max-width: 280px"
+                       placeholder="Search tests..."
+                       @bind="testSearch" @bind:event="oninput" />
+                <select class="form-select form-select-sm" style="width: auto" @bind="statusFilter">
+                    <option value="all">All status</option>
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Closed">Closed</option>
+                    <option value="Completed">Completed</option>
+                </select>
+                <span class="text-muted small">@FilteredTests.Count / @tests.Count</span>
+            </div>
+        </div>
+
+        @if (FilteredTests.Count == 0)
+        {
+            <div class="alert alert-info">No tests match your search.</div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var (test, index) in FilteredTests.Select((t, i) => (t, i)))
+                {
+                    var accent = GetAccent(test.Status.ToString(), index);
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card test-card shadow-sm h-100 border-0" style="border-top: 4px solid @accent.Border !important;">
+                            <div class="card-body p-3 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                                    <h6 class="fw-semibold mb-0">@test.Title</h6>
+                                    <span class="status-badge" style="background:@accent.BadgeBg; color:@accent.BadgeText;">@test.Status</span>
+                                </div>
+                                <p class="text-muted small mb-3 flex-grow-1">
+                                    @(string.IsNullOrWhiteSpace(test.Description) ? "No description" : test.Description)
+                                </p>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-4">
+                                        <div class="metric" style="background:@accent.Soft;">
+                                            <div class="small text-muted">Qs</div>
+                                            <div class="fw-bold" style="color:@accent.Border;">@test.TotalQuestions</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="metric" style="background:@accent.Soft;">
+                                            <div class="small text-muted">Invited</div>
+                                            <div class="fw-bold" style="color:@accent.Border;">@test.TotalInvitations</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="metric" style="background:@accent.Soft;">
+                                            <div class="small text-muted">Done</div>
+                                            <div class="fw-bold" style="color:@accent.Border;">@test.CompletedCount</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <small class="text-muted">@test.CreatedAt.ToString("dd MMM yyyy")</small>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="/company/tests/@test.Id" class="btn btn-outline-secondary">View</a>
+                                        <a href="/company/tests/@test.Id/invite" class="btn text-white"
+                                           style="background:@accent.Border; border-color:@accent.Border;">Invite</a>
+                                        <a href="/company/tests/@test.Id/results" class="btn btn-outline-primary">Results</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .company-hero {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a 55%, #6d28d9);
+        border-radius: 1.1rem;
+        color: #fff;
+        padding: 1.75rem 1.5rem;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, .25);
+    }
+
+    .stat-pill {
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: .85rem;
+        padding: .85rem .75rem;
+        text-align: center;
+    }
+
+    .test-card {
+        border-radius: 1rem;
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .test-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(0,0,0,.12) !important;
+        }
+
+    .status-badge {
+        font-size: .72rem;
+        padding: .3rem .65rem;
+        border-radius: 999px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .metric {
+        border-radius: .75rem;
+        padding: .55rem .35rem;
+        text-align: center;
+    }
+
+    .empty-card {
+        border-radius: 1rem;
+    }
+</style>
+
+@code {
+    private List<TestDto>? tests;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private string testSearch = "";
+    private string statusFilter = "all";
+
+    private int totalTests => tests?.Count ?? 0;
+    private int totalInvited => tests?.Sum(t => t.TotalInvitations) ?? 0;
+    private int totalCompleted => tests?.Sum(t => t.CompletedCount) ?? 0;
+    private int activeTests => tests?.Count(t => t.Status.ToString() == "Active") ?? 0;
+
+    private List<TestDto> FilteredTests =>
+        (tests ?? new())
+            .Where(t =>
+            {
+                var matchSearch = string.IsNullOrWhiteSpace(testSearch)
+                    || (t.Title?.Contains(testSearch, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (t.Description?.Contains(testSearch, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || t.Status.ToString().Contains(testSearch, StringComparison.OrdinalIgnoreCase);
+
+                var matchStatus = statusFilter == "all"
+                    || t.Status.ToString().Equals(statusFilter, StringComparison.OrdinalIgnoreCase);
+
+                return matchSearch && matchStatus;
+            })
+            .ToList();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var result = await TestService.GetMyTests();
+            if (result != null && result.IsSuccess)
+                tests = result.Data;
+            else
+                errorMessage = result?.Message ?? "Failed to load tests";
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private (string Border, string Soft, string BadgeBg, string BadgeText) GetAccent(string status, int index)
+    {
+        if (string.Equals(status, "Active", StringComparison.OrdinalIgnoreCase))
+            return ("#16a34a", "#dcfce7", "#dcfce7", "#166534");
+        if (string.Equals(status, "Closed", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(status, "Completed", StringComparison.OrdinalIgnoreCase))
+            return ("#64748b", "#f1f5f9", "#e2e8f0", "#334155");
+
+        var palette = new (string, string, string, string)[]
+        {
+            ("#4f46e5", "#eef2ff", "#e0e7ff", "#3730a3"),
+            ("#db2777", "#fce7f3", "#fbcfe8", "#9d174d"),
+            ("#0891b2", "#ecfeff", "#cffafe", "#155e75"),
+            ("#d97706", "#fffbeb", "#fde68a", "#92400e"),
+            ("#7c3aed", "#f5f3ff", "#ddd6fe", "#5b21b6"),
+        };
+        return palette[index % palette.Length];
+    }
+}

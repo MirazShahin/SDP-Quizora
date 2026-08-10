@@ -1,0 +1,65 @@
+﻿@page "/ai/coach"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@inject AiClient Ai
+@inject NavigationManager Nav
+
+<div class="container py-4" style="max-width: 800px;">
+    <h3 class="fw-bold mb-1">AI Interview Coach</h3>
+    <p class="text-muted mb-4">Get model answers and feedback on interview questions.</p>
+
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold">Interview question</label>
+            <textarea class="form-control mb-3" rows="3" @bind="question"
+                      placeholder="e.g. Explain polymorphism with a real example"></textarea>
+
+            <label class="form-label fw-semibold">Your answer (optional)</label>
+            <textarea class="form-control mb-3" rows="4" @bind="userAnswer"
+                      placeholder="Write your answer for feedback..."></textarea>
+
+            <button class="btn btn-primary" disabled="@loading" @onclick="GetFeedback">
+                @(loading ? "Thinking..." : "Get Coaching")
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    @if (!string.IsNullOrEmpty(feedback))
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white fw-semibold">Coach Feedback</div>
+            <div class="card-body" style="white-space: pre-wrap;">@feedback</div>
+        </div>
+    }
+</div>
+
+@code {
+    private string question = "";
+    private string userAnswer = "";
+    private string? feedback;
+    private string? error;
+    private bool loading;
+
+    private async Task GetFeedback()
+    {
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            error = "Please enter a question.";
+            return;
+        }
+
+        loading = true;
+        error = null;
+        feedback = null;
+
+        var (text, err) = await Ai.CoachAsync(question, string.IsNullOrWhiteSpace(userAnswer) ? null : userAnswer);
+        feedback = text;
+        error = err;
+        loading = false;
+    }
+}

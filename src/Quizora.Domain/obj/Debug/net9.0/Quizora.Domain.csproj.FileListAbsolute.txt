@@ -1,0 +1,11 @@
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\bin\Debug\net9.0\Quizora.Domain.deps.json
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\bin\Debug\net9.0\Quizora.Domain.dll
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\bin\Debug\net9.0\Quizora.Domain.pdb
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.AssemblyInfoInputs.cache
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.AssemblyInfo.cs
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.csproj.CoreCompileInputs.cache
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.dll
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\refint\Quizora.Domain.dll
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\Quizora.Domain.pdb
+D:\SDP\Quizora-With-Profile\Quizora\src\Quizora.Domain\obj\Debug\net9.0\ref\Quizora.Domain.dll

@@ -1,0 +1,171 @@
+﻿@page "/candidate/cv"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-1">My CV</h2>
+            <p class="text-muted small mb-4">Upload a PDF resume (max 10 MB). Companies can view it.</p>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(msg))
+                    {
+                        <div class="alert alert-success py-2">@msg</div>
+                    }
+                    @if (!string.IsNullOrEmpty(err))
+                    {
+                        <div class="alert alert-danger py-2">@err</div>
+                    }
+
+                    @if (loading)
+                    {
+                        <p class="text-muted mb-0">Loading...</p>
+                    }
+                    else if (hasCv)
+                    {
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 p-3 rounded border">
+                            <span class="badge bg-success">Uploaded</span>
+                            <span class="small fw-semibold">@fileName</span>
+                            <span class="small text-muted">(@FormatSize(fileSize))</span>
+                            @if (uploadedAt.HasValue)
+                            {
+                                <span class="small text-muted">· @uploadedAt.Value.ToLocalTime().ToString("dd MMM yyyy")</span>
+                            }
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mb-4">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="Download">Download</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" @onclick="Delete">Remove</button>
+                        </div>
+                        <hr />
+                        <p class="small text-muted mb-2">Replace with a new PDF:</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-3">No CV uploaded yet.</p>
+                    }
+
+                    <InputFile OnChange="OnSelected" accept=".pdf,application/pdf" class="form-control" />
+                    <button type="button" class="btn btn-primary mt-3" disabled="@(file == null || busy)" @onclick="Upload">
+                        @(busy ? "Uploading..." : hasCv ? "Replace PDF" : "Upload PDF")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool loading = true, busy, hasCv;
+    private string? msg, err, fileName;
+    private long fileSize;
+    private DateTime? uploadedAt;
+    private IBrowserFile? file;
+
+    protected override async Task OnInitializedAsync() => await LoadInfo();
+
+    private async Task LoadInfo()
+    {
+        loading = true;
+        err = null;
+        try
+        {
+            var response = await Http.GetAsync("api/Profile/cv/mine");
+            var json = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("isSuccess", out var ok) || !ok.GetBoolean()) return;
+            if (!root.TryGetProperty("data", out var data)) return;
+
+            hasCv = data.TryGetProperty("hasCv", out var hc) && hc.GetBoolean();
+            if (hasCv)
+            {
+                fileName = data.TryGetProperty("fileName", out var fn) ? fn.GetString() : "cv.pdf";
+                fileSize = data.TryGetProperty("fileSize", out var fs) ? fs.GetInt64() : 0;
+                if (data.TryGetProperty("uploadedAt", out var ua) && ua.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    uploadedAt = ua.GetDateTime();
+            }
+        }
+        catch (Exception ex) { err = ex.Message; }
+        finally { loading = false; }
+    }
+
+    private void OnSelected(InputFileChangeEventArgs e)
+    {
+        err = null;
+        file = e.File;
+        if (file.Size > 10 * 1024 * 1024) { err = "Max 10 MB"; file = null; }
+        else if (!file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        { err = "PDF only"; file = null; }
+    }
+
+    private async Task Upload()
+    {
+        if (file == null) return;
+        busy = true; msg = err = null;
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            var stream = file.OpenReadStream(10 * 1024 * 1024);
+            var sc = new StreamContent(stream);
+            sc.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            content.Add(sc, "file", file.Name);
+
+            var response = await Http.PostAsync("api/Profile/cv", content);
+            var json = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+            {
+                msg = "CV uploaded successfully";
+                file = null;
+                await LoadInfo();
+            }
+            else err = res?.Message ?? "Upload failed";
+        }
+        catch (Exception ex) { err = ex.Message; }
+        finally { busy = false; }
+    }
+
+    private async Task Delete()
+    {
+        msg = err = null;
+        var response = await Http.DeleteAsync("api/Profile/cv");
+        var json = await response.Content.ReadAsStringAsync();
+        var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (res?.IsSuccess == true)
+        {
+            hasCv = false; fileName = null; msg = "CV removed";
+        }
+        else err = res?.Message ?? "Delete failed";
+    }
+
+    private async Task Download()
+    {
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync("api/Profile/cv/download/mine");
+            await JS.InvokeVoidAsync("quizoraDownloadFile", fileName ?? "cv.pdf", "application/pdf",
+                Convert.ToBase64String(bytes));
+        }
+        catch (Exception ex) { err = ex.Message; }
+    }
+
+    private static string FormatSize(long b) =>
+        b < 1024 * 1024 ? $"{b / 1024.0:0.0} KB" : $"{b / (1024.0 * 1024):0.00} MB";
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

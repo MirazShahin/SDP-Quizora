@@ -1,0 +1,156 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Quizora.Web.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">
+            Quizora
+            <span class="brand-sub">by HaMiko</span>
+        </a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                @if (isCompany)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="company/dashboard">
+                            <span class="bi bi-speedometer2" aria-hidden="true"></span> Dashboard
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="company/results">
+                            <span class="bi bi-bar-chart-line" aria-hidden="true"></span> Results
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="company/cvs">
+                            <span class="bi bi-file-earmark-pdf" aria-hidden="true"></span> Candidate CVs
+                        </NavLink>
+                    </div>
+                }
+                else if (isCandidate)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="candidate/dashboard">
+                            <span class="bi bi-person-badge" aria-hidden="true"></span> My Tests
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="ai/coach">
+                            <span class="bi bi-robot" aria-hidden="true"></span> AI Coach
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="ai/mock-interview">
+                            <span class="bi bi-chat-dots" aria-hidden="true"></span> Mock Interview
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="ai/weak-topics">
+                            <span class="bi bi-graph-down" aria-hidden="true"></span> Weak Topics
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="interview">
+                            <span class="bi bi-book" aria-hidden="true"></span> Interview Prep
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="practice">
+                            <span class="bi bi-pencil-square" aria-hidden="true"></span> Practice
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="mock-tests">
+                            <span class="bi bi-stopwatch" aria-hidden="true"></span> Mock Tests
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="candidate/cv">
+                            <span class="bi bi-file-earmark-person" aria-hidden="true"></span> My CV
+                        </NavLink>
+                    </div>
+                }
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="profile">
+                        <span class="bi bi-person-circle" aria-hidden="true"></span> Profile
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <button class="nav-link btn btn-link text-start" @onclick="Logout">
+                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                    </button>
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="login">
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="register">
+                        <span class="bi bi-person-plus" aria-hidden="true"></span> Register
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="interview">
+                        <span class="bi bi-book" aria-hidden="true"></span> Interview Prep
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+<style>
+    .navbar-brand {
+        line-height: 1.15;
+    }
+
+    .brand-sub {
+        display: block;
+        font-size: 0.65rem;
+        font-weight: 500;
+        opacity: 0.75;
+        letter-spacing: 0.04em;
+        margin-top: 1px;
+    }
+</style>
+
+@code {
+    private bool isCompany = false;
+    private bool isCandidate = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isCompany = user.IsInRole("Company");
+        isCandidate = user.IsInRole("Candidate");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

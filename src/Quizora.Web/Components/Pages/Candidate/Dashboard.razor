@@ -1,0 +1,233 @@
+@page "/candidate/dashboard"
+@rendermode InteractiveServer
+@using Quizora.Application.DTOs.Invitations
+@using Quizora.Domain.Enums
+@using Quizora.Web.Services
+@inject InvitationService InvitationService
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Candidate Workspace</h2>
+            <p class="text-muted mb-0 small">Your tests, results &amp; interview updates</p>
+        </div>
+    </div>
+
+    @* Notifications *@
+    <div class="card border-0 shadow-sm mb-4 notif-card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 fw-semibold">
+                    🔔 Notifications
+                    @if (unreadCount > 0)
+                    {
+                        <span class="badge bg-danger ms-1">@unreadCount</span>
+                    }
+                </h5>
+                @if (unreadCount > 0)
+                {
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="MarkAllRead">
+                        Mark all read
+                    </button>
+                }
+            </div>
+
+            @if (notifLoading)
+            {
+                <p class="text-muted small mb-0">Loading notifications...</p>
+            }
+            else if (notifications.Count == 0)
+            {
+                <p class="text-muted small mb-0">No notifications yet. When a company shares your score or interview call, it appears here.</p>
+            }
+            else
+            {
+                @foreach (var n in notifications)
+                {
+                    <div class="notif-item mb-2 p-3 rounded @(n.IsRead ? "read" : "unread")"
+                         @onclick="() => MarkRead(n)">
+                        <div class="d-flex justify-content-between gap-2">
+                            <strong>@n.Title</strong>
+                            <small class="text-muted text-nowrap">@n.CreatedAt.ToLocalTime().ToString("dd MMM, hh:mm tt")</small>
+                        </div>
+                        <div class="small mt-1 opacity-90">@n.Message</div>
+                        <div class="mt-1">
+                            @if (n.Type == "InterviewCall")
+                            {
+                                <span class="badge bg-success">Interview Call</span>
+                            }
+                            else if (n.Type == "Result")
+                            {
+                                <span class="badge bg-info text-dark">Result</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <h4 class="fw-semibold mb-3">My Tests</h4>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 text-muted">Loading invitations...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (invitations == null || !invitations.Any())
+    {
+        <div class="alert alert-info border-0 shadow-sm">
+            You have not been invited to any test yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var inv in invitations)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 test-inv-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                                <h5 class="card-title mb-0 fw-semibold">@inv.TestTitle</h5>
+                                <span class="badge @(inv.Status == InvitationStatus.Completed ? "bg-success" : "bg-warning text-dark")">
+                                    @inv.Status
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-3">
+                                Company: <strong>@inv.CompanyName</strong><br />
+                                Invited: @inv.CreatedAt.ToString("dd MMM yyyy")
+                            </p>
+
+                            @if (inv.Status == InvitationStatus.Pending)
+                            {
+                                <a href="/candidate/test/@inv.Id" class="btn btn-primary btn-sm px-3">
+                                    Start Test →
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-secondary btn-sm" disabled>Completed</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .notif-item { border: 1px solid var(--border-color, rgba(127,127,127,.25)); transition: background .15s; cursor: pointer; }
+    .notif-item.unread { border-color: #0d6efd; background: rgba(13,110,253,.08); }
+    .notif-item.read { opacity: .8; }
+    .test-inv-card { border-radius: 12px; transition: transform .15s, box-shadow .15s; }
+    .test-inv-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.1) !important; }
+</style>
+
+@code {
+    private List<InvitationDto>? invitations;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    private List<NotifItem> notifications = new();
+    private bool notifLoading = true;
+    private int unreadCount => notifications.Count(n => !n.IsRead);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var notifTask = LoadNotifications();
+            var invTask = LoadInvitations();
+            await Task.WhenAll(notifTask, invTask);
+        }
+        finally
+        {
+            isLoading = false;
+            notifLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadInvitations()
+    {
+        try
+        {
+            var result = await InvitationService.GetMyInvitations();
+            if (result != null && result.IsSuccess)
+                invitations = result.Data;
+            else
+                errorMessage = result?.Message ?? "Failed to load invitations";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Notifications");
+            var json = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<NotifItem>>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+                notifications = res.Data ?? new();
+        }
+        catch { /* ignore */ }
+    }
+
+    private async Task MarkRead(NotifItem n)
+    {
+        if (n.IsRead) return;
+        try
+        {
+            await Http.PostAsync($"api/Notifications/{n.Id}/read", null);
+            n.IsRead = true;
+        }
+        catch { }
+    }
+
+    private async Task MarkAllRead()
+    {
+        try
+        {
+            await Http.PostAsync("api/Notifications/read-all", null);
+            foreach (var n in notifications) n.IsRead = true;
+        }
+        catch { }
+    }
+
+    public class NotifItem
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "";
+        public bool IsRead { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

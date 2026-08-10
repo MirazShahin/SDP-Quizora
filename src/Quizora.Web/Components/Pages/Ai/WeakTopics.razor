@@ -1,0 +1,56 @@
+﻿@page "/ai/weak-topics"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@inject AiClient Ai
+
+<div class="container py-4" style="max-width: 700px;">
+    <h3 class="fw-bold mb-1">Weak Topics</h3>
+    <p class="text-muted mb-4">Based on your practice history — focus here next.</p>
+
+    <button class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
+        @(loading ? "Analyzing..." : "Analyze my weak topics")
+    </button>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    @if (topics != null)
+    {
+        @if (!topics.Any())
+        {
+            <div class="alert alert-info">No suggestions yet. Practice more first.</div>
+        }
+        else
+        {
+            <div class="list-group shadow-sm">
+                @foreach (var t in topics)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@t</span>
+                        <a href="/practice" class="btn btn-sm btn-outline-primary">Practice</a>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<string>? topics;
+    private string? error;
+    private bool loading;
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        topics = null;
+
+        var (data, err) = await Ai.WeakTopicsAsync();
+        topics = data;
+        error = err;
+        loading = false;
+    }
+}

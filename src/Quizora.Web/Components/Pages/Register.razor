@@ -1,0 +1,165 @@
+﻿@page "/register"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@using Quizora.Application.DTOs.Auth
+@using Quizora.Domain.Enums
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="text-center fw-bold mb-1">Register</h3>
+                    <p class="text-center text-muted mb-4">Create your account</p>
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success">
+                            @successMessage
+                            <div><a href="/login">Go to Login</a></div>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">@errorMessage</div>
+                        }
+
+                        <EditForm Model="model" OnValidSubmit="HandleRegister">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <InputText class="form-control" @bind-Value="model.FullName" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <InputText class="form-control" @bind-Value="model.Email" />
+                                <div class="form-text">e.g. name@gmail.com</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <InputText type="password" class="form-control" @bind-Value="model.Password" />
+                                <div class="form-text">
+                                    Min 8 chars · Uppercase · Lowercase · Number · Special (!@@#$%)
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                                @(isLoading ? "Registering..." : "Register")
+                            </button>
+                        </EditForm>
+
+                        <div class="text-center mt-3">
+                            <a href="/login">Already have an account? Login</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterDto model = new() { Role = UserRole.Candidate };
+    private bool isLoading;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private async Task HandleRegister()
+    {
+        errorMessage = null;
+
+        var clientError = ValidateClient();
+        if (clientError != null)
+        {
+            errorMessage = clientError;
+            return;
+        }
+
+        isLoading = true;
+        try
+        {
+            var result = await AuthService.Register(model);
+            if (result != null && result.IsSuccess)
+            {
+                successMessage = "Registration successful! Please login.";
+            }
+            else
+            {
+                errorMessage = result?.Message ?? "Registration failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string? ValidateClient()
+    {
+        if (string.IsNullOrWhiteSpace(model.FullName))
+            return "Full name is required";
+
+        var emailErr = ValidateEmail(model.Email);
+        if (emailErr != null) return emailErr;
+
+        var passErr = ValidatePassword(model.Password);
+        if (passErr != null) return passErr;
+
+        if (model.Role == UserRole.Company && string.IsNullOrWhiteSpace(model.CompanyName))
+            return "Company name is required";
+
+        return null;
+    }
+
+    private static string? ValidateEmail(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return "Email is required";
+
+        email = email.Trim();
+        var pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(email, pattern))
+            return "Please enter a valid email address (e.g. name@gmail.com)";
+
+        var domain = email.ToLowerInvariant().Split('@').LastOrDefault() ?? "";
+        var typos = new HashSet<string>
+        {
+            "gmail.cm", "gmail.con", "gmail.co", "gmail.cpm", "gmail.om", "gmail.comm",
+            "gmal.com", "gmial.com", "gamil.com", "gmaill.com",
+            "yahoo.cm", "yahoo.con", "yaho.com",
+            "outlook.cm", "outlook.con",
+            "hotmail.cm", "hotmail.con"
+        };
+
+        if (typos.Contains(domain))
+            return "Email domain looks wrong. Did you mean gmail.com / yahoo.com / outlook.com?";
+
+        return null;
+    }
+
+    private static string? ValidatePassword(string? password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return "Password is required";
+        if (password.Length < 8)
+            return "Password must be at least 8 characters";
+        if (!password.Any(char.IsUpper))
+            return "Need at least one uppercase letter (A-Z)";
+        if (!password.Any(char.IsLower))
+            return "Need at least one lowercase letter (a-z)";
+        if (!password.Any(char.IsDigit))
+            return "Need at least one number (0-9)";
+        if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+            return "Need at least one special character (!@#$%^&*)";
+        return null;
+    }
+}

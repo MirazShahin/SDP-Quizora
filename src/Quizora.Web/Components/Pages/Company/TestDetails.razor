@@ -1,0 +1,224 @@
+﻿@page "/company/tests/{TestId:guid}"
+@rendermode InteractiveServer
+@using Quizora.Application.DTOs.Tests
+@using Quizora.Application.DTOs.Questions
+@using Quizora.Web.Services
+@inject TestService TestService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Loading...</p>
+        </div>
+    }
+    else if (test == null)
+    {
+        <div class="alert alert-danger">Test not found</div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>@test.Title</h2>
+                <p class="text-muted mb-0">@test.Description</p>
+            </div>
+            <div>
+                <a href="/company/tests/@TestId/invite" class="btn btn-success me-2">Invite Candidates</a>
+                <a href="/company/dashboard" class="btn btn-secondary">Back</a>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5>@test.TotalQuestions</h5>
+                        <small class="text-muted">Questions</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5>@test.TotalInvitations</h5>
+                        <small class="text-muted">Invited</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5>@test.CompletedCount</h5>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5><span class="badge @(test.Status.ToString() == "Active" ? "bg-success" : "bg-secondary")">@test.Status</span></h5>
+                        <small class="text-muted">Status</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Questions</h5>
+                <button class="btn btn-sm btn-primary" @onclick="ShowAddQuestion">+ Add Question</button>
+            </div>
+            <div class="card-body">
+                @if (showAddForm)
+                {
+                    <div class="border rounded p-3 mb-4 bg-light">
+                        <h6>Add New Question</h6>
+
+                        @if (!string.IsNullOrEmpty(questionError))
+                        {
+                            <div class="alert alert-danger">@questionError</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Question Text</label>
+                            <InputTextArea class="form-control" rows="2" @bind-Value="newQuestion.Text" />
+                        </div>
+
+                        @for (int i = 0; i < newQuestion.Options.Count; i++)
+                        {
+                            var index = i;
+                            <div class="input-group mb-2">
+                                <div class="input-group-text">
+                                    <input type="radio" name="correctOption" checked="@newQuestion.Options[index].IsCorrect"
+                                           @onchange="() => SetCorrect(index)" />
+                                </div>
+                                <InputText class="form-control" @bind-Value="newQuestion.Options[index].Text" placeholder="@($"Option {index + 1}")" />
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-primary btn-sm" @onclick="AddQuestion" disabled="@isAdding">
+                                @(isAdding ? "Adding..." : "Save Question")
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => showAddForm = false">Cancel</button>
+                        </div>
+                    </div>
+                }
+
+                @if (test.TotalQuestions == 0)
+                {
+                    <p class="text-muted">No questions added yet.</p>
+                }
+                else
+                {
+                    <p class="text-success">@test.TotalQuestions question(s) already added.</p>
+                    <p class="text-muted small">Question list view will be improved later.</p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid TestId { get; set; }
+
+    private TestDto? test;
+    private bool isLoading = true;
+    private bool showAddForm = false;
+    private bool isAdding = false;
+    private string? questionError;
+
+    private CreateQuestionDto newQuestion = new()
+    {
+        Options = new List<CreateOptionDto>
+        {
+            new(), new(), new(), new()
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadTest();
+        }
+    }
+
+    private async Task LoadTest()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await TestService.GetMyTests();
+            if (result?.IsSuccess == true)
+            {
+                test = result.Data?.FirstOrDefault(t => t.Id == TestId);
+            }
+        }
+        catch { }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowAddQuestion()
+    {
+        showAddForm = true;
+        questionError = null;
+        newQuestion = new CreateQuestionDto
+        {
+            Options = new List<CreateOptionDto> { new(), new(), new(), new() }
+        };
+    }
+
+    private void SetCorrect(int index)
+    {
+        for (int i = 0; i < newQuestion.Options.Count; i++)
+        {
+            newQuestion.Options[i].IsCorrect = (i == index);
+        }
+    }
+
+    private async Task AddQuestion()
+    {
+        if (string.IsNullOrWhiteSpace(newQuestion.Text))
+        {
+            questionError = "Question text is required";
+            return;
+        }
+
+        if (newQuestion.Options.Any(o => string.IsNullOrWhiteSpace(o.Text)))
+        {
+            questionError = "All 4 options are required";
+            return;
+        }
+
+        if (newQuestion.Options.Count(o => o.IsCorrect) != 1)
+        {
+            questionError = "Please select exactly one correct answer";
+            return;
+        }
+
+        isAdding = true;
+        questionError = null;
+
+        var result = await TestService.AddQuestion(TestId, newQuestion);
+
+        if (result != null && result.IsSuccess)
+        {
+            showAddForm = false;
+            await LoadTest();
+        }
+        else
+        {
+            questionError = result?.Message ?? "Failed to add question";
+        }
+
+        isAdding = false;
+    }
+}

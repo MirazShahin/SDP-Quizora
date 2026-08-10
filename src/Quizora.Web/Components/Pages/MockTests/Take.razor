@@ -1,0 +1,559 @@
+﻿@page "/mock-tests/take"
+@rendermode InteractiveServer
+@using Quizora.Web.Models.Trivia
+@using Quizora.Web.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using Blazored.LocalStorage
+@inject QuizApiClient QuizApi
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@implements IDisposable
+
+<div class="container py-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="text-muted mt-3">Building your paper · avoiding previous questions…</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger shadow-sm">@error</div>
+        <a class="btn btn-outline-secondary" href="/mock-tests">← All Mocks</a>
+    }
+    else if (showResult && score != null)
+    {
+        var analysis = BuildAnalysis(score);
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-3 result-hero">
+                    <div class="card-body text-center p-4">
+                        <div class="text-muted small text-uppercase mb-1">Examination Result</div>
+                        <h3 class="fw-bold mb-1">@title</h3>
+                        <div class="display-4 fw-bold my-3 @analysis.ScoreClass">
+                            @score.Score<span class="fs-4 text-muted"> / @score.TotalQuestions</span>
+                        </div>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap text-muted small mb-3">
+                            <span>📊 @score.Percentage%</span>
+                            <span>⏱ @FormatTime(elapsedSeconds)</span>
+                            <span>✅ @score.Score correct</span>
+                            <span>❌ @(score.TotalQuestions - score.Score) wrong</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-2 @analysis.BadgeClass">@analysis.Grade</span>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">📈 Performance Analysis</h5>
+                        <p class="mb-3">@analysis.Summary</p>
+                        <ul class="mb-0">
+                            @foreach (var tip in analysis.Tips)
+                            {
+                                <li class="mb-1">@tip</li>
+                            }
+                        </ul>
+                        @if (analysis.WeakCategories.Any())
+                        {
+                            <div class="mt-3">
+                                <div class="small text-muted mb-1">Focus areas</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var w in analysis.WeakCategories)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border">@w</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">📝 Answer Review</h5>
+                        @{
+                            var i = 1;
+                        }
+                        @foreach (var r in score.Review)
+                        {
+                            <div class="review-item mb-3 p-3 rounded @(r.IsCorrect ? "ok" : "bad")">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Q@(i++)</span>
+                                    <span>@(r.IsCorrect ? "✓ Correct" : "✗ Incorrect")</span>
+                                </div>
+                                <div class="fw-semibold mb-1">@r.QuestionText</div>
+                                <div class="small">Your answer: <strong>@r.SelectedOptionText</strong></div>
+                                @if (!r.IsCorrect)
+                                {
+                                    <div class="small text-success mt-1">Correct: @r.CorrectOptionText</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-center mb-4">
+                    <a class="btn btn-dark px-4" href="/mock-tests">All Mocks</a>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Restart">
+                        Retake (new questions)
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (quiz != null)
+    {
+        var q = quiz.Questions[index];
+
+        <div class="exam-topbar d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 p-3 rounded shadow-sm">
+            <div>
+                <div class="fw-semibold">@title</div>
+                <small class="text-muted">Question @(index + 1) of @quiz.Questions.Count · Answered @answers.Count</small>
+            </div>
+            <div class="timer-pill @(secondsLeft <= 60 ? "danger" : "")">
+                ⏱ @FormatTime(secondsLeft)
+            </div>
+        </div>
+
+        <div class="progress mb-4" style="height:5px">
+            <div class="progress-bar @(secondsLeft <= 60 ? "bg-danger" : "bg-primary")"
+                 style="width:@ProgressPercent()%"></div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-secondary">@q.Category</span>
+                            <span class="badge bg-info text-dark">@q.Difficulty</span>
+                        </div>
+                        <h5 class="fw-semibold mb-4 lh-base">@q.Text</h5>
+
+                        <div class="d-grid gap-2">
+                            @foreach (var opt in q.Options)
+                            {
+                                var sel = answers.GetValueOrDefault(q.Id) == opt.Id;
+                                <button type="button"
+                                        class="btn opt-btn text-start @(sel ? "selected" : "")"
+                                        @onclick="() => Select(q.Id, opt.Id)">
+                                    @opt.Text
+                                </button>
+                            }
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    disabled="@(index == 0)" @onclick="Prev">
+                                ← Prev
+                            </button>
+
+                            @if (index < quiz.Questions.Count - 1)
+                            {
+                                <button type="button" class="btn btn-dark" @onclick="Next">Next →</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-success"
+                                        disabled="@submitting" @onclick="() => Submit()">
+                                    @if (submitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    Submit Paper
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-1 justify-content-center mt-3">
+                    @for (int n = 0; n < quiz.Questions.Count; n++)
+                    {
+                        var qi = n;
+                        var qid = quiz.Questions[qi].Id;
+                        var answered = answers.ContainsKey(qid);
+                        var current = qi == index;
+                        <button type="button"
+                                class="btn btn-sm nav-q @(current ? "btn-dark" : answered ? "btn-outline-success" : "btn-outline-secondary")"
+                                @onclick="() => GoTo(qi)">
+                            @(qi + 1)
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .exam-topbar {
+        background: rgba(127,127,127,.08);
+    }
+
+    .timer-pill {
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: .4rem 1rem;
+        border-radius: 999px;
+        background: #212529;
+        color: #fff;
+    }
+
+        .timer-pill.danger {
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+    @@keyframes pulse {
+        50% {
+            opacity: .75;
+        }
+    }
+
+    .opt-btn {
+        border: 1px solid rgba(127,127,127,.35);
+        border-radius: 10px;
+        padding: .85rem 1rem;
+        white-space: normal;
+    }
+
+        .opt-btn:hover {
+            border-color: #0d6efd;
+        }
+
+        .opt-btn.selected {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+    .review-item.ok {
+        background: rgba(25,135,84,.08);
+        border: 1px solid rgba(25,135,84,.35);
+    }
+
+    .review-item.bad {
+        background: rgba(220,53,69,.08);
+        border: 1px solid rgba(220,53,69,.35);
+    }
+
+    .nav-q {
+        min-width: 2.2rem;
+    }
+
+    .result-hero {
+        border-radius: 16px;
+    }
+</style>
+
+@code {
+    private string category = "Linux";
+    private string difficulty = "EASY";
+    private string title = "Mock Test";
+    private int amount = 10;
+    private int totalMinutes = 15;
+
+    private bool isLoading = true, showResult, submitting, timerStarted;
+    private string? error;
+    private TriviaQuizStart? quiz;
+    private TriviaScore? score;
+    private int index;
+    private Dictionary<string, string> answers = new();
+
+    private int secondsLeft, elapsedSeconds, totalSeconds;
+    private System.Timers.Timer? timer;
+
+    private const string SeenKeyPrefix = "mock_seen_";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("category", out var c) && !string.IsNullOrWhiteSpace(c))
+            category = c.ToString();
+        if (query.TryGetValue("difficulty", out var d) && !string.IsNullOrWhiteSpace(d))
+            difficulty = d.ToString();
+        if (query.TryGetValue("amount", out var a) && int.TryParse(a, out var amt))
+            amount = amt;
+        if (query.TryGetValue("minutes", out var m) && int.TryParse(m, out var mins) && mins > 0)
+            totalMinutes = mins;
+        if (query.TryGetValue("title", out var t) && !string.IsNullOrWhiteSpace(t))
+            title = Uri.UnescapeDataString(t.ToString());
+
+        await LoadQuiz();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (quiz != null && !showResult && !timerStarted && !isLoading)
+        {
+            timerStarted = true;
+            totalSeconds = Math.Max(60, totalMinutes * 60);
+            secondsLeft = totalSeconds;
+            elapsedSeconds = 0;
+            StartTimer();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadQuiz()
+    {
+        isLoading = true;
+        error = null;
+        showResult = false;
+        answers.Clear();
+        index = 0;
+        quiz = null;
+        timerStarted = false;
+        StopTimer();
+
+        var seen = await GetSeenFingerprints();
+
+        var (data, err) = await QuizApi.StartAsync(amount, category, difficulty, seen);
+
+        if ((err != null || data == null || data.Questions.Count == 0) && seen.Count > 0)
+        {
+            await ClearSeen();
+            (data, err) = await QuizApi.StartAsync(amount, category, difficulty, null);
+        }
+
+        if (err != null || data == null || data.Questions.Count == 0)
+        {
+            error = err ?? "No questions available for this mock.";
+            isLoading = false;
+            return;
+        }
+
+        quiz = data;
+        isLoading = false;
+    }
+
+    private static string Fingerprint(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return "";
+        var s = text.Trim().ToLowerInvariant();
+        while (s.Contains("  ")) s = s.Replace("  ", " ");
+        return s;
+    }
+
+    private async Task<List<string>> GetSeenFingerprints()
+    {
+        try
+        {
+            var key = SeenKeyPrefix + category;
+            return await LocalStorage.GetItemAsync<List<string>>(key) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    private async Task ClearSeen()
+    {
+        try { await LocalStorage.RemoveItemAsync(SeenKeyPrefix + category); }
+        catch { }
+    }
+
+    private async Task MarkSeen(IEnumerable<TriviaQuizQuestion> questions)
+    {
+        try
+        {
+            var key = SeenKeyPrefix + category;
+            var seen = await GetSeenFingerprints();
+
+            foreach (var q in questions)
+            {
+                var fp = Fingerprint(q.Text);
+                if (fp.Length > 0 && !seen.Contains(fp, StringComparer.OrdinalIgnoreCase))
+                    seen.Add(fp);
+            }
+
+            if (seen.Count > 100)
+                seen = seen.TakeLast(100).ToList();
+
+            await LocalStorage.SetItemAsync(key, seen);
+        }
+        catch { }
+    }
+
+    private void StartTimer()
+    {
+        StopTimer();
+        timer = new System.Timers.Timer(1000);
+        timer.Elapsed += async (_, _) =>
+        {
+            if (showResult || submitting) return;
+            secondsLeft--;
+            elapsedSeconds++;
+            if (secondsLeft <= 0)
+            {
+                secondsLeft = 0;
+                StopTimer();
+                await InvokeAsync(async () =>
+                {
+                    if (!showResult && !submitting)
+                        await Submit(auto: true);
+                });
+            }
+            else await InvokeAsync(StateHasChanged);
+        };
+        timer.AutoReset = true;
+        timer.Start();
+    }
+
+    private void StopTimer()
+    {
+        if (timer == null) return;
+        timer.Stop();
+        timer.Dispose();
+        timer = null;
+    }
+
+    private void Select(string qId, string optId) => answers[qId] = optId;
+    private void Next() { if (index < (quiz?.Questions.Count ?? 0) - 1) index++; }
+    private void Prev() { if (index > 0) index--; }
+    private void GoTo(int i) { if (quiz != null && i >= 0 && i < quiz.Questions.Count) index = i; }
+
+    private async Task Submit(bool auto = false)
+    {
+        if (quiz == null || submitting || showResult) return;
+        submitting = true;
+        StopTimer();
+        try
+        {
+            var body = new TriviaSubmit
+            {
+                QuizId = quiz.QuizId,
+                Answers = answers.Select(kv => new TriviaSubmitAnswer
+                {
+                    QuestionId = kv.Key,
+                    SelectedOptionId = kv.Value
+                }).ToList()
+            };
+
+            var (data, err) = await QuizApi.SubmitAsync(body);
+            if (err != null || data == null)
+            {
+                error = err ?? "Submit failed";
+                return;
+            }
+
+            score = data;
+            showResult = true;
+            await MarkSeen(quiz.Questions);
+        }
+        finally { submitting = false; }
+    }
+
+    private async Task Restart()
+    {
+        showResult = false;
+        score = null;
+        await LoadQuiz();
+    }
+
+    private Analysis BuildAnalysis(TriviaScore s)
+    {
+        var pct = s.Percentage;
+        var wrong = s.Review.Where(r => !r.IsCorrect).ToList();
+        var weak = wrong
+            .Select(r => ExtractTopic(r.QuestionText))
+            .Where(x => x != null)
+            .GroupBy(x => x!)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .Take(3)
+            .ToList();
+
+        string grade, summary, badge, scoreClass;
+        var tips = new List<string>();
+
+        if (pct >= 85)
+        {
+            grade = "Excellent";
+            badge = "bg-success";
+            scoreClass = "text-success";
+            summary = "Outstanding performance. Strong command of this topic under time pressure.";
+            tips.Add("Try a harder difficulty pack next.");
+            tips.Add("Review any misses below to close remaining gaps.");
+        }
+        else if (pct >= 70)
+        {
+            grade = "Good";
+            badge = "bg-primary";
+            scoreClass = "text-primary";
+            summary = "Solid result. Core concepts are in place; more practice will push you higher.";
+            tips.Add("Revisit incorrect items and retry a similar mock in 1–2 days.");
+            tips.Add("Focus on medium/hard questions in weaker areas.");
+        }
+        else if (pct >= 50)
+        {
+            grade = "Average";
+            badge = "bg-warning text-dark";
+            scoreClass = "text-warning";
+            summary = "Passing range, but gaps are visible. Structured revision will help.";
+            tips.Add("Study wrong answers carefully — patterns often repeat.");
+            tips.Add("Take a shorter easy mock first, then return to this level.");
+        }
+        else if (pct >= 30)
+        {
+            grade = "Below Average";
+            badge = "bg-secondary";
+            scoreClass = "text-danger";
+            summary = "Fundamentals need work. Prefer untimed practice before another full mock.";
+            tips.Add("Use Practice mode on this category daily.");
+            tips.Add("Note the correct option for each wrong answer.");
+        }
+        else
+        {
+            grade = "Needs Improvement";
+            badge = "bg-danger";
+            scoreClass = "text-danger";
+            summary = "Topic still needs foundations. Build basics before timed exams.";
+            tips.Add("Switch to Practice (no timer) and aim for 70%+ first.");
+            tips.Add("Cover one sub-topic at a time.");
+        }
+
+        if (elapsedSeconds < totalSeconds * 0.25 && pct < 70)
+            tips.Add("You finished very quickly — slow down and read options carefully.");
+
+        if (s.Review.Count(r => r.SelectedOptionText == "—") > s.TotalQuestions / 3)
+            tips.Add("Many questions were skipped. Attempt all items when possible.");
+
+        return new Analysis(grade, summary, tips, weak, badge, scoreClass);
+    }
+
+    private static string? ExtractTopic(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        text = text.ToLowerInvariant();
+        if (text.Contains("docker") || text.Contains("container") || text.Contains("dockerfile")) return "Docker";
+        if (text.Contains("linux") || text.Contains("bash") || text.Contains("chmod")) return "Linux";
+        if (text.Contains("sql") || text.Contains("join") || text.Contains("database")) return "SQL / DB";
+        if (text.Contains("python") || text.Contains("dict") || text.Contains("list")) return "Python";
+        if (text.Contains("javascript") || text.Contains("node")) return "JavaScript";
+        if (text.Contains("git") || text.Contains("ci/cd") || text.Contains("kubernetes") || text.Contains("devops")) return "DevOps";
+        if (text.Contains("complexity") || text.Contains("algorithm") || text.Contains("big o")) return "Algorithms";
+        return null;
+    }
+
+    private double ProgressPercent()
+        => totalSeconds <= 0 ? 0 : Math.Max(0, secondsLeft * 100.0 / totalSeconds);
+
+    private static string FormatTime(int sec)
+    {
+        sec = Math.Max(0, sec);
+        return $"{sec / 60:00}:{sec % 60:00}";
+    }
+
+    public void Dispose() => StopTimer();
+
+    private record Analysis(
+        string Grade, string Summary, List<string> Tips,
+        List<string> WeakCategories, string BadgeClass, string ScoreClass);
+}

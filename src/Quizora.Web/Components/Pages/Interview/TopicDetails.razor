@@ -1,0 +1,100 @@
+﻿@page "/interview/{TopicId:guid}"
+@rendermode InteractiveServer
+@using Quizora.Web.Services
+@inject InterviewService InterviewService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <a href="/interview" class="btn btn-outline-secondary btn-sm mb-3">← Back to Topics</a>
+
+    @if (isLoading)
+    {
+        <p>Loading...</p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else
+    {
+        <h2>@topicName</h2>
+        <p class="text-muted">@topicDescription</p>
+        <hr />
+
+        @if (qas == null || !qas.Any())
+        {
+            <div class="alert alert-info">এই টপিকে কোনো প্রশ্ন নেই।</div>
+        }
+        else
+        {
+            @foreach (var qa in qas)
+            {
+                <div class="card mb-3">
+                    <div class="card-header fw-bold">
+                        Q: @qa.Question
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@qa.Answer</p>
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid TopicId { get; set; }
+
+    private string topicName = "";
+    private string? topicDescription;
+    private List<QAItem>? qas;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var result = await InterviewService.GetQAs(TopicId);
+                if (result != null && result.IsSuccess && result.Data != null)
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(result.Data);
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    topicName = root.GetProperty("topicName").GetString() ?? "";
+                    topicDescription = root.TryGetProperty("topicDescription", out var desc) ? desc.GetString() : null;
+
+                    if (root.TryGetProperty("qAs", out var qasElement) || root.TryGetProperty("QAs", out qasElement))
+                    {
+                        qas = System.Text.Json.JsonSerializer.Deserialize<List<QAItem>>(qasElement.GetRawText(),
+                            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    }
+                }
+                else
+                {
+                    errorMessage = result?.Message ?? "Failed to load Q&A";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    public class QAItem
+    {
+        public Guid Id { get; set; }
+        public string Question { get; set; } = "";
+        public string Answer { get; set; } = "";
+        public int Order { get; set; }
+    }
+}

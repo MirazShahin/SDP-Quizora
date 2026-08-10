@@ -1,0 +1,151 @@
+﻿@page "/company/tests/{TestId:guid}/invite"
+@rendermode InteractiveServer
+@using Quizora.Application.DTOs.Invitations
+@using Quizora.Web.Services
+@inject InvitationService InvitationService
+@inject NavigationManager Navigation
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <a href="/company/dashboard" class="small text-muted text-decoration-none">← Dashboard</a>
+            <h3 class="fw-bold mt-2 mb-1">Invite Candidates</h3>
+            <p class="text-muted small mb-4">Single email or paste many at once (registered candidates only)</p>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body p-4">
+                    <ul class="nav nav-pills mb-3 gap-1">
+                        <li class="nav-item">
+                            <button type="button" class="nav-link @(mode == "single" ? "active" : "")"
+                                    @onclick='() => mode = "single"'>
+                                Single
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button type="button" class="nav-link @(mode == "bulk" ? "active" : "")"
+                                    @onclick='() => mode = "bulk"'>
+                                Bulk invite
+                            </button>
+                        </li>
+                    </ul>
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success py-2">@successMessage</div>
+                    }
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger py-2">@errorMessage</div>
+                    }
+
+                    @if (mode == "single")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Candidate email</label>
+                            <input class="form-control" type="email" @bind="singleEmail"
+                                   placeholder="candidate@email.com" />
+                        </div>
+                        <button class="btn btn-primary" disabled="@busy" @onclick="InviteSingle">
+                            @(busy ? "Sending..." : "Send Invite")
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Emails</label>
+                            <textarea class="form-control" rows="8" @bind="bulkText"
+                                      placeholder="Paste emails separated by comma or new line&#10;alice@mail.com&#10;bob@mail.com, cara@mail.com"></textarea>
+                            <div class="form-text">Max 100 · only users already registered as Candidate</div>
+                        </div>
+                        <button class="btn btn-primary" disabled="@busy" @onclick="InviteBulk">
+                            @(busy ? "Processing..." : "Invite all")
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @if (bulkResult != null)
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-semibold mb-3">Batch summary</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge bg-success">✓ @bulkResult.SuccessCount invited</span>
+                            <span class="badge bg-warning text-dark">↻ @bulkResult.AlreadyInvitedCount already</span>
+                            <span class="badge bg-secondary">✗ @bulkResult.NotFoundCount not found</span>
+                        </div>
+
+                        @if (bulkResult.Succeeded.Any())
+                        {
+                            <div class="small mb-2"><strong>Invited:</strong> @string.Join(", ", bulkResult.Succeeded)</div>
+                        }
+                        @if (bulkResult.AlreadyInvited.Any())
+                        {
+                            <div class="small mb-2 text-muted"><strong>Already invited:</strong> @string.Join(", ", bulkResult.AlreadyInvited)</div>
+                        }
+                        @if (bulkResult.NotFound.Any())
+                        {
+                            <div class="small text-danger"><strong>Not registered:</strong> @string.Join(", ", bulkResult.NotFound)</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid TestId { get; set; }
+
+    private string mode = "single";
+    private string singleEmail = "";
+    private string bulkText = "";
+    private bool busy;
+    private string? successMessage;
+    private string? errorMessage;
+    private BulkInviteResultDto? bulkResult;
+
+    private async Task InviteSingle()
+    {
+        successMessage = errorMessage = null;
+        bulkResult = null;
+        busy = true;
+        try
+        {
+            var dto = new InviteCandidateDto { TestId = TestId, CandidateEmail = singleEmail };
+            var result = await InvitationService.InviteCandidate(dto);
+            if (result != null && result.IsSuccess)
+            {
+                successMessage = result.Message ?? "Invitation sent";
+                singleEmail = "";
+            }
+            else
+                errorMessage = result?.Message ?? "Failed";
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+        finally { busy = false; }
+    }
+
+    private async Task InviteBulk()
+    {
+        successMessage = errorMessage = null;
+        bulkResult = null;
+        busy = true;
+        try
+        {
+            var dto = new BulkInviteDto { TestId = TestId, EmailsText = bulkText };
+            var result = await InvitationService.BulkInvite(dto);
+            if (result != null && result.IsSuccess)
+            {
+                bulkResult = result.Data;
+                successMessage = result.Message;
+                if (bulkResult?.SuccessCount > 0)
+                    bulkText = "";
+            }
+            else
+                errorMessage = result?.Message ?? "Bulk invite failed";
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+        finally { busy = false; }
+    }
+}

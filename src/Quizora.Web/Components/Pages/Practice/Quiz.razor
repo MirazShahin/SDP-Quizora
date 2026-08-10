@@ -1,0 +1,176 @@
+﻿@page "/practice/quiz"
+@rendermode InteractiveServer
+@using Quizora.Web.Models.Trivia
+@using Quizora.Web.Services
+@using Microsoft.AspNetCore.WebUtilities
+@inject QuizApiClient QuizApi
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="text-muted mt-2">Loading questions...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+        <a class="btn btn-outline-secondary" href="/practice">← Back</a>
+    }
+    else if (showResult && score != null)
+    {
+        <div class="card shadow-sm mx-auto" style="max-width:640px">
+            <div class="card-body text-center">
+                <h3>Your Score</h3>
+                <p class="display-6 fw-bold">@score.Score / @score.TotalQuestions</p>
+                <p class="text-muted">@score.Percentage%</p>
+                <div class="d-flex gap-2 justify-content-center mb-4">
+                    <button class="btn btn-primary" @onclick="Restart">Try Again</button>
+                    <a class="btn btn-outline-secondary" href="/practice">All Categories</a>
+                </div>
+                <hr />
+                <h6 class="text-start">Review</h6>
+                @foreach (var r in score.Review)
+                {
+                    <div class="text-start border rounded p-2 mb-2">
+                        <div class="small text-muted">@(r.IsCorrect ? "✓ Correct" : "✗ Wrong")</div>
+                        <div class="fw-semibold">@r.QuestionText</div>
+                        <div class="small">Your answer: @r.SelectedOptionText</div>
+                        @if (!r.IsCorrect)
+                        {
+                            <div class="small text-success">Correct: @r.CorrectOptionText</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (quiz != null)
+    {
+        var q = quiz.Questions[index];
+        <div class="card shadow-sm mx-auto" style="max-width:640px">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-secondary">@q.Category</span>
+                    <span class="text-muted small">@(index + 1) / @quiz.Questions.Count</span>
+                </div>
+                <span class="badge bg-info text-dark mb-2">@q.Difficulty</span>
+                <h5 class="mb-4">@q.Text</h5>
+
+                <div class="d-grid gap-2">
+                    @foreach (var opt in q.Options)
+                    {
+                        var sel = answers.GetValueOrDefault(q.Id) == opt.Id;
+                        <button type="button"
+                                class="btn @(sel ? "btn-primary" : "btn-outline-secondary") text-start"
+                                @onclick="() => Select(q.Id, opt.Id)">
+                            @opt.Text
+                        </button>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-outline-secondary" disabled="@(index == 0)" @onclick="Prev">Prev</button>
+                    @if (index < quiz.Questions.Count - 1)
+                    {
+                        <button class="btn btn-primary" disabled="@(!answers.ContainsKey(q.Id))" @onclick="Next">Next</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-success"
+                                disabled="@(answers.Count < quiz.Questions.Count || submitting)"
+                                @onclick="Submit">
+                            @if (submitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Submit
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string categoryName = "Linux";
+    private string difficulty = "Easy";
+    private int amount = 10;
+
+    private bool isLoading = true, showResult, submitting;
+    private string? error;
+    private TriviaQuizStart? quiz;
+    private TriviaScore? score;
+    private int index;
+    private Dictionary<string, string> answers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("category", out var cat) && !string.IsNullOrWhiteSpace(cat))
+            categoryName = cat.ToString();
+        if (query.TryGetValue("difficulty", out var d) && !string.IsNullOrWhiteSpace(d))
+            difficulty = d.ToString();
+        if (query.TryGetValue("amount", out var a) && int.TryParse(a, out var amt))
+            amount = amt;
+
+        await LoadQuiz();
+    }
+
+    private async Task LoadQuiz()
+    {
+        isLoading = true;
+        error = null;
+        showResult = false;
+        answers.Clear();
+        index = 0;
+        quiz = null;
+
+        var (data, err) = await QuizApi.StartAsync(amount, categoryName, difficulty);
+        if (err != null || data == null || data.Questions.Count == 0)
+            error = err ?? "No questions found for this category.";
+        else
+            quiz = data;
+
+        isLoading = false;
+    }
+
+    private void Select(string qId, string optId) => answers[qId] = optId;
+    private void Next() { if (index < (quiz?.Questions.Count ?? 0) - 1) index++; }
+    private void Prev() { if (index > 0) index--; }
+
+    private async Task Submit()
+    {
+        if (quiz == null) return;
+        submitting = true;
+        try
+        {
+            var body = new TriviaSubmit
+            {
+                QuizId = quiz.QuizId,
+                Answers = answers.Select(kv => new TriviaSubmitAnswer
+                {
+                    QuestionId = kv.Key,
+                    SelectedOptionId = kv.Value
+                }).ToList()
+            };
+
+            var (data, err) = await QuizApi.SubmitAsync(body);
+            if (err != null || data == null)
+            {
+                error = err ?? "Submit failed";
+                return;
+            }
+            score = data;
+            showResult = true;
+        }
+        finally { submitting = false; }
+    }
+
+    private async Task Restart() => await LoadQuiz();
+}

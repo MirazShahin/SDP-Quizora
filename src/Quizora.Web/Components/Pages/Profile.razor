@@ -1,0 +1,523 @@
+﻿@page "/profile"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Headers
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject Quizora.Web.Services.AuthService AuthService
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <h2 class="fw-bold mb-1">Profile</h2>
+            <p class="text-muted small mb-4">Manage your account details</p>
+
+            @if (loading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(error))
+            {
+                <div class="alert alert-danger">@error</div>
+            }
+            else if (profile != null)
+            {
+                <div class="card border-0 shadow-sm mb-3 profile-hero">
+                    <div class="card-body p-4 d-flex gap-3 align-items-center">
+                        <div class="avatar">@Initials(profile.FullName)</div>
+                        <div>
+                            <h4 class="fw-bold mb-0">@profile.FullName</h4>
+                            <div class="text-muted small">@profile.Email</div>
+                            <span class="badge bg-primary mt-1">@profile.Role</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    @if (profile.Role == "Candidate")
+                    {
+                        <div class="col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="fs-3 fw-bold text-success">@profile.TestsCompleted</div>
+                                    <div class="small text-muted">Tests completed</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="fs-3 fw-bold text-warning">@profile.TestsPending</div>
+                                    <div class="small text-muted">Pending invites</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (profile.Role == "Company")
+                    {
+                        <div class="col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="fs-3 fw-bold text-primary">@profile.TestsCreated</div>
+                                    <div class="small text-muted">Tests created</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <div class="fs-3 fw-bold text-info">@profile.TotalInvited</div>
+                                    <div class="small text-muted">Total invited</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">Edit profile</h5>
+
+                        @if (!string.IsNullOrEmpty(success))
+                        {
+                            <div class="alert alert-success py-2">@success</div>
+                        }
+                        @if (!string.IsNullOrEmpty(saveError))
+                        {
+                            <div class="alert alert-danger py-2">@saveError</div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Full name</label>
+                            <input class="form-control" @bind="edit.FullName" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" value="@profile.Email" disabled />
+                            <div class="form-text">Email cannot be changed</div>
+                        </div>
+
+                        @if (profile.Role == "Candidate")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <input class="form-control" @bind="edit.Phone" placeholder="+8801..." />
+                            </div>
+                        }
+
+                        @if (profile.Role == "Company")
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Company name</label>
+                                <input class="form-control" @bind="edit.CompanyName" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">About company</label>
+                                <textarea class="form-control" rows="3" @bind="edit.CompanyDescription"
+                                          placeholder="What does your company do?"></textarea>
+                            </div>
+                        }
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-primary" disabled="@saving" @onclick="Save">
+                                @(saving ? "Saving..." : "Save changes")
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="Logout">Logout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-body p-4">
+                        <h5 class="fw-semibold mb-3">Change password</h5>
+                        @if (!string.IsNullOrEmpty(pwdMsg))
+                        {
+                            <div class="alert alert-success py-2">@pwdMsg</div>
+                        }
+                        @if (!string.IsNullOrEmpty(pwdErr))
+                        {
+                            <div class="alert alert-danger py-2">@pwdErr</div>
+                        }
+                        <div class="mb-2">
+                            <label class="form-label">Current password</label>
+                            <input type="password" class="form-control" @bind="currentPassword" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New password</label>
+                            <input type="password" class="form-control" @bind="newPassword" />
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" disabled="@pwdBusy" @onclick="ChangePassword">
+                            @(pwdBusy ? "Saving..." : "Update password")
+                        </button>
+                    </div>
+                </div>
+
+                @if (profile.Role == "Candidate")
+                {
+                    <div class="card border-0 shadow-sm mt-3">
+                        <div class="card-body p-4">
+                            <h5 class="fw-semibold mb-3">Curriculum Vitae (PDF)</h5>
+                            <p class="text-muted small">Only PDF · max 10 MB. Companies can view your CV.</p>
+
+                            @if (!string.IsNullOrEmpty(cvMsg))
+                            {
+                                <div class="alert alert-success py-2">@cvMsg</div>
+                            }
+                            @if (!string.IsNullOrEmpty(cvErr))
+                            {
+                                <div class="alert alert-danger py-2">@cvErr</div>
+                            }
+
+                            @if (hasCv)
+                            {
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                    <span class="badge bg-success">Uploaded</span>
+                                    <span class="small">@cvFileName (@FormatSize(cvFileSize))</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="DownloadMyCv">Download</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="DeleteCv">Remove</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="small text-muted">No CV uploaded yet.</p>
+                            }
+
+                            <InputFile OnChange="OnCvSelected" accept=".pdf,application/pdf" class="form-control" />
+                            <button type="button" class="btn btn-primary btn-sm mt-2"
+                                    disabled="@(cvFile == null || cvBusy)" @onclick="UploadCv">
+                                @(cvBusy ? "Uploading..." : "Upload PDF")
+                            </button>
+                        </div>
+                    </div>
+                }
+
+                <p class="text-muted small mt-3 mb-0">
+                    Member since @profile.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                </p>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .profile-hero {
+        border-radius: 14px;
+    }
+</style>
+
+@code {
+    private ProfileDto? profile;
+    private UpdateProfileDto edit = new();
+    private bool loading = true, saving;
+    private string? error, saveError, success;
+
+    private string currentPassword = "", newPassword = "";
+    private string? pwdMsg, pwdErr;
+    private bool pwdBusy;
+
+    private IBrowserFile? cvFile;
+    private bool hasCv, cvBusy;
+    private string? cvFileName, cvMsg, cvErr;
+    private long cvFileSize;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            var response = await Http.GetAsync("api/Profile/me");
+            var json = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                error = "Empty profile response. Please re-login.";
+                return;
+            }
+
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<ProfileDto>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res == null || !res.IsSuccess || res.Data == null)
+            {
+                error = res?.Message ?? "Failed to load profile";
+                return;
+            }
+
+            profile = res.Data;
+            edit = new UpdateProfileDto
+            {
+                FullName = profile.FullName,
+                Phone = profile.Phone,
+                CompanyName = profile.CompanyName,
+                CompanyDescription = profile.CompanyDescription
+            };
+
+            if (profile.Role == "Candidate")
+                await LoadCvInfo();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task Save()
+    {
+        saving = true;
+        success = saveError = null;
+        try
+        {
+            var response = await Http.PutAsJsonAsync("api/Profile/me", edit);
+            var json = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res != null && res.IsSuccess)
+            {
+                success = "Profile updated successfully";
+                await Load();
+            }
+            else
+                saveError = res?.Message ?? "Update failed";
+        }
+        catch (Exception ex)
+        {
+            saveError = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        pwdBusy = true;
+        pwdMsg = pwdErr = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/Profile/change-password",
+                new { CurrentPassword = currentPassword, NewPassword = newPassword });
+            var json = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+            {
+                pwdMsg = "Password updated";
+                currentPassword = newPassword = "";
+            }
+            else
+                pwdErr = res?.Message ?? "Failed";
+        }
+        catch (Exception ex)
+        {
+            pwdErr = ex.Message;
+        }
+        finally
+        {
+            pwdBusy = false;
+        }
+    }
+
+    private async Task LoadCvInfo()
+    {
+        hasCv = false;
+        cvFileName = null;
+        cvFileSize = 0;
+        try
+        {
+            var response = await Http.GetAsync("api/Profile/cv/mine");
+            var json = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("isSuccess", out var ok) || !ok.GetBoolean())
+                return;
+
+            if (!root.TryGetProperty("data", out var data)) return;
+
+            hasCv = data.TryGetProperty("hasCv", out var hc) && hc.GetBoolean();
+            if (hasCv)
+            {
+                cvFileName = data.TryGetProperty("fileName", out var fn) ? fn.GetString() : "cv.pdf";
+                cvFileSize = data.TryGetProperty("fileSize", out var fs) ? fs.GetInt64() : 0;
+            }
+        }
+        catch { /* ignore */ }
+    }
+
+    private void OnCvSelected(InputFileChangeEventArgs e)
+    {
+        cvErr = null;
+        cvFile = e.File;
+        if (cvFile.Size > 10 * 1024 * 1024)
+        {
+            cvErr = "File must be ≤ 10 MB";
+            cvFile = null;
+        }
+        else if (!cvFile.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            cvErr = "Only PDF files are allowed";
+            cvFile = null;
+        }
+    }
+
+    private async Task UploadCv()
+    {
+        if (cvFile == null) return;
+        cvBusy = true;
+        cvMsg = cvErr = null;
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            var stream = cvFile.OpenReadStream(10 * 1024 * 1024);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            content.Add(streamContent, "file", cvFile.Name);
+
+            var response = await Http.PostAsync("api/Profile/cv", content);
+            var json = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+            {
+                cvMsg = "CV uploaded";
+                cvFile = null;
+                await LoadCvInfo();
+            }
+            else
+                cvErr = res?.Message ?? "Upload failed";
+        }
+        catch (Exception ex)
+        {
+            cvErr = ex.Message;
+        }
+        finally
+        {
+            cvBusy = false;
+        }
+    }
+
+    private async Task DeleteCv()
+    {
+        cvMsg = cvErr = null;
+        try
+        {
+            var response = await Http.DeleteAsync("api/Profile/cv");
+            var json = await response.Content.ReadAsStringAsync();
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<object>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+            {
+                hasCv = false;
+                cvFileName = null;
+                cvFileSize = 0;
+                cvMsg = "CV removed";
+            }
+            else
+                cvErr = res?.Message ?? "Delete failed";
+        }
+        catch (Exception ex)
+        {
+            cvErr = ex.Message;
+        }
+    }
+
+    private async Task DownloadMyCv()
+    {
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync("api/Profile/cv/download/mine");
+            var b64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("quizoraDownloadFile", cvFileName ?? "cv.pdf", "application/pdf", b64);
+        }
+        catch (Exception ex)
+        {
+            cvErr = ex.Message;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+
+    private static string Initials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+            return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+        return $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant();
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:0.0} KB";
+        return $"{bytes / (1024.0 * 1024):0.00} MB";
+    }
+
+    public class ProfileDto
+    {
+        public Guid UserId { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public string? Phone { get; set; }
+        public int TestsCompleted { get; set; }
+        public int TestsPending { get; set; }
+        public string? CompanyName { get; set; }
+        public string? CompanyDescription { get; set; }
+        public int TestsCreated { get; set; }
+        public int TotalInvited { get; set; }
+    }
+
+    public class UpdateProfileDto
+    {
+        public string FullName { get; set; } = "";
+        public string? Phone { get; set; }
+        public string? CompanyName { get; set; }
+        public string? CompanyDescription { get; set; }
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

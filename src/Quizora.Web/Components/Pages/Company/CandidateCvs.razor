@@ -1,0 +1,206 @@
+﻿@page "/company/cvs"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">Candidate CVs</h3>
+            <p class="text-muted small mb-0">All uploaded PDF resumes · search &amp; filter</p>
+        </div>
+        <a href="/company/dashboard" class="btn btn-outline-secondary btn-sm">← Dashboard</a>
+    </div>
+
+    @if (loading)
+    {
+        <p class="text-muted">Loading...</p>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    else if (list.Count == 0)
+    {
+        <div class="alert alert-info">No CVs uploaded yet.</div>
+    }
+    else
+    {
+        <div class="row g-2 mb-3 align-items-center">
+            <div class="col-md-6">
+                <input class="form-control"
+                       placeholder="Search by name, email, phone, file name..."
+                       @bind="query" @bind:event="oninput" />
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" @bind="sortBy">
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="name">Name A–Z</option>
+                    <option value="size">Largest file</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <span class="text-muted small">@FilteredList.Count / @list.Count shown</span>
+            </div>
+        </div>
+
+        @if (FilteredList.Count == 0)
+        {
+            <div class="alert alert-info">No candidates match your search.</div>
+        }
+        else
+        {
+            <div class="table-responsive card border-0 shadow-sm">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>File</th>
+                            <th>Size</th>
+                            <th>Uploaded</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in FilteredList)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@c.FullName</td>
+                                <td class="small text-muted">@c.Email</td>
+                                <td class="small">@(string.IsNullOrWhiteSpace(c.Phone) ? "—" : c.Phone)</td>
+                                <td class="small">@c.FileName</td>
+                                <td class="small">@FormatSize(c.FileSize)</td>
+                                <td class="small text-muted">@c.UploadedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            disabled="@(downloadingId == c.CandidateId)"
+                                            @onclick="() => Download(c)">
+                                        @(downloadingId == c.CandidateId ? "..." : "Download PDF")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<CvRow> list = new();
+    private bool loading = true;
+    private string? error;
+    private string query = "";
+    private string sortBy = "newest";
+    private Guid? downloadingId;
+
+    private List<CvRow> FilteredList
+    {
+        get
+        {
+            var q = list.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                q = q.Where(c =>
+                    (c.FullName?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (c.Email?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (c.Phone?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (c.FileName?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            q = sortBy switch
+            {
+                "oldest" => q.OrderBy(c => c.UploadedAt),
+                "name" => q.OrderBy(c => c.FullName),
+                "size" => q.OrderByDescending(c => c.FileSize),
+                _ => q.OrderByDescending(c => c.UploadedAt)
+            };
+
+            return q.ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            var response = await Http.GetAsync("api/Profile/cv/all");
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                error = "Empty response. Re-login as Company.";
+                return;
+            }
+
+            var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<CvRow>>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (res?.IsSuccess == true)
+                list = res.Data ?? new();
+            else
+                error = res?.Message ?? "Failed to load CVs";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task Download(CvRow c)
+    {
+        downloadingId = c.CandidateId;
+        try
+        {
+            var bytes = await Http.GetByteArrayAsync($"api/Profile/cv/download/{c.CandidateId}");
+            var b64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("quizoraDownloadFile", c.FileName, "application/pdf", b64);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            downloadingId = null;
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:0.0} KB";
+        return $"{bytes / (1024.0 * 1024):0.00} MB";
+    }
+
+    public class CvRow
+    {
+        public Guid CandidateId { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string? Phone { get; set; }
+        public string FileName { get; set; } = "";
+        public long FileSize { get; set; }
+        public DateTime UploadedAt { get; set; }
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

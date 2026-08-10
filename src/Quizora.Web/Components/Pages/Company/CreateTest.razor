@@ -1,0 +1,72 @@
+﻿@page "/company/tests/create"
+@rendermode InteractiveServer
+@using Quizora.Application.DTOs.Tests
+@using Quizora.Web.Services
+@inject TestService TestService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h3 class="mb-4">Create New Test</h3>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+
+                    <EditForm Model="model" OnValidSubmit="HandleCreate" FormName="createTestForm">
+                        <div class="mb-3">
+                            <label class="form-label">Test Title</label>
+                            <InputText class="form-control" @bind-Value="model.Title" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="model.Description" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Duration (Minutes) - Optional</label>
+                            <InputNumber class="form-control" @bind-Value="model.DurationInMinutes" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @(isLoading ? "Creating..." : "Create Test")
+                            </button>
+                            <a href="/company/dashboard" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateTestDto model = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task HandleCreate()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        var result = await TestService.CreateTest(model);
+
+        if (result != null && result.IsSuccess && result.Data != null)
+        {
+            Navigation.NavigateTo($"/company/tests/{result.Data.Id}");
+        }
+        else
+        {
+            errorMessage = result?.Message ?? "Failed to create test";
+        }
+
+        isLoading = false;
+    }
+}
