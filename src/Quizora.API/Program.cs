@@ -97,16 +97,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Production এও swagger চাইলে শর্ত সরান
-if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("EnableSwagger"))
-{
+
+
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quizora API v1");
         c.RoutePrefix = "swagger";
     });
-}
+
 
 // Render এ HTTPS proxy পেছনে — redirection কখনো সমস্যা করে
 if (!app.Environment.IsProduction())
