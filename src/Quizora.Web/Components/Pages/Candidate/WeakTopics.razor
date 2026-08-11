@@ -9,7 +9,7 @@
         Calculated from your real practice &amp; mock scores (not random AI guesses).
     </p>
 
-    <button class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
+    <button type="button" class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
         @(loading ? "Analyzing..." : "Analyze my performance")
     </button>
 
@@ -23,7 +23,8 @@
         @if (!topics.Any())
         {
             <div class="alert alert-info">
-                No data yet. Finish a few <a href="/practice">Practice</a> or
+                No data yet. Finish a few
+                <a href="/practice">Practice</a> or
                 <a href="/mock-tests">Mock</a> sessions first.
             </div>
         }
@@ -47,7 +48,8 @@
                         </div>
                         <div class="progress mt-2" style="height: 6px;">
                             <div class="progress-bar @SeverityBar(t.Severity)"
-                                 style="width:@t.Accuracy%"></div>
+                                 role="progressbar"
+                                 style="@($"width:{t.Accuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}%")"></div>
                         </div>
                     </div>
                 }
@@ -66,20 +68,31 @@
         loading = true;
         error = null;
         topics = null;
-        var (data, err) = await Ai.WeakTopicsAsync();
-        topics = data;
-        error = err;
-        loading = false;
+
+        try
+        {
+            var (data, err) = await Ai.WeakTopicsAsync();
+            topics = data;
+            error = err;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 
-    private static string SeverityBadge(string s) => s switch
+    private static string SeverityBadge(string? s) => s switch
     {
         "High" => "bg-danger",
         "Medium" => "bg-warning text-dark",
         _ => "bg-success"
     };
 
-    private static string SeverityBar(string s) => s switch
+    private static string SeverityBar(string? s) => s switch
     {
         "High" => "bg-danger",
         "Medium" => "bg-warning",
