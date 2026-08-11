@@ -6,7 +6,7 @@
 <div class="container py-4" style="max-width: 720px;">
     <h3 class="fw-bold mb-1">Weak Topics</h3>
     <p class="text-muted mb-4">
-        Calculated from your real practice &amp; mock scores — not random suggestions.
+        Calculated from your real practice &amp; mock scores (not random AI guesses).
     </p>
 
     <button class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
@@ -23,8 +23,7 @@
         @if (!topics.Any())
         {
             <div class="alert alert-info">
-                No data yet. Finish a few
-                <a href="/practice">Practice</a> or
+                No data yet. Finish a few <a href="/practice">Practice</a> or
                 <a href="/mock-tests">Mock</a> sessions first.
             </div>
         }
@@ -48,8 +47,7 @@
                         </div>
                         <div class="progress mt-2" style="height: 6px;">
                             <div class="progress-bar @SeverityBar(t.Severity)"
-                                 role="progressbar"
-                                 style="width:@(t.Accuracy)%"></div>
+                                 style="width:@t.Accuracy%"></div>
                         </div>
                     </div>
                 }
@@ -68,11 +66,9 @@
         loading = true;
         error = null;
         topics = null;
-
         var (data, err) = await Ai.WeakTopicsAsync();
         topics = data;
         error = err;
-
         loading = false;
     }
 

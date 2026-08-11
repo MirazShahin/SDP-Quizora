@@ -131,15 +131,24 @@ using (var scope = app.Services.CreateScope())
 
     await QuestionBankSeeder.SeedAsync(db);
 
-    // Default Admin user
+    // Default Company account (acts as Admin) — no separate Admin role
     if (!db.Users.Any(u => u.Email == "admin@quizora.local"))
     {
-        db.Users.Add(new User
+        var adminUser = new User
         {
             FullName = "System Admin",
             Email = "admin@quizora.local",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@12345"),
-            Role = UserRole.Admin
+            Role = UserRole.Company
+        };
+        db.Users.Add(adminUser);
+        await db.SaveChangesAsync();
+
+        db.Companies.Add(new Company
+        {
+            UserId = adminUser.Id,
+            CompanyName = "Quizora Admin",
+            Description = "Default admin company account"
         });
         await db.SaveChangesAsync();
     }
