@@ -47,15 +47,15 @@ public class AiClient
         }
     }
 
-    public async Task<(List<WeakTopicDto>? topics, string? error)> WeakTopicsAsync()
+    public async Task<(PerformanceSummaryDto? data, string? error)> WeakTopicsAsync()
     {
         try
         {
             var res = await _http.GetAsync("api/ai/weak-topics");
             var json = await res.Content.ReadAsStringAsync();
-            var parsed = JsonSerializer.Deserialize<ApiResult<List<WeakTopicDto>>>(json, Opts);
+            var parsed = JsonSerializer.Deserialize<ApiResult<PerformanceSummaryDto>>(json, Opts);
             if (parsed?.IsSuccess == true)
-                return (parsed.Data ?? new(), null);
+                return (parsed.Data, null);
             return (null, parsed?.Message ?? $"HTTP {(int)res.StatusCode}");
         }
         catch (Exception ex)
@@ -72,6 +72,16 @@ public class AiClient
         public double Accuracy { get; set; }
         public string Severity { get; set; } = "";
         public string Source { get; set; } = "";
+    }
+
+    public class PerformanceSummaryDto
+    {
+        public int PracticeSessions { get; set; }
+        public int MockSessions { get; set; }
+        public double AvgAccuracy { get; set; }
+        public int WeakCount { get; set; }
+        public string? StrongestTopic { get; set; }
+        public List<WeakTopicDto> WeakTopics { get; set; } = new();
     }
 
     public class ChatMsg

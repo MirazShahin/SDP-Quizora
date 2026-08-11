@@ -9,6 +9,8 @@ public class TestDto
     public string? Description { get; set; }
     public TestStatus Status { get; set; }
     public int? DurationInMinutes { get; set; }
+    public int? PassingScore { get; set; }
+    public double? PassingPercent { get; set; }
     public int TotalQuestions { get; set; }
     public int TotalInvitations { get; set; }
     public int CompletedCount { get; set; }

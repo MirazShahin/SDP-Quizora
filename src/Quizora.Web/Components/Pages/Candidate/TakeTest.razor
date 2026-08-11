@@ -68,26 +68,45 @@
         {
             var q = questions[i];
             var isShort = string.Equals(q.QuestionType, "ShortAnswer", StringComparison.OrdinalIgnoreCase);
+            var isCoding = string.Equals(q.QuestionType, "Coding", StringComparison.OrdinalIgnoreCase);
 
             <div class="card mb-3 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0">@($"{i + 1}. {q.Text}")</h5>
-                        <span class="badge @(isShort ? "bg-info" : "bg-secondary")">
-                            @(isShort ? "Short Answer" : "MCQ")
+                        <h5 class="card-title mb-0" style="white-space: pre-wrap;">@($"{i + 1}. {q.Text}")</h5>
+                        <span class="badge @(isCoding ? "bg-warning text-dark" : isShort ? "bg-info" : "bg-secondary")">
+                            @(isCoding ? "Coding" : isShort ? "Short Answer" : "MCQ")
                         </span>
                     </div>
 
                     <div class="mt-3">
-                        @if (isShort)
+                        @if (isCoding)
+                        {
+                            @if (!string.IsNullOrWhiteSpace(q.SampleInput))
+                            {
+                                <div class="small text-muted mb-1">Sample input</div>
+                                <pre class="bg-dark text-light p-2 rounded small">@q.SampleInput</pre>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(q.SampleOutput))
+                            {
+                                <div class="small text-muted mb-1">Sample output</div>
+                                <pre class="bg-dark text-light p-2 rounded small">@q.SampleOutput</pre>
+                            }
+                            <label class="form-label mt-2">Your full program</label>
+                            <textarea class="form-control font-monospace"
+                                      rows="14"
+                                      placeholder="@(string.IsNullOrWhiteSpace(q.StarterCode) ? "// Write complete program" : q.StarterCode)"
+                                      value="@textAnswers.GetValueOrDefault(q.Id)"
+                                      @onchange="@((ChangeEventArgs e) => SetTextAnswer(q.Id, e.Value?.ToString() ?? string.Empty))"></textarea>
+                        }
+                        else if (isShort)
                         {
                             <textarea class="form-control"
                                       rows="2"
                                       maxlength="500"
                                       placeholder="Write 1-2 lines (optional)..."
                                       value="@textAnswers.GetValueOrDefault(q.Id)"
-                                      @onchange="@((ChangeEventArgs e) => SetTextAnswer(q.Id, e.Value?.ToString() ?? string.Empty))">
-                                        </textarea>
+                                      @onchange="@((ChangeEventArgs e) => SetTextAnswer(q.Id, e.Value?.ToString() ?? string.Empty))"></textarea>
                         }
                         else
                         {
@@ -169,6 +188,11 @@
             if (result != null && result.IsSuccess)
             {
                 questions = result.Data;
+                foreach (var q in questions.Where(x => string.Equals(x.QuestionType, "Coding", StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (!textAnswers.ContainsKey(q.Id) && !string.IsNullOrWhiteSpace(q.StarterCode))
+                        textAnswers[q.Id] = q.StarterCode!;
+                }
                 StartTimer();
             }
             else

@@ -9,9 +9,11 @@ public class Test : BaseEntity
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public TestStatus Status { get; set; } = TestStatus.Draft;
-    public int? DurationInMinutes { get; set; }   // null মানে Unlimited
+    public int? DurationInMinutes { get; set; }
+     
+    public int? PassingScore { get; set; } 
+    public double? PassingPercent { get; set; }
 
-    // Navigation
     public Company Company { get; set; } = null!;
     public ICollection<Question> Questions { get; set; } = new List<Question>();
     public ICollection<TestInvitation> Invitations { get; set; } = new List<TestInvitation>();

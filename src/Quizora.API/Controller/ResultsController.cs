@@ -145,7 +145,7 @@ public class ResultsController : ControllerBase
             var total = invitation.Attempt.TotalQuestions;
             var percentage = total == 0 ? 0 : Math.Round((double)score / total * 100, 2);
 
-            bool eligible = total == 50 ? score >= 35 : percentage >= 70;
+            bool eligible = IsEligible(score, total, percentage, test.PassingScore, test.PassingPercent);
             if (!eligible)
                 return Ok(Result.Failure(
                     $"Not eligible. Need 35/50 or 70%+. Got {score}/{total} ({percentage}%)."));
@@ -206,7 +206,7 @@ public class ResultsController : ControllerBase
                 var score = i.Attempt!.Score;
                 var total = i.Attempt.TotalQuestions;
                 var pct = total == 0 ? 0 : Math.Round((double)score / total * 100, 2);
-                var eligible = total == 50 ? score >= 35 : pct >= 70;
+                var eligible = IsEligible(score, total, pct, test.PassingScore, test.PassingPercent);
 
                 var name = Csv(i.Candidate?.User?.FullName ?? "Unknown");
                 var email = Csv(i.Candidate?.User?.Email ?? "");
@@ -242,4 +242,15 @@ public class ResultsController : ControllerBase
             title = title.Replace(c, '_');
         return string.IsNullOrWhiteSpace(title) ? "test" : title.Trim();
     }
+
+    private static bool IsEligible(int score, int total, double percentage, int? passingScore, double? passingPercent)
+    {
+        if (total <= 0) return false;
+        if (passingScore.HasValue) return score >= passingScore.Value;
+        if (passingPercent.HasValue) return percentage >= passingPercent.Value;
+        // default rule
+        if (total == 50) return score >= 35;
+        return percentage >= 70.0;
+    }
 }
+

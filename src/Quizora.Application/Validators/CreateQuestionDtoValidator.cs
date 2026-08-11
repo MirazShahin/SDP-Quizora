@@ -7,24 +7,15 @@ public class CreateQuestionDtoValidator : AbstractValidator<CreateQuestionDto>
 {
     public CreateQuestionDtoValidator()
     {
-        RuleFor(x => x.Text)
-            .NotEmpty().WithMessage("Question text is required")
-            .MaximumLength(1000);
+        RuleFor(x => x.Text).NotEmpty().MaximumLength(4000);
+        RuleFor(x => x.QuestionType).NotEmpty();
 
-        RuleFor(x => x.Options)
-            .NotNull().WithMessage("Options are required")
-            .Must(o => o != null && o.Count == 4)
-            .WithMessage("Exactly 4 options are required");
-
-        RuleFor(x => x.Options)
-            .Must(o => o != null && o.Count(opt => opt.IsCorrect) == 1)
-            .WithMessage("Exactly one option must be marked as correct");
-
-        RuleForEach(x => x.Options).ChildRules(option =>
+        When(x => string.Equals(x.QuestionType, "MCQ", StringComparison.OrdinalIgnoreCase), () =>
         {
-            option.RuleFor(o => o.Text)
-                .NotEmpty().WithMessage("Option text is required")
-                .MaximumLength(500);
+            RuleFor(x => x.Options).NotNull().Must(o => o.Count >= 2)
+                .WithMessage("MCQ needs at least 2 options");
+            RuleFor(x => x.Options).Must(o => o.Count(c => c.IsCorrect) == 1)
+                .WithMessage("Exactly one correct option required");
         });
     }
 }

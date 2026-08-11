@@ -13,7 +13,7 @@ public class AttemptService : IAttemptService
     private readonly IAttemptRepository _attemptRepository;
     private readonly ITestRepository _testRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IQuestionBankRepository _questionBankRepository; 
+    private readonly IQuestionBankRepository _questionBankRepository;
     public AttemptService(
      IInvitationRepository invitationRepository,
      IAttemptRepository attemptRepository,
@@ -25,7 +25,7 @@ public class AttemptService : IAttemptService
         _attemptRepository = attemptRepository;
         _testRepository = testRepository;
         _userRepository = userRepository;
-        _questionBankRepository = questionBankRepository; 
+        _questionBankRepository = questionBankRepository;
     }
 
     public async Task<Result<List<QuestionDto>>> GetQuestionsAsync(Guid userId, Guid invitationId)
@@ -60,9 +60,8 @@ public class AttemptService : IAttemptService
         }
         else
         {
-            // নতুন র‍্যান্ডম ৫০টা Official প্রশ্ন
+            // Mix: mostly MCQ + up to 3 coding problems from own bank
             questions = await _questionBankRepository.GetRandomOfficialQuestionsAsync(50);
-
             if (questions.Count < 10)
                 return Result<List<QuestionDto>>.Failure("Not enough questions in the Official bank");
 
@@ -73,6 +72,10 @@ public class AttemptService : IAttemptService
         {
             Id = q.Id,
             Text = q.Text,
+            QuestionType = string.IsNullOrWhiteSpace(q.QuestionType) ? "MCQ" : q.QuestionType,
+            SampleInput = q.SampleInput,
+            SampleOutput = q.SampleOutput,
+            StarterCode = q.StarterCode ?? q.SampleAnswer,
             Options = q.Options.Select(o => new OptionDto
             {
                 Id = o.Id,
@@ -102,38 +105,63 @@ public class AttemptService : IAttemptService
         if (invitation.Status == InvitationStatus.Expired)
             return Result<ResultDto>.Failure("Invitation expired");
 
-        var test = await _testRepository.GetByIdWithQuestionsAsync(invitation.TestId);
-        if (test == null)
-            return Result<ResultDto>.Failure("Test not found");
+        var assigned = await _questionBankRepository.GetInvitationQuestionsAsync(invitationId);
+        var bankIds = assigned.Select(a => a.QuestionBankId).ToList();
+        var bankQuestions = await _questionBankRepository.GetByIdsAsync(bankIds);
+        if (bankQuestions.Count == 0)
+        {
+            // fallback: test-owned questions
+            var test = await _testRepository.GetByIdWithQuestionsAsync(invitation.TestId);
+            if (test == null)
+                return Result<ResultDto>.Failure("Test not found");
+            bankQuestions = new List<QuestionBank>();
+        }
 
         var attempt = new TestAttempt
         {
             InvitationId = invitationId,
             SubmittedAt = DateTime.UtcNow,
-            TotalQuestions = test.Questions.Count
+            TotalQuestions = bankQuestions.Count > 0 ? bankQuestions.Count : dto.Answers.Count
         };
 
         int correctCount = 0;
+        int mcqCount = 0;
 
         foreach (var answerDto in dto.Answers)
         {
-            var question = test.Questions.FirstOrDefault(q => q.Id == answerDto.QuestionId);
-            if (question == null) continue;
+            var question = bankQuestions.FirstOrDefault(q => q.Id == answerDto.QuestionId);
+            var type = question?.QuestionType ?? "MCQ";
 
-            var selectedOption = question.Options.FirstOrDefault(o => o.Id == answerDto.SelectedOptionId);
+            if (type.Equals("Coding", StringComparison.OrdinalIgnoreCase)
+                || type.Equals("ShortAnswer", StringComparison.OrdinalIgnoreCase))
+            {
+                attempt.Answers.Add(new Answer
+                {
+                    QuestionId = answerDto.QuestionId,
+                    SelectedOptionId = null,
+                    AnswerText = answerDto.AnswerText,
+                    IsCorrect = false
+                });
+                continue;
+            }
+
+            mcqCount++;
+            var selectedOption = question?.Options.FirstOrDefault(o => o.Id == answerDto.SelectedOptionId);
             bool isCorrect = selectedOption?.IsCorrect ?? false;
-
             if (isCorrect) correctCount++;
 
             attempt.Answers.Add(new Answer
             {
                 QuestionId = answerDto.QuestionId,
                 SelectedOptionId = answerDto.SelectedOptionId,
+                AnswerText = answerDto.AnswerText,
                 IsCorrect = isCorrect
             });
         }
 
         attempt.Score = correctCount;
+        if (attempt.TotalQuestions == 0)
+            attempt.TotalQuestions = Math.Max(mcqCount, dto.Answers.Count);
 
         await _attemptRepository.AddAsync(attempt);
 

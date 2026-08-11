@@ -182,8 +182,7 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Ai\\WeakTopics.razor",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-11T17:33:04.841Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-11T17:33:04.841Z"
             },
             {
               "$type": "Document",
@@ -208,8 +207,7 @@
               "RelativeToolTip": "src\\Quizora.Web\\Services\\AiClient.cs",
               "ViewState": "AgIAADYAAAAAAAAAAAAcwEEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-11T17:30:59.659Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-11T17:30:59.659Z"
             },
             {
               "$type": "Document",
@@ -221,8 +219,7 @@
               "RelativeToolTip": "src\\Quizora.Application\\DTOs\\Questions\\WeakTopicDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAqwAgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-11T17:28:52.774Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-11T17:28:52.774Z"
             },
             {
               "$type": "Document",
@@ -354,8 +351,7 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\AiController.cs",
               "ViewState": "AgIAACoAAAAAAAAAAAAIwKYAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T16:10:20.729Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T16:10:20.729Z"
             },
             {
               "$type": "Document",
@@ -571,8 +567,7 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Layout\\NavMenu.razor",
               "ViewState": "AgIAAIkAAAAAAAAAAAAUwJsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T14:41:52.042Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:41:52.042Z"
             },
             {
               "$type": "Document",
@@ -608,8 +603,7 @@
               "RelativeToolTip": "src\\Quizora.API\\Program.cs",
               "ViewState": "AgIAAH8AAAAAAAAAAAAcwJIAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T14:36:03.874Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:36:03.874Z"
             },
             {
               "$type": "Document",

@@ -1,0 +1,8 @@
+{
+  "title": "Two Sum",
+  "statement": "Given an array...",
+  "sampleInput": "2 7 11 15\n9",
+  "sampleOutput": "0 1",
+  "starterCode": "using System;\nclass Program {\n  static void Main() {\n    // your code\n  }\n}",
+  "difficulty": "Easy"
+}

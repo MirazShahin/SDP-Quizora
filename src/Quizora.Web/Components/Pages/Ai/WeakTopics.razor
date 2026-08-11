@@ -1,4 +1,5 @@
-﻿@page "/ai/weak-topics"
+﻿@page "/candidate/weak-topics"
+@page "/ai/weak-topics"
 @rendermode InteractiveServer
 @using Quizora.Web.Services
 @inject AiClient Ai
@@ -6,10 +7,10 @@
 <div class="container py-4" style="max-width: 720px;">
     <h3 class="fw-bold mb-1">Weak Topics</h3>
     <p class="text-muted mb-4">
-        Calculated from your real practice &amp; mock scores — not random suggestions.
+        Calculated from your real practice &amp; mock scores (own algorithm).
     </p>
 
-    <button class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
+    <button type="button" class="btn btn-primary mb-3" disabled="@loading" @onclick="Load">
         @(loading ? "Analyzing..." : "Analyze my performance")
     </button>
 
@@ -18,27 +19,53 @@
         <div class="alert alert-danger">@error</div>
     }
 
-    @if (topics != null)
+    @if (summary != null)
     {
-        @if (!topics.Any())
+        <div class="row g-2 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-4 fw-bold">@summary.PracticeSessions</div>
+                    <div class="small text-muted">Practice</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-4 fw-bold">@summary.MockSessions</div>
+                    <div class="small text-muted">Mocks</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-4 fw-bold">@summary.AvgAccuracy%</div>
+                    <div class="small text-muted">Avg accuracy</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-4 fw-bold">@(summary.StrongestTopic ?? "—")</div>
+                    <div class="small text-muted">Strongest</div>
+                </div>
+            </div>
+        </div>
+
+        @if (summary.WeakTopics == null || !summary.WeakTopics.Any())
         {
             <div class="alert alert-info">
-                No data yet. Finish a few
-                <a href="/practice">Practice</a> or
+                No weak topics yet. Finish a few <a href="/practice">Practice</a> or
                 <a href="/mock-tests">Mock</a> sessions first.
             </div>
         }
         else
         {
             <div class="list-group shadow-sm">
-                @foreach (var t in topics)
+                @foreach (var t in summary.WeakTopics)
                 {
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
                             <div>
                                 <div class="fw-semibold">@t.Topic</div>
                                 <div class="small text-muted">
-                                    @t.Score / @t.Total correct · @t.Accuracy% · @t.Source
+                                    @t.Score / @t.Total · @t.Accuracy% · @t.Source
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
@@ -48,8 +75,7 @@
                         </div>
                         <div class="progress mt-2" style="height: 6px;">
                             <div class="progress-bar @SeverityBar(t.Severity)"
-                                 role="progressbar"
-                                 style="width:@(t.Accuracy)%"></div>
+                                 style="@($"width:{t.Accuracy.ToString(System.Globalization.CultureInfo.InvariantCulture)}%")"></div>
                         </div>
                     </div>
                 }
@@ -59,7 +85,7 @@
 </div>
 
 @code {
-    private List<AiClient.WeakTopicDto>? topics;
+    private AiClient.PerformanceSummaryDto? summary;
     private string? error;
     private bool loading;
 
@@ -67,23 +93,31 @@
     {
         loading = true;
         error = null;
-        topics = null;
-
-        var (data, err) = await Ai.WeakTopicsAsync();
-        topics = data;
-        error = err;
-
-        loading = false;
+        summary = null;
+        try
+        {
+            var (data, err) = await Ai.WeakTopicsAsync();
+            summary = data;
+            error = err;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 
-    private static string SeverityBadge(string s) => s switch
+    private static string SeverityBadge(string? s) => s switch
     {
         "High" => "bg-danger",
         "Medium" => "bg-warning text-dark",
         _ => "bg-success"
     };
 
-    private static string SeverityBar(string s) => s switch
+    private static string SeverityBar(string? s) => s switch
     {
         "High" => "bg-danger",
         "Medium" => "bg-warning",

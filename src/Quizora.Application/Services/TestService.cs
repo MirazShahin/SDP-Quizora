@@ -33,6 +33,8 @@ public class TestService : ITestService
             Description = t.Description,
             Status = t.Status,
             DurationInMinutes = t.DurationInMinutes,
+            PassingScore = t.PassingScore,
+            PassingPercent = t.PassingPercent,
             TotalQuestions = t.Questions.Count,
             TotalInvitations = t.Invitations.Count,
             CompletedCount = t.Invitations.Count(i => i.Status == InvitationStatus.Completed),
@@ -54,6 +56,8 @@ public class TestService : ITestService
             Title = dto.Title.Trim(),
             Description = dto.Description?.Trim(),
             DurationInMinutes = dto.DurationInMinutes,
+            PassingScore = dto.PassingScore,
+            PassingPercent = dto.PassingPercent,
             Status = TestStatus.Draft
         };
 
@@ -67,6 +71,8 @@ public class TestService : ITestService
             Description = test.Description,
             Status = test.Status,
             DurationInMinutes = test.DurationInMinutes,
+            PassingScore = test.PassingScore,
+            PassingPercent = test.PassingPercent,
             TotalQuestions = 0,
             TotalInvitations = 0,
             CompletedCount = 0,
@@ -86,26 +92,36 @@ public class TestService : ITestService
         if (user?.Company?.Id != test.CompanyId)
             return Result.Failure("Unauthorized");
 
-        if (dto.Options == null || dto.Options.Count != 4)
-            return Result.Failure("Exactly 4 options required");
-
-        if (dto.Options.Count(o => o.IsCorrect) != 1)
-            return Result.Failure("Exactly one correct option required");
+        var type = (dto.QuestionType ?? "MCQ").Trim();
+        if (string.IsNullOrWhiteSpace(dto.Text))
+            return Result.Failure("Question text is required");
 
         var question = new Question
         {
             TestId = testId,
             Text = dto.Text.Trim(),
-            Order = 1,
-            Options = dto.Options.Select(o => new Option
+            QuestionType = type,
+            SampleInput = dto.SampleInput,
+            SampleOutput = dto.SampleOutput,
+            StarterCode = dto.StarterCode,
+            Order = (test.Questions?.Count ?? 0) + 1,
+            Options = new List<Option>()
+        };
+
+        if (type.Equals("MCQ", StringComparison.OrdinalIgnoreCase))
+        {
+            if (dto.Options == null || dto.Options.Count < 2)
+                return Result.Failure("MCQ needs at least 2 options");
+            if (dto.Options.Count(o => o.IsCorrect) != 1)
+                return Result.Failure("Exactly one correct option required");
+            question.Options = dto.Options.Select(o => new Option
             {
                 Text = o.Text.Trim(),
                 IsCorrect = o.IsCorrect
-            }).ToList()
-        };
+            }).ToList();
+        }
 
         await _testRepository.AddQuestionAsync(question);
-
         return Result.Success("Question added successfully");
     }
 

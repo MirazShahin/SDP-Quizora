@@ -16,12 +16,24 @@ public class QuestionBankRepository : IQuestionBankRepository
 
     public async Task<List<QuestionBank>> GetRandomOfficialQuestionsAsync(int count)
     {
-        return await _context.QuestionBanks
+        // Up to 3 coding problems from own bank + rest MCQ
+        var coding = await _context.QuestionBanks
             .Include(q => q.Options)
-            .Where(q => q.UsageType == "Official")
+            .Where(q => q.UsageType == "Official" && q.QuestionType == "Coding")
             .OrderBy(q => Guid.NewGuid())
-            .Take(count)
+            .Take(3)
             .ToListAsync();
+
+        var mcqTake = Math.Max(count - coding.Count, 10);
+        var mcq = await _context.QuestionBanks
+            .Include(q => q.Options)
+            .Where(q => q.UsageType == "Official" &&
+                        (q.QuestionType == "MCQ" || string.IsNullOrEmpty(q.QuestionType)))
+            .OrderBy(q => Guid.NewGuid())
+            .Take(mcqTake)
+            .ToListAsync();
+
+        return coding.Concat(mcq).OrderBy(_ => Guid.NewGuid()).Take(count).ToList();
     }
 
     public async Task<List<QuestionBank>> GetByIdsAsync(List<Guid> ids)
