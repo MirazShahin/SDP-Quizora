@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quizora.Application.Common;
-using Quizora.Application.DTOs.Ai;
-using Quizora.Application.DTOs.Questions;
+using Quizora.Application.DTOs.Questions; 
 using Quizora.Application.Interfaces;
 using Quizora.Infrastructure.Persistence;
 using System.Security.Claims;

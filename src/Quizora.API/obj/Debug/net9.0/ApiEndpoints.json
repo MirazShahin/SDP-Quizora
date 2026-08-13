@@ -171,6 +171,22 @@
     ]
   },
   {
+    "ContainingType": "Quizora.API.Controllers.CodeController",
+    "Method": "Run",
+    "RelativePath": "api/Code/run",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Quizora.Application.DTOs.Code.CodeRunRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Quizora.API.Controllers.InterviewController",
     "Method": "GetTopics",
     "RelativePath": "api/Interview/topics",

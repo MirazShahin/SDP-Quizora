@@ -306,10 +306,10 @@ D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.build
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.build.json.cache
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.development.json
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora..AED06E11.Up2Date
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora.API.dll
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\refint\Quizora.API.dll
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora.API.pdb
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora.API.genruntimeconfig.cache
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\ref\Quizora.API.dll
+D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

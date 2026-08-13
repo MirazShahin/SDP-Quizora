@@ -309,6 +309,37 @@
         }
       }
     },
+    "/api/Code/run": {
+      "post": {
+        "tags": [
+          "Code"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRunRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRunRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRunRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Interview/topics": {
       "get": {
         "tags": [
@@ -1507,6 +1538,28 @@
         },
         "additionalProperties": false
       },
+      "CodeRunRequestDto": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "stdin": {
+            "type": "string",
+            "nullable": true
+          },
+          "expectedOutput": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateOptionDto": {
         "type": "object",
         "properties": {
@@ -1528,6 +1581,18 @@
             "nullable": true
           },
           "questionType": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleInput": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleOutput": {
+            "type": "string",
+            "nullable": true
+          },
+          "starterCode": {
             "type": "string",
             "nullable": true
           },
@@ -1555,6 +1620,16 @@
           "durationInMinutes": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "passingScore": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "passingPercent": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },
@@ -1801,6 +1876,18 @@
             "type": "integer",
             "format": "int32"
           },
+          "sampleInput": {
+            "type": "string",
+            "nullable": true
+          },
+          "sampleOutput": {
+            "type": "string",
+            "nullable": true
+          },
+          "starterCode": {
+            "type": "string",
+            "nullable": true
+          },
           "options": {
             "type": "array",
             "items": {
@@ -2025,6 +2112,16 @@
           "durationInMinutes": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "passingScore": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "passingPercent": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           },
           "totalQuestions": {
