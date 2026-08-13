@@ -47,13 +47,30 @@
         {
             var resp = await Http.GetAsync("api/coding/problems");
             var raw = await resp.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Empty response (HTTP {(int)resp.StatusCode}). API-তে CodingPracticeController deploy হয়েছে কিনা চেক করো.";
+                return;
+            }
+
             var api = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<Item>>>(raw,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (api?.IsSuccess == true) items = api.Data ?? new();
-            else error = api?.Message ?? "Failed";
+
+            if (api?.IsSuccess == true)
+                items = api.Data ?? new();
+            else
+                error = api?.Message ?? $"Failed (HTTP {(int)resp.StatusCode})";
         }
-        catch (Exception ex) { error = ex.Message; }
-        finally { loading = false; StateHasChanged(); }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
     }
 
     private static string Badge(string s) => s == "Accepted" ? "bg-success" :
