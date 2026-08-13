@@ -2,9 +2,11 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 
-<div class="container py-4">
-    <h3 class="fw-bold mb-1">Coding Practice</h3>
-    <p class="text-muted small mb-4">Solve problems · C / C++</p>
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1" style="font-size: 1.75rem;">Coding Practice</h2>
+        <p class="text-muted mb-0" style="font-size: 0.95rem;">Solve problems · C / C++</p>
+    </div>
 
     @if (!string.IsNullOrEmpty(error))
     {
@@ -20,15 +22,15 @@
     }
     else
     {
-        <div class="list-group shadow-sm">
+        <div class="list-group shadow-sm problem-list">
             @foreach (var p in items)
             {
-                <a href="/candidate/coding/@p.Id" class="list-group-item list-group-item-action d-flex justify-content-between">
+                <a href="/candidate/coding/@p.Id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="fw-semibold">@p.Title</div>
-                        <div class="small text-muted">@p.TimeLimitMs ms</div>
+                        <div class="problem-title">@p.Title</div>
+                        <div class="problem-meta">@p.TimeLimitMs ms</div>
                     </div>
-                    <span class="badge @Badge(p.Status)">@p.Status</span>
+                    <span class="badge @Badge(p.Status)">@DisplayStatus(p.Status)</span>
                 </a>
             }
         </div>
@@ -76,6 +78,8 @@
     private static string Badge(string s) => s == "Accepted" ? "bg-success" :
         s is "WrongAnswer" or "RuntimeError" ? "bg-danger" :
         s is "CompilationError" or "TimeLimitExceeded" ? "bg-warning text-dark" : "bg-secondary";
+
+    private static string DisplayStatus(string s) => s == "—" ? "—" : s;
 
     public class Item
     {

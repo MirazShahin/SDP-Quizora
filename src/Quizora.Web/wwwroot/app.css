@@ -192,3 +192,52 @@ html[data-theme="dark"] .form-check,
 html[data-theme="dark"] label {
     color: #e2e8f0 !important;
 }
+/* ===== Coding Practice List (Dark + Light) ===== */
+.list-group {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+}
+
+.list-group-item {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    padding: 1rem 1.25rem;
+    transition: background 0.15s ease;
+}
+
+    .list-group-item:hover {
+        background-color: rgba(99, 102, 241, 0.08) !important;
+    }
+
+    .list-group-item .fw-semibold {
+        color: var(--text-primary) !important;
+    }
+
+    .list-group-item .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+/* Dark mode specific polish */
+html[data-theme="dark"] .list-group-item {
+    background-color: #1e293b !important;
+}
+
+    html[data-theme="dark"] .list-group-item:hover {
+        background-color: #334155 !important;
+    }
+
+    html[data-theme="dark"] .list-group-item .fw-semibold {
+        color: #e2e8f0 !important;
+    }
+
+/* Badge polish */
+.badge.bg-success {
+    background-color: #16a34a !important;
+}
+
+.badge.bg-secondary {
+    background-color: #475569 !important;
+}
