@@ -109,13 +109,23 @@
 
                             @if (inv.Status == InvitationStatus.Pending)
                             {
-                                <a href="/candidate/test/@inv.Id" class="btn btn-primary btn-sm px-3">
-                                    Start Test →
-                                </a>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="/candidate/test/@inv.Id" class="btn btn-primary btn-sm px-3">
+                                        Start Test →
+                                    </a>
+                                    <a href="/candidate/contest/@inv.Id" class="btn btn-outline-primary btn-sm px-3">
+                                        Open Contest
+                                    </a>
+                                </div>
                             }
                             else
                             {
-                                <button class="btn btn-outline-secondary btn-sm" disabled>Completed</button>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm" disabled>Completed</button>
+                                    <a href="/candidate/contest/@inv.Id" class="btn btn-outline-primary btn-sm px-3">
+                                        View Contest
+                                    </a>
+                                </div>
                             }
                         </div>
                     </div>
@@ -126,11 +136,30 @@
 </div>
 
 <style>
-    .notif-item { border: 1px solid var(--border-color, rgba(127,127,127,.25)); transition: background .15s; cursor: pointer; }
-    .notif-item.unread { border-color: #0d6efd; background: rgba(13,110,253,.08); }
-    .notif-item.read { opacity: .8; }
-    .test-inv-card { border-radius: 12px; transition: transform .15s, box-shadow .15s; }
-    .test-inv-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.1) !important; }
+    .notif-item {
+        border: 1px solid var(--border-color, rgba(127,127,127,.25));
+        transition: background .15s;
+        cursor: pointer;
+    }
+
+        .notif-item.unread {
+            border-color: #0d6efd;
+            background: rgba(13,110,253,.08);
+        }
+
+        .notif-item.read {
+            opacity: .8;
+        }
+
+    .test-inv-card {
+        border-radius: 12px;
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .test-inv-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.1) !important;
+        }
 </style>
 
 @code {
@@ -145,7 +174,6 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-
         try
         {
             var notifTask = LoadNotifications();

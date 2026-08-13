@@ -1,0 +1,112 @@
+﻿@page "/candidate/contest/{InvitationId:guid}"
+@rendermode InteractiveServer
+@inject HttpClient Http
+
+<div class="container py-4">
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    @if (loading)
+    {
+        <p class="text-muted">Loading contest...</p>
+    }
+    else if (contest != null)
+    {
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold mb-1">@contest.TestTitle</h3>
+                <p class="text-muted small mb-0">Codeforces-style contest</p>
+            </div>
+            @if (contest.DurationInMinutes is > 0)
+            {
+                <span class="badge bg-dark fs-6">@contest.DurationInMinutes min</span>
+            }
+        </div>
+
+        @if (contest.Problems.Count == 0)
+        {
+            <div class="alert alert-info">No coding problems assigned yet.</div>
+        }
+        else
+        {
+            <div class="list-group shadow-sm">
+                @foreach (var p in contest.Problems)
+                {
+                    <a href="@($"/candidate/contest/{InvitationId}/p/{p.CodingProblemId}")"
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold me-2">@p.Letter.</span>@p.Title
+                            <div class="small text-muted">@p.TimeLimitMs ms · @p.Points pts</div>
+                        </div>
+                        <span class="badge @Badge(p.Status)">@p.Status</span>
+                    </a>
+                }
+            </div>
+        }
+        <a href="/candidate/dashboard" class="btn btn-outline-secondary btn-sm mt-3">Dashboard</a>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid InvitationId { get; set; }
+    private ContestOverviewDto? contest;
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await Load();
+        StateHasChanged();
+    }
+
+    private async Task Load()
+    {
+        loading = true; error = null;
+        try
+        {
+            var resp = await Http.GetAsync($"api/contest/{InvitationId}");
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw)) { error = $"HTTP {(int)resp.StatusCode}"; return; }
+            var api = System.Text.Json.JsonSerializer.Deserialize<ApiResult<ContestOverviewDto>>(raw,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (api?.IsSuccess == true) contest = api.Data;
+            else error = api?.Message ?? "Failed";
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { loading = false; }
+    }
+
+    private static string Badge(string s) => s switch
+    {
+        "Accepted" => "bg-success",
+        "WrongAnswer" => "bg-danger",
+        "CompilationError" or "TimeLimitExceeded" => "bg-warning text-dark",
+        "RuntimeError" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    public class ContestOverviewDto
+    {
+        public string TestTitle { get; set; } = "";
+        public int? DurationInMinutes { get; set; }
+        public List<ContestProblemListItemDto> Problems { get; set; } = new();
+    }
+    public class ContestProblemListItemDto
+    {
+        public Guid CodingProblemId { get; set; }
+        public string Letter { get; set; } = "A";
+        public string Title { get; set; } = "";
+        public int Points { get; set; }
+        public int TimeLimitMs { get; set; }
+        public string Status { get; set; } = "—";
+    }
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}
