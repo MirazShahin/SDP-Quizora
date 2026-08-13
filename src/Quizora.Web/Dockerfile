@@ -1,7 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# csproj আগে কপি → restore cache ভালো হয়
+# সব csproj আগে (restore layer cache)
 COPY ["src/Quizora.Web/Quizora.Web.csproj", "src/Quizora.Web/"]
 COPY ["src/Quizora.Application/Quizora.Application.csproj", "src/Quizora.Application/"]
 COPY ["src/Quizora.Domain/Quizora.Domain.csproj", "src/Quizora.Domain/"]
@@ -9,9 +9,13 @@ COPY ["src/Quizora.Infrastructure/Quizora.Infrastructure.csproj", "src/Quizora.I
 
 RUN dotnet restore "src/Quizora.Web/Quizora.Web.csproj"
 
+# source কপি (obj/bin বাদ — .dockerignore দিয়ে)
 COPY . .
+
 WORKDIR /src/src/Quizora.Web
-RUN dotnet publish "Quizora.Web.csproj" -c Release -o /app/publish --no-restore
+
+# --no-restore সরাও; Linux-এ fresh resolve হবে
+RUN dotnet publish "Quizora.Web.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
