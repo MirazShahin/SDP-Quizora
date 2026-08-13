@@ -56,83 +56,126 @@ public class CodingProblemsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCodingProblemDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Statement))
-            return Ok(Result.Failure("Title and statement required"));
-
-        if (dto.TestCases == null || dto.TestCases.Count == 0)
-            return Ok(Result.Failure("At least one test case required"));
-
-        var maxOrder = await _db.CodingProblems.MaxAsync(p => (int?)p.Order) ?? 0;
-
-        var entity = new CodingProblem
+        try
         {
-            Title = dto.Title.Trim(),
-            Statement = dto.Statement.Trim(),
-            Difficulty = string.IsNullOrWhiteSpace(dto.Difficulty) ? "Easy" : dto.Difficulty.Trim(),
-            TimeLimitMs = dto.TimeLimitMs <= 0 ? 3000 : dto.TimeLimitMs,
-            IsActive = true,
-            Order = maxOrder + 1,
-            TestCases = dto.TestCases.Select((t, i) => new CodingTestCase
-            {
-                Input = t.Input ?? "",
-                ExpectedOutput = t.ExpectedOutput ?? "",
-                IsSample = t.IsSample,
-                Order = t.Order > 0 ? t.Order : i + 1
-            }).ToList()
-        };
+            if (dto == null)
+                return Ok(Result.Failure("Body required"));
 
-        _db.CodingProblems.Add(entity);
-        await _db.SaveChangesAsync();
-        return Ok(Result<Guid>.Success(entity.Id, "Created"));
+            if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Statement))
+                return Ok(Result.Failure("Title and statement required"));
+
+            if (dto.TestCases == null || dto.TestCases.Count == 0)
+                return Ok(Result.Failure("At least one test case required"));
+
+            var maxOrder = await _db.CodingProblems.MaxAsync(p => (int?)p.Order) ?? 0;
+
+            var entity = new CodingProblem
+            {
+                Title = dto.Title.Trim(),
+                Statement = dto.Statement.Trim(),
+                Difficulty = string.IsNullOrWhiteSpace(dto.Difficulty) ? "Easy" : dto.Difficulty.Trim(),
+                TimeLimitMs = dto.TimeLimitMs <= 0 ? 3000 : dto.TimeLimitMs,
+                IsActive = true,
+                Order = maxOrder + 1,
+                TestCases = dto.TestCases.Select((t, i) => new CodingTestCase
+                {
+                    Input = t.Input ?? "",
+                    ExpectedOutput = t.ExpectedOutput ?? "",
+                    IsSample = t.IsSample,
+                    Order = t.Order > 0 ? t.Order : i + 1
+                }).ToList()
+            };
+
+            _db.CodingProblems.Add(entity);
+            await _db.SaveChangesAsync();
+            return Ok(Result<Guid>.Success(entity.Id, "Created"));
+        }
+        catch (Exception ex)
+        {
+            return Ok(Result.Failure(ex.InnerException?.Message ?? ex.Message));
+        }
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCodingProblemDto dto)
     {
-        var entity = await _db.CodingProblems
-            .Include(x => x.TestCases)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            if (dto == null)
+                return Ok(Result.Failure("Body required"));
 
-        if (entity == null)
-            return Ok(Result.Failure("Not found"));
+            var entity = await _db.CodingProblems
+                .Include(x => x.TestCases)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-        if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Statement))
-            return Ok(Result.Failure("Title and statement required"));
+            if (entity == null)
+                return Ok(Result.Failure("Not found"));
 
-        if (dto.TestCases == null || dto.TestCases.Count == 0)
-            return Ok(Result.Failure("At least one test case required"));
+            if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Statement))
+                return Ok(Result.Failure("Title and statement required"));
 
-        entity.Title = dto.Title.Trim();
-        entity.Statement = dto.Statement.Trim();
-        entity.Difficulty = string.IsNullOrWhiteSpace(dto.Difficulty) ? "Easy" : dto.Difficulty.Trim();
-        entity.TimeLimitMs = dto.TimeLimitMs <= 0 ? 3000 : dto.TimeLimitMs;
-        entity.IsActive = dto.IsActive;
-        entity.UpdatedAt = DateTime.UtcNow;
+            if (dto.TestCases == null || dto.TestCases.Count == 0)
+                return Ok(Result.Failure("At least one test case required"));
 
-        _db.CodingTestCases.RemoveRange(entity.TestCases);
-        entity.TestCases = dto.TestCases
-            .Select((t, i) => new CodingTestCase
+            entity.Title = dto.Title.Trim();
+            entity.Statement = dto.Statement.Trim();
+            entity.Difficulty = string.IsNullOrWhiteSpace(dto.Difficulty) ? "Easy" : dto.Difficulty.Trim();
+            entity.TimeLimitMs = dto.TimeLimitMs <= 0 ? 3000 : dto.TimeLimitMs;
+            entity.IsActive = dto.IsActive;
+            entity.UpdatedAt = DateTime.UtcNow;
+
+            // 1) পুরনো test cases মুছো, আগে save
+            if (entity.TestCases.Count > 0)
             {
-                Input = t.Input ?? "",
-                ExpectedOutput = t.ExpectedOutput ?? "",
-                IsSample = t.IsSample,
-                Order = t.Order > 0 ? t.Order : i + 1
-            }).ToList();
+                _db.CodingTestCases.RemoveRange(entity.TestCases.ToList());
+                entity.TestCases.Clear();
+                await _db.SaveChangesAsync();
+            }
 
-        await _db.SaveChangesAsync();
-        return Ok(Result.Success("Updated"));
+            // 2) নতুন test cases add (FK explicit)
+            foreach (var (t, i) in dto.TestCases.Select((t, i) => (t, i)))
+            {
+                _db.CodingTestCases.Add(new CodingTestCase
+                {
+                    CodingProblemId = entity.Id,
+                    Input = t.Input ?? "",
+                    ExpectedOutput = t.ExpectedOutput ?? "",
+                    IsSample = t.IsSample,
+                    Order = t.Order > 0 ? t.Order : i + 1,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _db.SaveChangesAsync();
+            return Ok(Result.Success("Updated"));
+        }
+        catch (Exception ex)
+        {
+            // client-এ empty 500 না দিয়ে message পাঠাও
+            return Ok(Result.Failure(ex.InnerException?.Message ?? ex.Message));
+        }
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var entity = await _db.CodingProblems.FindAsync(id);
-        if (entity == null)
-            return Ok(Result.Failure("Not found"));
+        try
+        {
+            var entity = await _db.CodingProblems
+                .Include(x => x.TestCases)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-        _db.CodingProblems.Remove(entity);
-        await _db.SaveChangesAsync();
-        return Ok(Result.Success("Deleted"));
+            if (entity == null)
+                return Ok(Result.Failure("Not found"));
+
+            _db.CodingProblems.Remove(entity);
+            await _db.SaveChangesAsync();
+            return Ok(Result.Success("Deleted"));
+        }
+        catch (Exception ex)
+        {
+            return Ok(Result.Failure(ex.InnerException?.Message ?? ex.Message));
+        }
     }
 
     private static CodingProblemDto Map(CodingProblem p) => new()
