@@ -34,50 +34,56 @@ public class CodingPracticeController : ControllerBase
     [HttpGet("problems")]
     public async Task<IActionResult> List()
     {
-        var userId = UserId;
-        var subs = await _db.CodingSubmissions.AsNoTracking()
-            .Where(s => s.UserId == userId)
-            .ToListAsync();
-
-        var list = await _db.CodingProblems.AsNoTracking()
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.Order).ThenBy(p => p.Title)
-            .Select(p => new
-            {
-                p.Id,
-                p.Title,
-                p.TimeLimitMs,
-                SampleCount = p.TestCases.Count(t => t.IsSample),
-                Status = subs.Where(s => s.CodingProblemId == p.Id)
-                    .OrderByDescending(s => s.CreatedAt)
-                    .Select(s => s.Verdict)
-                    .FirstOrDefault() ?? "—"
-            })
-            .ToListAsync();
-
-        // EF can't mix subs well in Select — do in memory:
-        var problems = await _db.CodingProblems.AsNoTracking()
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.Order).ThenBy(p => p.Title)
-            .Select(p => new { p.Id, p.Title, p.TimeLimitMs, SampleCount = p.TestCases.Count(t => t.IsSample) })
-            .ToListAsync();
-
-        var result = problems.Select(p =>
+        try
         {
-            var best = subs.Where(s => s.CodingProblemId == p.Id).ToList();
-            var ac = best.FirstOrDefault(s => s.Verdict == "Accepted");
-            var last = ac ?? best.OrderByDescending(s => s.CreatedAt).FirstOrDefault();
-            return new
+            var problems = await _db.CodingProblems.AsNoTracking()
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.Order).ThenBy(p => p.Title)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Title,
+                    p.TimeLimitMs
+                })
+                .ToListAsync();
+
+            // submissions optional — table না থাকলে status "—"
+            Dictionary<Guid, string> statusMap = new();
+            try
+            {
+                var userId = UserId;
+                var subs = await _db.CodingSubmissions.AsNoTracking()
+                    .Where(s => s.UserId == userId)
+                    .Select(s => new { s.CodingProblemId, s.Verdict, s.CreatedAt })
+                    .ToListAsync();
+
+                statusMap = subs
+                    .GroupBy(s => s.CodingProblemId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.FirstOrDefault(x => x.Verdict == "Accepted")?.Verdict
+                             ?? g.OrderByDescending(x => x.CreatedAt).First().Verdict
+                    );
+            }
+            catch
+            {
+                // table missing — ignore
+            }
+
+            var result = problems.Select(p => new
             {
                 p.Id,
                 p.Title,
                 p.TimeLimitMs,
-                p.SampleCount,
-                Status = last?.Verdict ?? "—"
-            };
-        }).ToList();
+                Status = statusMap.TryGetValue(p.Id, out var st) ? st : "—"
+            }).ToList();
 
-        return Ok(Result<object>.Success(result));
+            return Ok(Result<object>.Success(result));
+        }
+        catch (Exception ex)
+        {
+            return Ok(Result<object>.Failure(ex.InnerException?.Message ?? ex.Message));
+        }
     }
 
     // Statement + samples only
