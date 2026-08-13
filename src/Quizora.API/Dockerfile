@@ -21,10 +21,12 @@ RUN dotnet publish Quizora.API/Quizora.API.csproj -c Release -o /app/publish /p:
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 
 # C/C++ compiler install (ei line gulo important)
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         g++ \
-        gcc && \
+        gcc \
+        build-essential && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
