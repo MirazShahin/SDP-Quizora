@@ -1,4 +1,4 @@
-﻿@page "/candidate/contest/{InvitationId:guid}/p/{ProblemId:guid}"
+﻿@page "/candidate/coding/{Id:guid}"
 @rendermode InteractiveServer
 @inject HttpClient Http
 
@@ -15,16 +15,16 @@
     {
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
-                <a href="@($"/candidate/contest/{InvitationId}")" class="small">← Problems</a>
-                <h4 class="fw-bold mb-0">@problem.Letter. @problem.Title</h4>
-                <div class="small text-muted">@problem.TimeLimitMs ms · @problem.Points pts</div>
+                <a href="/candidate/coding" class="small">← All problems</a>
+                <h4 class="fw-bold mb-0">@problem.Title</h4>
+                <div class="small text-muted">Time limit: @problem.TimeLimitMs ms</div>
             </div>
             <div class="d-flex gap-2">
                 <select class="form-select form-select-sm" style="width:auto" @bind="language">
                     <option value="cpp">C++</option>
                     <option value="c">C</option>
                 </select>
-                <button class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="RunSample">Run</button>
+                <button class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="Run">Run</button>
                 <button class="btn btn-success btn-sm" disabled="@busy" @onclick="Submit">Submit</button>
             </div>
         </div>
@@ -34,7 +34,7 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h6>Statement</h6>
-                        <pre style="white-space:pre-wrap;font-family:inherit" class="small">@problem.Statement</pre>
+                        <pre class="small" style="white-space:pre-wrap;font-family:inherit">@problem.Statement</pre>
                         @foreach (var s in problem.Samples)
                         {
                             <div class="border rounded p-2 mb-2 small">
@@ -48,16 +48,16 @@
                 </div>
             </div>
             <div class="col-lg-7">
-                <textarea class="form-control font-monospace mb-2" rows="18" @bind="sourceCode"></textarea>
+                <textarea class="form-control font-monospace mb-2" rows="18" @bind="code"></textarea>
                 @if (!string.IsNullOrEmpty(verdict))
                 {
                     <div class="alert @(verdict == "Accepted" ? "alert-success" : "alert-warning")">
-                        <strong>@verdict</strong> @passedTotal
+                        <strong>@verdict</strong> @info
                     </div>
                 }
-                @if (!string.IsNullOrEmpty(runOutput))
+                @if (!string.IsNullOrEmpty(output))
                 {
-                    <pre class="small font-monospace border rounded p-2">@runOutput</pre>
+                    <pre class="small font-monospace border rounded p-2">@output</pre>
                 }
             </div>
         </div>
@@ -65,48 +65,39 @@
 </div>
 
 @code {
-    [Parameter] public Guid InvitationId { get; set; }
-    [Parameter] public Guid ProblemId { get; set; }
-
-    private ProblemDto? problem;
+    [Parameter] public Guid Id { get; set; }
+    private Prob? problem;
     private bool loading = true, busy;
-    private string? error, verdict, runOutput, passedTotal;
+    private string? error, verdict, output, info;
     private string language = "cpp";
-    private string sourceCode = "#include <bits/stdc++.h>\nusing namespace std;\nint main(){\n  ios::sync_with_stdio(false);\n  cin.tie(nullptr);\n  \n  return 0;\n}\n";
+    private string code = "#include <bits/stdc++.h>\nusing namespace std;\nint main(){\n  ios::sync_with_stdio(false);\n  cin.tie(nullptr);\n  \n  return 0;\n}\n";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        await Load();
-        StateHasChanged();
-    }
-
-    private async Task Load()
-    {
-        loading = true; error = null;
         try
         {
-            var resp = await Http.GetAsync($"api/contest/{InvitationId}/problems/{ProblemId}");
+            var resp = await Http.GetAsync($"api/coding/problems/{Id}");
             var raw = await resp.Content.ReadAsStringAsync();
-            var api = D<ApiResult<ProblemDto>>(raw);
+            var api = D<ApiResult<Prob>>(raw);
             if (api?.IsSuccess == true) problem = api.Data;
             else error = api?.Message ?? "Failed";
         }
         catch (Exception ex) { error = ex.Message; }
-        finally { loading = false; }
+        finally { loading = false; StateHasChanged(); }
     }
 
-    private async Task RunSample()
+    private async Task Run()
     {
         if (problem?.Samples.Count is not > 0) { error = "No sample"; return; }
-        busy = true; error = null; verdict = null; runOutput = null;
+        busy = true; error = null; verdict = null; output = null;
         try
         {
             var s = problem.Samples[0];
             var resp = await Http.PostAsJsonAsync("api/Code/run", new
             {
                 Language = language,
-                SourceCode = sourceCode,
+                SourceCode = code,
                 Stdin = s.Input,
                 ExpectedOutput = s.ExpectedOutput
             });
@@ -115,7 +106,7 @@
             if (api?.IsSuccess == true && api.Data != null)
             {
                 verdict = api.Data.Status;
-                runOutput = $"stdout:\n{api.Data.Stdout}\n\nstderr:\n{api.Data.Stderr}\n\n{api.Data.CompileOutput}";
+                output = $"stdout:\n{api.Data.Stdout}\n\nstderr:\n{api.Data.Stderr}\n\n{api.Data.CompileOutput}";
             }
             else error = api?.Message ?? "Run failed";
         }
@@ -125,21 +116,20 @@
 
     private async Task Submit()
     {
-        busy = true; error = null; verdict = null; runOutput = null; passedTotal = null;
+        busy = true; error = null; verdict = null; output = null; info = null;
         try
         {
-            var resp = await Http.PostAsJsonAsync(
-                $"api/contest/{InvitationId}/problems/{ProblemId}/submit",
-                new { Language = language, SourceCode = sourceCode });
+            var resp = await Http.PostAsJsonAsync($"api/coding/problems/{Id}/submit",
+                new { Language = language, SourceCode = code });
             var raw = await resp.Content.ReadAsStringAsync();
             if (string.IsNullOrWhiteSpace(raw)) { error = $"HTTP {(int)resp.StatusCode}"; return; }
-            var api = D<ApiResult<SubmitDto>>(raw);
+            var api = D<ApiResult<SubDto>>(raw);
             if (api?.IsSuccess == true && api.Data != null)
             {
                 verdict = api.Data.Verdict;
-                passedTotal = $"{api.Data.PassedCount}/{api.Data.TotalCount}";
+                info = $"{api.Data.PassedCount}/{api.Data.TotalCount} tests";
                 if (api.Data.Cases != null)
-                    runOutput = string.Join("\n", api.Data.Cases.Select(c =>
+                    output = string.Join("\n", api.Data.Cases.Select(c =>
                         $"#{c.Index} {(c.IsSample ? "sample" : "hidden")}: {c.Status}"));
             }
             else error = api?.Message ?? "Submit failed";
@@ -153,18 +143,16 @@
         System.Text.Json.JsonSerializer.Deserialize<T>(raw,
             new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-    public class ProblemDto
+    public class Prob
     {
-        public string Letter { get; set; } = "A";
         public string Title { get; set; } = "";
         public string Statement { get; set; } = "";
         public int TimeLimitMs { get; set; }
-        public int Points { get; set; }
-        public List<SampleDto> Samples { get; set; } = new();
+        public List<Sample> Samples { get; set; } = new();
     }
-    public class SampleDto { public string Input { get; set; } = ""; public string ExpectedOutput { get; set; } = ""; }
+    public class Sample { public string Input { get; set; } = ""; public string ExpectedOutput { get; set; } = ""; }
     public class RunDto { public string Status { get; set; } = ""; public string Stdout { get; set; } = ""; public string Stderr { get; set; } = ""; public string CompileOutput { get; set; } = ""; }
-    public class SubmitDto
+    public class SubDto
     {
         public string Verdict { get; set; } = "";
         public int PassedCount { get; set; }

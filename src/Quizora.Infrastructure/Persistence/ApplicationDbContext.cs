@@ -35,8 +35,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
     public DbSet<CodingTestCase> CodingTestCases => Set<CodingTestCase>();
-    public DbSet<TestCodingProblem> TestCodingProblems => Set<TestCodingProblem>();
     public DbSet<CodingSubmission> CodingSubmissions => Set<CodingSubmission>();
+   
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -279,9 +279,9 @@ public class ApplicationDbContext : DbContext
         {
             e.Property(x => x.Language).HasMaxLength(10);
             e.Property(x => x.Verdict).HasMaxLength(40);
-            e.HasOne(x => x.Invitation).WithMany().HasForeignKey(x => x.InvitationId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Problem).WithMany().HasForeignKey(x => x.CodingProblemId).OnDelete(DeleteBehavior.Restrict);
-            e.HasIndex(x => new { x.InvitationId, x.CodingProblemId });
+            e.HasIndex(x => new { x.UserId, x.CodingProblemId });
         });
     }
 }
