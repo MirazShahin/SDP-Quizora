@@ -312,4 +312,3 @@ D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\refint\Quizora.API.dl
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora.API.pdb
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\Quizora.API.genruntimeconfig.cache
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\ref\Quizora.API.dll
-D:\SDP\QuizoraWeb\Quizora\src\Quizora.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

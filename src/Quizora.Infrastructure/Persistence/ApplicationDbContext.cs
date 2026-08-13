@@ -33,7 +33,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<QuestionBankOption> QuestionBankOptions => Set<QuestionBankOption>();
     public DbSet<InvitationQuestion> InvitationQuestions => Set<InvitationQuestion>();
     public DbSet<Notification> Notifications { get; set; }
-
+    public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
+    public DbSet<CodingTestCase> CodingTestCases => Set<CodingTestCase>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -249,6 +250,21 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<CodingProblem>(e =>
+        {
+            e.Property(x => x.Title).HasMaxLength(200);
+            e.Property(x => x.Difficulty).HasMaxLength(20);
+            e.HasMany(x => x.TestCases)
+                .WithOne(x => x.Problem)
+                .HasForeignKey(x => x.CodingProblemId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CodingTestCase>(e =>
+        {
+            e.Property(x => x.Input).HasMaxLength(8000);
+            e.Property(x => x.ExpectedOutput).HasMaxLength(8000);
         });
     }
 }

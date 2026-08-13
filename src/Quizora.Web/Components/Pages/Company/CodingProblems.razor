@@ -1,0 +1,409 @@
+﻿@page "/company/coding-problems"
+@rendermode InteractiveServer
+@inject HttpClient Http
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-0">Coding Problem Bank</h3>
+            <p class="text-muted small mb-0">Codeforces-style: Title + Statement + Sample/Hidden test cases (no starter code)</p>
+        </div>
+        <button class="btn btn-primary btn-sm" @onclick="ShowCreate">+ New Problem</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @error
+            <button type="button" class="btn-close" @onclick="() => error = null"></button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(toast))
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @toast
+            <button type="button" class="btn-close" @onclick="() => toast = null"></button>
+        </div>
+    }
+
+    @if (showForm)
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-3">@(editId == null ? "Create" : "Edit") Problem</h5>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Title</label>
+                    <input class="form-control" @bind="form.Title" placeholder="e.g. A. Sum" maxlength="200" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Statement (Codeforces style)</label>
+                    <textarea class="form-control font-monospace" rows="14" @bind="form.Statement"
+                              placeholder="@StatementPlaceholder"></textarea>
+                    <div class="form-text">
+                        Input / Output format লিখো statement-এর ভিতরেই। Sample test আলাদা করে নিচে যোগ করো।
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Difficulty</label>
+                        <select class="form-select" @bind="form.Difficulty">
+                            <option>Easy</option>
+                            <option>Medium</option>
+                            <option>Hard</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Time limit (ms)</label>
+                        <input type="number" class="form-control" @bind="form.TimeLimitMs" min="500" max="30000" step="500" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" @bind="formIsActive" id="isActiveChk" />
+                            <label class="form-check-label" for="isActiveChk">Active (invite-এ দেখাবে)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="mt-3 mb-1">Test cases</h6>
+                <p class="small text-muted mb-2">
+                    <span class="badge bg-success">Sample</span> = candidate দেখবে &nbsp;
+                    <span class="badge bg-secondary">Hidden</span> = শুধু submit-এ judge করবে
+                </p>
+
+                @for (int i = 0; i < form.TestCases.Count; i++)
+                {
+                    var idx = i;
+                    <div class="border rounded p-3 mb-2 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>Case #@(idx + 1)</strong>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    @onclick="() => RemoveCase(idx)" disabled="@(form.TestCases.Count <= 1)">
+                                Remove
+                            </button>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" @bind="form.TestCases[idx].IsSample" id="@($"s{idx}")" />
+                            <label class="form-check-label" for="@($"s{idx}")">Sample (visible to candidate)</label>
+                        </div>
+                        <label class="form-label small mb-0">Input (stdin)</label>
+                        <textarea class="form-control font-monospace mb-2" rows="2"
+                                  @bind="form.TestCases[idx].Input"
+                                  placeholder="2 3"></textarea>
+                        <label class="form-label small mb-0">Expected output</label>
+                        <textarea class="form-control font-monospace" rows="2"
+                                  @bind="form.TestCases[idx].ExpectedOutput"
+                                  placeholder="5"></textarea>
+                    </div>
+                }
+                <button type="button" class="btn btn-outline-secondary btn-sm mb-3" @onclick="AddCase">+ Test case</button>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" disabled="@saving" @onclick="Save">
+                        @(saving ? "Saving..." : "Save")
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="CancelForm">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (loading)
+    {
+        <p class="text-muted">Loading...</p>
+    }
+    else if (items == null || items.Count == 0)
+    {
+        <div class="alert alert-info">
+            No coding problems yet. <strong>+ New Problem</strong> দিয়ে ৩–৪টা যোগ করো — পরে invite-এ assign করা যাবে।
+        </div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var p in items)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="me-auto">
+                        <div class="fw-semibold">@p.Title</div>
+                        <div class="small text-muted">
+                            <span class="badge @(p.Difficulty == "Easy" ? "bg-success" : p.Difficulty == "Medium" ? "bg-warning text-dark" : "bg-danger")">@p.Difficulty</span>
+                            · @p.TestCaseCount test case@(p.TestCaseCount != 1 ? "s" : "")
+                            · @(p.TimeLimitMs) ms
+                            ·
+                            @if (p.IsActive)
+                            {
+                                <span class="text-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="text-secondary">Off</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(p.Id)">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(p.Id)">Delete</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<CodingProblemDto>? items;
+    private bool loading = true, saving, showForm;
+    private Guid? editId;
+    private string? error, toast;
+    private bool formIsActive = true;
+    private CreateCodingProblemDto form = NewForm();
+
+    private const string StatementPlaceholder =
+@"Time limit: 1 second
+
+You are given two integers a and b.
+Print a + b.
+
+Input
+Two integers a and b (−1000 ≤ a, b ≤ 1000).
+
+Output
+Print a single integer — the sum.
+
+Examples
+Input
+2 3
+Output
+5";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        await Load();
+        StateHasChanged();
+    }
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            var res = await Http.GetFromJsonAsync<ApiResult<List<CodingProblemDto>>>("api/CodingProblems");
+            if (res?.IsSuccess == true)
+                items = res.Data;
+            else
+                error = res?.Message ?? "Failed to load";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void ShowCreate()
+    {
+        editId = null;
+        form = NewForm();
+        formIsActive = true;
+        showForm = true;
+        toast = null;
+        error = null;
+    }
+
+    private void CancelForm()
+    {
+        showForm = false;
+        error = null;
+    }
+
+    private async Task Edit(Guid id)
+    {
+        error = null;
+        toast = null;
+        try
+        {
+            var res = await Http.GetFromJsonAsync<ApiResult<CodingProblemDto>>($"api/CodingProblems/{id}");
+            if (res?.IsSuccess != true || res.Data == null)
+            {
+                error = res?.Message ?? "Load failed";
+                return;
+            }
+
+            var p = res.Data;
+            editId = p.Id;
+            formIsActive = p.IsActive;
+            form = new CreateCodingProblemDto
+            {
+                Title = p.Title,
+                Statement = p.Statement,
+                Difficulty = p.Difficulty,
+                TimeLimitMs = p.TimeLimitMs,
+                TestCases = p.TestCases.Select(t => new CodingTestCaseDto
+                {
+                    Input = t.Input,
+                    ExpectedOutput = t.ExpectedOutput,
+                    IsSample = t.IsSample,
+                    Order = t.Order
+                }).ToList()
+            };
+            if (form.TestCases.Count == 0)
+                form.TestCases.Add(new CodingTestCaseDto { IsSample = true });
+            showForm = true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrWhiteSpace(form.Title) || string.IsNullOrWhiteSpace(form.Statement))
+        {
+            error = "Title and statement required";
+            return;
+        }
+        if (form.TestCases == null || form.TestCases.Count == 0)
+        {
+            error = "At least one test case required";
+            return;
+        }
+
+        saving = true;
+        error = null;
+        toast = null;
+        try
+        {
+            HttpResponseMessage resp;
+            if (editId == null)
+            {
+                resp = await Http.PostAsJsonAsync("api/CodingProblems", form);
+            }
+            else
+            {
+                resp = await Http.PutAsJsonAsync($"api/CodingProblems/{editId}",
+                    new UpdateCodingProblemDto
+                    {
+                        Title = form.Title,
+                        Statement = form.Statement,
+                        Difficulty = form.Difficulty,
+                        TimeLimitMs = form.TimeLimitMs,
+                        IsActive = formIsActive,
+                        TestCases = form.TestCases
+                    });
+            }
+
+            var api = await resp.Content.ReadFromJsonAsync<ApiResult<object>>();
+            if (api?.IsSuccess == true)
+            {
+                toast = "Saved";
+                showForm = false;
+                await Load();
+            }
+            else
+            {
+                error = api?.Message ?? "Save failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    private async Task Delete(Guid id)
+    {
+        try
+        {
+            var resp = await Http.DeleteAsync($"api/CodingProblems/{id}");
+            var api = await resp.Content.ReadFromJsonAsync<ApiResult<object>>();
+            if (api?.IsSuccess == true)
+            {
+                toast = "Deleted";
+                await Load();
+            }
+            else
+            {
+                error = api?.Message ?? "Delete failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private void AddCase() =>
+        form.TestCases.Add(new CodingTestCaseDto { IsSample = form.TestCases.Count == 0 });
+
+    private void RemoveCase(int i)
+    {
+        if (form.TestCases.Count > 1)
+            form.TestCases.RemoveAt(i);
+    }
+
+    private static CreateCodingProblemDto NewForm() => new()
+    {
+        Difficulty = "Easy",
+        TimeLimitMs = 3000,
+        TestCases = new List<CodingTestCaseDto>
+        {
+            new() { IsSample = true, Input = "", ExpectedOutput = "" }
+        }
+    };
+
+    public class CodingProblemDto
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Statement { get; set; } = "";
+        public string Difficulty { get; set; } = "";
+        public int TimeLimitMs { get; set; }
+        public bool IsActive { get; set; }
+        public int Order { get; set; }
+        public int TestCaseCount { get; set; }
+        public List<CodingTestCaseDto> TestCases { get; set; } = new();
+    }
+
+    public class CodingTestCaseDto
+    {
+        public Guid? Id { get; set; }
+        public string Input { get; set; } = "";
+        public string ExpectedOutput { get; set; } = "";
+        public bool IsSample { get; set; }
+        public int Order { get; set; }
+    }
+
+    public class CreateCodingProblemDto
+    {
+        public string Title { get; set; } = "";
+        public string Statement { get; set; } = "";
+        public string Difficulty { get; set; } = "Easy";
+        public int TimeLimitMs { get; set; } = 3000;
+        public List<CodingTestCaseDto> TestCases { get; set; } = new();
+    }
+
+    public class UpdateCodingProblemDto : CreateCodingProblemDto
+    {
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

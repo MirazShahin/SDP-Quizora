@@ -130,7 +130,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     await QuestionBankSeeder.SeedAsync(db);
-
+    await CodingProblemSeeder.SeedAsync(db);
     // Default Company account (acts as Admin) — no separate Admin role
     if (!db.Users.Any(u => u.Email == "admin@quizora.local"))
     {
