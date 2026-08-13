@@ -12,7 +12,8 @@ public class AuthorizedHandler : DelegatingHandler
         _localStorage = localStorage;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+    HttpRequestMessage request, CancellationToken cancellationToken)
     {
         try
         {
@@ -20,12 +21,14 @@ public class AuthorizedHandler : DelegatingHandler
 
             if (!string.IsNullOrWhiteSpace(token))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                token = token.Trim().Trim('"'); // extra quotes সরানো
+                request.Headers.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
             }
         }
         catch
         {
-            // Prerendering এর সময় LocalStorage কাজ করে না → silently ignore
+            // prerender — ignore
         }
 
         return await base.SendAsync(request, cancellationToken);

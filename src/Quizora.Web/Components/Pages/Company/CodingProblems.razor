@@ -48,14 +48,6 @@
 
                 <div class="row g-2 mb-3">
                     <div class="col-md-4">
-                        <label class="form-label">Difficulty</label>
-                        <select class="form-select" @bind="form.Difficulty">
-                            <option>Easy</option>
-                            <option>Medium</option>
-                            <option>Hard</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
                         <label class="form-label">Time limit (ms)</label>
                         <input type="number" class="form-control" @bind="form.TimeLimitMs" min="500" max="30000" step="500" />
                     </div>
@@ -129,8 +121,7 @@
                     <div class="me-auto">
                         <div class="fw-semibold">@p.Title</div>
                         <div class="small text-muted">
-                            <span class="badge @(p.Difficulty == "Easy" ? "bg-success" : p.Difficulty == "Medium" ? "bg-warning text-dark" : "bg-danger")">@p.Difficulty</span>
-                            · @p.TestCaseCount test case@(p.TestCaseCount != 1 ? "s" : "")
+                            @p.TestCaseCount test case@(p.TestCaseCount != 1 ? "s" : "")
                             · @(p.TimeLimitMs) ms
                             ·
                             @if (p.IsActive)
@@ -192,11 +183,19 @@ Output
         error = null;
         try
         {
-            var res = await Http.GetFromJsonAsync<ApiResult<List<CodingProblemDto>>>("api/CodingProblems");
+            var resp = await Http.GetAsync("api/CodingProblems");
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Load failed: empty response (HTTP {(int)resp.StatusCode})";
+                return;
+            }
+
+            var res = Deserialize<ApiResult<List<CodingProblemDto>>>(raw);
             if (res?.IsSuccess == true)
                 items = res.Data;
             else
-                error = res?.Message ?? "Failed to load";
+                error = res?.Message ?? $"Failed to load (HTTP {(int)resp.StatusCode})";
         }
         catch (Exception ex)
         {
@@ -230,7 +229,15 @@ Output
         toast = null;
         try
         {
-            var res = await Http.GetFromJsonAsync<ApiResult<CodingProblemDto>>($"api/CodingProblems/{id}");
+            var resp = await Http.GetAsync($"api/CodingProblems/{id}");
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Load failed: empty response (HTTP {(int)resp.StatusCode})";
+                return;
+            }
+
+            var res = Deserialize<ApiResult<CodingProblemDto>>(raw);
             if (res?.IsSuccess != true || res.Data == null)
             {
                 error = res?.Message ?? "Load failed";
@@ -244,7 +251,7 @@ Output
             {
                 Title = p.Title,
                 Statement = p.Statement,
-                Difficulty = p.Difficulty,
+                Difficulty = string.IsNullOrWhiteSpace(p.Difficulty) ? "Easy" : p.Difficulty,
                 TimeLimitMs = p.TimeLimitMs,
                 TestCases = p.TestCases.Select(t => new CodingTestCaseDto
                 {
@@ -301,7 +308,24 @@ Output
                     });
             }
 
-            var api = await resp.Content.ReadFromJsonAsync<ApiResult<object>>();
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Empty response from API (HTTP {(int)resp.StatusCode}). ApiBaseUrl / auth চেক করো.";
+                return;
+            }
+
+            ApiResult<object>? api;
+            try
+            {
+                api = Deserialize<ApiResult<object>>(raw);
+            }
+            catch
+            {
+                error = $"HTTP {(int)resp.StatusCode}: {(raw.Length > 200 ? raw[..200] : raw)}";
+                return;
+            }
+
             if (api?.IsSuccess == true)
             {
                 toast = "Saved";
@@ -310,7 +334,7 @@ Output
             }
             else
             {
-                error = api?.Message ?? "Save failed";
+                error = api?.Message ?? $"Save failed (HTTP {(int)resp.StatusCode})";
             }
         }
         catch (Exception ex)
@@ -328,7 +352,14 @@ Output
         try
         {
             var resp = await Http.DeleteAsync($"api/CodingProblems/{id}");
-            var api = await resp.Content.ReadFromJsonAsync<ApiResult<object>>();
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Empty response (HTTP {(int)resp.StatusCode})";
+                return;
+            }
+
+            var api = Deserialize<ApiResult<object>>(raw);
             if (api?.IsSuccess == true)
             {
                 toast = "Deleted";
@@ -363,6 +394,10 @@ Output
             new() { IsSample = true, Input = "", ExpectedOutput = "" }
         }
     };
+
+    private static T? Deserialize<T>(string raw) =>
+        System.Text.Json.JsonSerializer.Deserialize<T>(raw,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
     public class CodingProblemDto
     {
