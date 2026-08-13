@@ -1,0 +1,251 @@
+﻿using System.Diagnostics;
+using System.Text;
+using Quizora.Application.DTOs.Code;
+using Quizora.Application.Interfaces;
+
+namespace Quizora.Infrastructure.Services;
+
+/// <summary>
+/// Own C/C++ runner — no Judge0 / external API.
+/// Needs gcc/g++ on PATH (Windows: MinGW, Linux: apt install g++).
+/// </summary>
+public class CodeExecutionService : ICodeExecutionService
+{
+    private static readonly TimeSpan CompileTimeout = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan RunTimeout = TimeSpan.FromSeconds(3);
+    private const int MaxSourceBytes = 50_000;
+    private const int MaxOutputChars = 20_000;
+
+    public async Task<CodeRunResultDto> RunAsync(CodeRunRequestDto request, CancellationToken ct = default)
+    {
+        var result = new CodeRunResultDto();
+
+        if (request == null || string.IsNullOrWhiteSpace(request.SourceCode))
+        {
+            result.Status = "No source code";
+            result.Stderr = "Source code is required";
+            return result;
+        }
+
+        if (Encoding.UTF8.GetByteCount(request.SourceCode) > MaxSourceBytes)
+        {
+            result.Status = "Source too large";
+            result.Stderr = $"Max source size is {MaxSourceBytes} bytes";
+            return result;
+        }
+
+        var lang = (request.Language ?? "cpp").Trim().ToLowerInvariant();
+        if (lang is not ("c" or "cpp" or "c++"))
+        {
+            result.Status = "Unsupported language";
+            result.Stderr = "Only c or cpp allowed";
+            return result;
+        }
+
+        var isCpp = lang is "cpp" or "c++";
+        var work = Path.Combine(Path.GetTempPath(), "quizora-code", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(work);
+
+        var sourceFile = Path.Combine(work, isCpp ? "main.cpp" : "main.c");
+        var exeFile = Path.Combine(work, OperatingSystem.IsWindows() ? "main.exe" : "main");
+
+        try
+        {
+            await File.WriteAllTextAsync(sourceFile, request.SourceCode, ct);
+
+            var compiler = isCpp
+                ? ResolveCompiler("g++", "g++.exe")
+                : ResolveCompiler("gcc", "gcc.exe");
+
+            if (compiler == null)
+            {
+                result.Status = "Compiler not found";
+                result.Stderr = isCpp
+                    ? "g++ not found. Install MinGW (Windows) or: sudo apt install g++ (Linux)"
+                    : "gcc not found. Install MinGW or: sudo apt install gcc";
+                return result;
+            }
+
+            var compileArgs = isCpp
+                ? $"-O2 -std=c++17 -pipe \"{sourceFile}\" -o \"{exeFile}\""
+                : $"-O2 -std=c11 -pipe \"{sourceFile}\" -o \"{exeFile}\"";
+
+            var compile = await RunProcessAsync(compiler, compileArgs, work, null, CompileTimeout, ct);
+            result.CompileOutput = Trim(compile.StdErr + compile.StdOut);
+            result.Compiled = compile.ExitCode == 0 && File.Exists(exeFile);
+
+            if (!result.Compiled)
+            {
+                result.Status = "Compilation Error";
+                result.Stderr = result.CompileOutput;
+                result.ExitCode = compile.ExitCode;
+                return result;
+            }
+
+            var sw = Stopwatch.StartNew();
+            var run = await RunProcessAsync(exeFile, "", work, request.Stdin ?? "", RunTimeout, ct);
+            sw.Stop();
+
+            result.TimeMs = sw.ElapsedMilliseconds;
+            result.TimedOut = run.TimedOut;
+            result.ExitCode = run.ExitCode;
+            result.Stdout = Trim(run.StdOut);
+            result.Stderr = Trim(run.StdErr);
+
+            if (run.TimedOut)
+            {
+                result.Status = "Time Limit Exceeded";
+                return result;
+            }
+
+            if (run.ExitCode != 0)
+            {
+                result.Success = true;
+                result.Status = "Runtime Error";
+                return result;
+            }
+
+            result.Success = true;
+            result.Status = "Finished";
+
+            if (!string.IsNullOrWhiteSpace(request.ExpectedOutput))
+            {
+                var got = Normalize(result.Stdout);
+                var exp = Normalize(request.ExpectedOutput);
+                result.Passed = got == exp;
+                result.Status = result.Passed ? "Accepted" : "Wrong Answer";
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            result.Status = "Engine Error";
+            result.Stderr = ex.Message;
+            return result;
+        }
+        finally
+        {
+            try
+            {
+                if (Directory.Exists(work))
+                    Directory.Delete(work, recursive: true);
+            }
+            catch { /* ignore */ }
+        }
+    }
+
+    private static string? ResolveCompiler(string unixName, string winName)
+    {
+        var fromPath = FindOnPath(OperatingSystem.IsWindows() ? winName : unixName)
+                       ?? FindOnPath(unixName);
+        if (fromPath != null) return fromPath;
+
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var c in new[]
+            {
+                @"C:\MinGW\bin\g++.exe",
+                @"C:\MinGW\bin\gcc.exe",
+                @"C:\msys64\mingw64\bin\g++.exe",
+                @"C:\msys64\mingw64\bin\gcc.exe"
+            })
+            {
+                if (File.Exists(c)) return c;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? FindOnPath(string fileName)
+    {
+        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (var dir in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            try
+            {
+                var full = Path.Combine(dir.Trim('"'), fileName);
+                if (File.Exists(full)) return full;
+            }
+            catch { }
+        }
+        return null;
+    }
+
+    private static async Task<(int ExitCode, string StdOut, string StdErr, bool TimedOut)> RunProcessAsync(
+        string fileName,
+        string args,
+        string workDir,
+        string? stdin,
+        TimeSpan timeout,
+        CancellationToken ct)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = args,
+            WorkingDirectory = workDir,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var proc = new Process { StartInfo = psi };
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+
+        proc.OutputDataReceived += (_, e) => { if (e.Data != null) stdout.AppendLine(e.Data); };
+        proc.ErrorDataReceived += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
+
+        proc.Start();
+        proc.BeginOutputReadLine();
+        proc.BeginErrorReadLine();
+
+        if (stdin != null)
+        {
+            try
+            {
+                await proc.StandardInput.WriteAsync(stdin);
+                await proc.StandardInput.FlushAsync();
+                proc.StandardInput.Close();
+            }
+            catch { }
+        }
+        else
+        {
+            try { proc.StandardInput.Close(); } catch { }
+        }
+
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(timeout);
+
+        try
+        {
+            await proc.WaitForExitAsync(cts.Token);
+            return (proc.ExitCode, stdout.ToString(), stderr.ToString(), false);
+        }
+        catch (OperationCanceledException)
+        {
+            try { if (!proc.HasExited) proc.Kill(entireProcessTree: true); } catch { }
+            return (-1, stdout.ToString(), stderr.ToString(), true);
+        }
+    }
+
+    private static string Normalize(string s)
+        => string.Join("\n",
+                s.Replace("\r\n", "\n").Replace('\r', '\n')
+                    .Split('\n')
+                    .Select(l => l.TrimEnd()))
+            .Trim();
+
+    private static string Trim(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        if (s.Length > MaxOutputChars)
+            s = s[..MaxOutputChars] + "\n...[truncated]";
+        return s.Trim();
+    }
+}

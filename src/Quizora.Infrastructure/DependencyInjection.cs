@@ -44,7 +44,7 @@ public static class DependencyInjection
         });
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddHttpClient<IAiService, AiService>();
-
+        services.AddSingleton<ICodeExecutionService, CodeExecutionService>();
         return services;
     }
 }

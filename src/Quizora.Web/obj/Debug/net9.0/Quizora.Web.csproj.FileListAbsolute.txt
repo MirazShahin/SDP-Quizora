@@ -193,3 +193,4 @@ D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\obj\Debug\net9.0\staticwebassets.upToD
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\obj\Debug\net9.0\Quizora..DADC9D09.Up2Date
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\obj\Debug\net9.0\Quizora.Web.genruntimeconfig.cache
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\obj\Debug\net9.0\ref\Quizora.Web.dll
+D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\obj\Debug\net9.0\compressed\lkmypyjf7x-gnjdat5xm6.gz

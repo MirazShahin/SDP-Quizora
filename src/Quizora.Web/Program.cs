@@ -47,7 +47,7 @@ builder.Services.AddScoped<InterviewService>();
 builder.Services.AddScoped<QuizApiClient>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<AiClient>();
-
+builder.Services.AddScoped<CodeClient>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

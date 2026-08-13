@@ -28,6 +28,7 @@ D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\js\bootstra
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap.css.map
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
+D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\Data\coding-problems.json
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css.map
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\js\download.js
@@ -45,6 +46,7 @@ D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstr
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
 D:\SDP\QuizoraWeb\Quizora\src\Quizora.Web\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js
 wwwroot\app.css
+wwwroot\Data\coding-problems.json
 wwwroot\favicon.png
 wwwroot\js\download.js
 wwwroot\lib\bootstrap\dist\css\bootstrap.css
