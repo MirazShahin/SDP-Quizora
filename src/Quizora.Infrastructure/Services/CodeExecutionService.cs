@@ -7,7 +7,7 @@ namespace Quizora.Infrastructure.Services;
 
 /// <summary>
 /// Own C/C++ runner — no Judge0 / external API.
-/// Needs gcc/g++ on PATH (Windows: MinGW, Linux: apt install g++).
+/// Needs gcc/g++ on PATH (Windows: MSYS2/MinGW, Linux: apt install g++).
 /// </summary>
 public class CodeExecutionService : ICodeExecutionService
 {
@@ -61,8 +61,8 @@ public class CodeExecutionService : ICodeExecutionService
             {
                 result.Status = "Compiler not found";
                 result.Stderr = isCpp
-                    ? "g++ not found. Install MinGW (Windows) or: sudo apt install g++ (Linux)"
-                    : "gcc not found. Install MinGW or: sudo apt install gcc";
+                    ? "g++ not found. Install MSYS2/MinGW (Windows) or: sudo apt install g++ (Linux)"
+                    : "gcc not found. Install MSYS2/MinGW or: sudo apt install gcc";
                 return result;
             }
 
@@ -137,22 +137,42 @@ public class CodeExecutionService : ICodeExecutionService
 
     private static string? ResolveCompiler(string unixName, string winName)
     {
+        // 1. PATH theke khujbe
         var fromPath = FindOnPath(OperatingSystem.IsWindows() ? winName : unixName)
                        ?? FindOnPath(unixName);
-        if (fromPath != null) return fromPath;
+        if (fromPath != null)
+            return fromPath;
 
         if (OperatingSystem.IsWindows())
         {
-            foreach (var c in new[]
+            // 2. Common MSYS2 + MinGW locations
+            var candidates = new[]
             {
-                @"C:\MinGW\bin\g++.exe",
-                @"C:\MinGW\bin\gcc.exe",
+                @"C:\msys64\ucrt64\bin\g++.exe",
                 @"C:\msys64\mingw64\bin\g++.exe",
-                @"C:\msys64\mingw64\bin\gcc.exe"
-            })
+                @"C:\msys64\clang64\bin\g++.exe",
+                @"C:\msys64\mingw32\bin\g++.exe",
+                @"C:\MinGW\bin\g++.exe",
+                @"C:\MinGW64\bin\g++.exe",
+                @"C:\mingw64\bin\g++.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"msys64\ucrt64\bin\g++.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"msys64\mingw64\bin\g++.exe"),
+            };
+
+            foreach (var path in candidates)
             {
-                if (File.Exists(c)) return c;
+                if (File.Exists(path))
+                    return path;
             }
+
+            // 3. Last try: where command
+            try
+            {
+                var whereResult = RunWhereCommand(winName);
+                if (!string.IsNullOrWhiteSpace(whereResult) && File.Exists(whereResult))
+                    return whereResult;
+            }
+            catch { }
         }
 
         return null;
@@ -160,17 +180,49 @@ public class CodeExecutionService : ICodeExecutionService
 
     private static string? FindOnPath(string fileName)
     {
-        var path = Environment.GetEnvironmentVariable("PATH") ?? "";
-        foreach (var dir in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (var dir in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
             try
             {
-                var full = Path.Combine(dir.Trim('"'), fileName);
-                if (File.Exists(full)) return full;
+                var full = Path.Combine(dir.Trim().Trim('"'), fileName);
+                if (File.Exists(full))
+                    return full;
             }
             catch { }
         }
         return null;
+    }
+
+    private static string? RunWhereCommand(string fileName)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "where",
+                Arguments = fileName,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var proc = Process.Start(psi);
+            if (proc == null) return null;
+
+            var output = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit(2000);
+
+            var firstLine = output
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault()?.Trim();
+
+            return firstLine;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static async Task<(int ExitCode, string StdOut, string StdErr, bool TimedOut)> RunProcessAsync(
