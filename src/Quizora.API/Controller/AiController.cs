@@ -53,6 +53,32 @@ public class AiController : ControllerBase
             return Result<string>.Failure(ex.Message);
         }
     }
+    [HttpPost("assistant")]
+    public async Task<ActionResult<Result<string>>> Assistant([FromBody] AssistantRequest req)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(req.Message))
+                return Result<string>.Failure("Message required");
+
+            var history = (req.History ?? new())
+                .Select(h => new ChatMessageDto { Role = h.Role, Content = h.Content })
+                .ToList();
+
+            var text = await _ai.GetAssistantReplyAsync(history, req.Message.Trim());
+            return Result<string>.Success(text);
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Failure(ex.Message);
+        }
+    }
+
+    public class AssistantRequest
+    {
+        public string Message { get; set; } = "";
+        public List<ChatMsg>? History { get; set; }
+    }
 
     /// <summary>
     /// Own algorithm: Practice + Mock + Coding submissions (not hardcoded AI list).

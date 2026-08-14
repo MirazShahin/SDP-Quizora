@@ -17,17 +17,12 @@ public class AiService : IAiService
     public AiService(HttpClient http, IConfiguration config)
     {
         _http = http;
-        //_provider = config["Ai:Provider"] ?? "Gemini";
-        //_apiKey = config["Ai:ApiKey"] ?? throw new InvalidOperationException("Ai:ApiKey missing");
-        //_model = config["Ai:Model"] ?? "gemini-2.0-flash";
+        _apiKey = config["Ai:ApiKey"]
+            ?? throw new InvalidOperationException("Ai:ApiKey missing");
+        _model = config["Ai:Model"] ?? "google/gemma-2-9b-it:free";
 
-
-        _http.BaseAddress = new Uri(config["Ai:BaseUrl"] ?? "https://api.groq.com/openai/v1/");
-        _apiKey = config["Ai:ApiKey"]!;
-        _model = config["Ai:Model"] ?? "llama-3.3-70b-versatile";
-
-        var baseUrl = config["Ai:BaseUrl"] ?? "https://generativelanguage.googleapis.com/v1beta/";
-        _http.BaseAddress = new Uri(baseUrl);
+        _http.BaseAddress = new Uri(
+            config["Ai:BaseUrl"] ?? "https://openrouter.ai/api/v1/");
     }
 
     public async Task<string> GetCoachFeedbackAsync(string question, string? userAnswer = null)
@@ -63,7 +58,33 @@ public class AiService : IAiService
 
         return await ChatAsync("Follow the interview instructions above.", sb.ToString());
     }
+    public async Task<string> GetAssistantReplyAsync(List<ChatMessageDto> history, string userMessage)
+    {
+        var system = """
+        You are Quizora AI Assistant by HaMiko.
+        Help students with IT topics: programming (C, C++, algorithms),
+        OOP, DBMS, OS, networking, system design basics, and interview prep.
+        Be clear, structured, and practical. Use short examples or code when useful.
+        Answer in the same language the user writes in (Bangla or English).
+        If the question is unclear, ask a short clarifying question.
+        """;
 
+        var sb = new StringBuilder();
+        if (history != null)
+        {
+            foreach (var m in history.TakeLast(12)) // last 12 turns, cost control
+            {
+                var role = string.IsNullOrWhiteSpace(m.Role) ? "user" : m.Role.Trim().ToLowerInvariant();
+                if (role is not ("user" or "assistant" or "system"))
+                    role = "user";
+                sb.AppendLine($"{role}: {m.Content}");
+            }
+        }
+
+        sb.AppendLine($"user: {userMessage}");
+
+        return await ChatAsync(system, sb.ToString());
+    }
     public async Task<List<string>> GetWeakTopicsAsync(List<TopicScoreDto> history)
     {
         if (history == null || history.Count == 0)
@@ -90,9 +111,16 @@ public class AiService : IAiService
 
     private async Task<string> ChatAsync(string system, string user)
     {
-        // Groq = OpenAI-compatible
         _http.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", _apiKey);
+
+        // OpenRouter optional but recommended
+        if (!_http.DefaultRequestHeaders.Contains("HTTP-Referer"))
+            _http.DefaultRequestHeaders.TryAddWithoutValidation(
+                "HTTP-Referer", "https://quizora.local");
+        if (!_http.DefaultRequestHeaders.Contains("X-Title"))
+            _http.DefaultRequestHeaders.TryAddWithoutValidation(
+                "X-Title", "Quizora");
 
         var body = new
         {
@@ -109,7 +137,7 @@ public class AiService : IAiService
         var json = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"Groq API error {(int)response.StatusCode}: {json}");
+            throw new Exception($"OpenRouter error {(int)response.StatusCode}: {json}");
 
         using var doc = JsonDocument.Parse(json);
         return doc.RootElement
@@ -119,4 +147,5 @@ public class AiService : IAiService
             .GetString()
             ?.Trim() ?? "";
     }
+
 }

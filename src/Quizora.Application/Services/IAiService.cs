@@ -5,6 +5,7 @@ public interface IAiService
     Task<string> GetCoachFeedbackAsync(string question, string? userAnswer = null);
     Task<string> GetMockInterviewReplyAsync(List<ChatMessageDto> history, string userMessage);
     Task<List<string>> GetWeakTopicsAsync(List<TopicScoreDto> history);
+    Task<string> GetAssistantReplyAsync(List<ChatMessageDto> history, string message);
 }
 
 public class ChatMessageDto

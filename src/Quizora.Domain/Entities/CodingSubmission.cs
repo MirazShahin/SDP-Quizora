@@ -20,4 +20,5 @@ public class CodingSubmission : BaseEntity
 
     public User User { get; set; } = null!;
     public CodingProblem Problem { get; set; } = null!;
+
 }
