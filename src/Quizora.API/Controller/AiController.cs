@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quizora.Application.Common;
-using Quizora.Application.DTOs.Questions; 
+using Quizora.Application.DTOs.Questions;
 using Quizora.Application.Interfaces;
 using Quizora.Infrastructure.Persistence;
 using System.Security.Claims;
@@ -45,7 +45,6 @@ public class AiController : ControllerBase
             var history = (req.History ?? new List<ChatMsg>())
                 .Select(h => new ChatMessageDto { Role = h.Role, Content = h.Content })
                 .ToList();
-
             var text = await _ai.GetMockInterviewReplyAsync(history, req.Message);
             return Result<string>.Success(text);
         }
@@ -55,7 +54,9 @@ public class AiController : ControllerBase
         }
     }
 
-    /// <summary>Own algorithm: practice/mock accuracy by category — not hardcoded AI list.</summary>
+    /// <summary>
+    /// Own algorithm: Practice + Mock + Coding submissions (not hardcoded AI list).
+    /// </summary>
     [HttpGet("weak-topics")]
     public async Task<IActionResult> WeakTopics()
     {
@@ -77,8 +78,15 @@ public class AiController : ControllerBase
                 .Where(a => a.UserId == userId)
                 .ToListAsync();
 
+            // Coding / Problem Solving submissions
+            var coding = await _db.CodingSubmissions
+                .Include(s => s.Problem)
+                .Where(s => s.UserId == userId)
+                .ToListAsync();
+
             var rows = new List<WeakTopicDto>();
 
+            // ── Practice ──
             foreach (var g in practice.GroupBy(a => a.Category?.Name ?? "Practice"))
             {
                 var score = g.Sum(x => x.Score);
@@ -91,11 +99,12 @@ public class AiController : ControllerBase
                     Score = score,
                     Total = total,
                     Accuracy = acc,
-                    Severity = acc < 40 ? "High" : acc < 60 ? "Medium" : "Low",
+                    Severity = Severity(acc),
                     Source = "Practice"
                 });
             }
 
+            // ── Mock ──
             foreach (var g in mocks.GroupBy(a => a.MockTest?.Title ?? "Mock"))
             {
                 var score = g.Sum(x => x.Score);
@@ -108,17 +117,43 @@ public class AiController : ControllerBase
                     Score = score,
                     Total = total,
                     Accuracy = acc,
-                    Severity = acc < 40 ? "High" : acc < 60 ? "Medium" : "Low",
+                    Severity = Severity(acc),
                     Source = "Mock"
                 });
             }
 
+            // ── Coding / Problem Solving ──
+            // Score = Accepted count, Total = submissions for that problem
+            foreach (var g in coding.GroupBy(s => s.CodingProblemId))
+            {
+                var title = g.First().Problem?.Title ?? "Coding problem";
+                var total = g.Count();
+                if (total <= 0) continue;
+
+                var score = g.Count(x => IsAccepted(x.Verdict));
+                var acc = Math.Round(100.0 * score / total, 1);
+
+                rows.Add(new WeakTopicDto
+                {
+                    Topic = title,
+                    Score = score,
+                    Total = total,
+                    Accuracy = acc,
+                    Severity = Severity(acc),
+                    Source = "Coding"
+                });
+            }
+
+            // Weak = enough attempts + low accuracy
             var weak = rows
-                .Where(x => x.Total >= 3 && x.Accuracy < 60)
+                .Where(x =>
+                    (x.Source != "Coding" && x.Total >= 3 && x.Accuracy < 60) ||
+                    (x.Source == "Coding" && x.Total >= 1 && x.Accuracy < 60))
                 .OrderBy(x => x.Accuracy)
-                .Take(8)
+                .Take(10)
                 .ToList();
 
+            // Fallback: show lowest few if nothing under threshold
             if (weak.Count == 0 && rows.Count > 0)
                 weak = rows.OrderBy(x => x.Accuracy).Take(3).ToList();
 
@@ -131,6 +166,7 @@ public class AiController : ControllerBase
             {
                 PracticeSessions = practice.Count,
                 MockSessions = mocks.Count,
+                CodingSessions = coding.Count, // DTO-তে property যোগ করো (নিচে)
                 AvgAccuracy = avg,
                 WeakCount = weak.Count(w => w.Accuracy < 60),
                 StrongestTopic = strongest,
@@ -143,6 +179,17 @@ public class AiController : ControllerBase
         {
             return Ok(Result<PerformanceSummaryDto>.Failure(ex.Message));
         }
+    }
+
+    private static string Severity(double acc)
+        => acc < 40 ? "High" : acc < 60 ? "Medium" : "Low";
+
+    private static bool IsAccepted(string? verdict)
+    {
+        if (string.IsNullOrWhiteSpace(verdict)) return false;
+        var v = verdict.Trim();
+        return v.Equals("Accepted", StringComparison.OrdinalIgnoreCase)
+               || v.Equals("AC", StringComparison.OrdinalIgnoreCase);
     }
 
     public class CoachRequest

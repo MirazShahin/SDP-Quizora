@@ -17,5 +17,6 @@ public class PerformanceSummaryDto
     public double AvgAccuracy { get; set; }
     public int WeakCount { get; set; }
     public string? StrongestTopic { get; set; }
+    public int CodingSessions { get; set; }
     public List<WeakTopicDto> WeakTopics { get; set; } = new();
 }
