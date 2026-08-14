@@ -2,75 +2,415 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 
-<div class="container-fluid py-3">
+<div class="ps-page">
     @if (!string.IsNullOrEmpty(error))
     {
-        <div class="alert alert-danger">@error</div>
+        <div class="alert alert-danger mb-3">@error</div>
     }
+
     @if (loading)
     {
-        <p class="text-muted">Loading...</p>
+        <div class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm"></div>
+            <span class="ms-2">Loading problem...</span>
+        </div>
     }
     else if (problem != null)
     {
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="ps-topbar">
             <div>
-                <a href="/candidate/coding" class="small">← All problems</a>
-                <h4 class="fw-bold mb-0">@problem.Title</h4>
-                <div class="small text-muted">Time limit: @problem.TimeLimitMs ms</div>
+                <a href="/candidate/coding" class="ps-back">← All problems</a>
+                <h1 class="ps-title">@problem.Title</h1>
+                <div class="ps-meta">Time limit: @problem.TimeLimitMs ms · Problem Solving</div>
             </div>
-            <div class="d-flex gap-2">
-                <select class="form-select form-select-sm" style="width:auto" @bind="language">
+            <div class="ps-actions">
+                <select class="ps-lang" @bind="language">
                     <option value="cpp">C++</option>
                     <option value="c">C</option>
                 </select>
-                <button class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="Run">Run</button>
-                <button class="btn btn-success btn-sm" disabled="@busy" @onclick="Submit">Submit</button>
+                <button type="button" class="btn-run" disabled="@busy" @onclick="Run">
+                    @(busy && mode == "run" ? "Running..." : "Run")
+                </button>
+                <button type="button" class="btn-submit" disabled="@busy" @onclick="Submit">
+                    @(busy && mode == "submit" ? "Judging..." : "Submit")
+                </button>
             </div>
         </div>
 
-        <div class="row g-3">
-            <div class="col-lg-5">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h6>Statement</h6>
-                        <pre class="small" style="white-space:pre-wrap;font-family:inherit">@problem.Statement</pre>
+        <div class="ps-grid">
+            @* Statement *@
+            <div class="ps-panel">
+                <div class="ps-panel-head">Statement</div>
+                <div class="ps-statement">
+                    <div class="ps-body">@problem.Statement</div>
+
+                    @if (problem.Samples?.Count > 0)
+                    {
+                        <div class="ps-section-label">Samples</div>
                         @foreach (var s in problem.Samples)
                         {
-                            <div class="border rounded p-2 mb-2 small">
-                                <div class="text-muted">Input</div>
-                                <pre class="font-monospace mb-1">@s.Input</pre>
-                                <div class="text-muted">Output</div>
-                                <pre class="font-monospace mb-0">@s.ExpectedOutput</pre>
+                            <div class="ps-sample">
+                                <div class="ps-sample-label">Input</div>
+                                <pre>@(string.IsNullOrEmpty(s.Input) ? "(empty)" : s.Input)</pre>
+                                <div class="ps-sample-label">Output</div>
+                                <pre>@(string.IsNullOrEmpty(s.ExpectedOutput) ? "(empty)" : s.ExpectedOutput)</pre>
                             </div>
                         }
-                    </div>
+                    }
                 </div>
             </div>
-            <div class="col-lg-7">
-                <textarea class="form-control font-monospace mb-2" rows="18" @bind="code"></textarea>
-                @if (!string.IsNullOrEmpty(verdict))
-                {
-                    <div class="alert @(verdict == "Accepted" ? "alert-success" : "alert-warning")">
-                        <strong>@verdict</strong> @info
-                    </div>
-                }
-                @if (!string.IsNullOrEmpty(output))
-                {
-                    <pre class="small font-monospace border rounded p-2">@output</pre>
-                }
+
+            @* Editor *@
+            <div class="ps-panel">
+                <div class="ps-panel-head">
+                    Solution · @(language == "c" ? "C" : "C++")
+                    <span class="ps-hint">Full program · no starter</span>
+                </div>
+                <div class="ps-editor-wrap">
+                    <textarea class="ps-editor"
+                              @bind="code"
+                              @bind:event="oninput"
+                              spellcheck="false"
+                              placeholder="// Write your full C/C++ program here"></textarea>
+                </div>
             </div>
         </div>
+
+        @* Verdict *@
+        @if (!string.IsNullOrEmpty(verdict))
+        {
+            <div class="ps-verdict @VerdictClass(verdict)">
+                <span>@verdict</span>
+                @if (!string.IsNullOrEmpty(info))
+                {
+                    <span class="ps-verdict-info">· @info</span>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(output))
+        {
+            <div class="ps-console">
+                <strong>Output / tests</strong>
+                <pre class="mb-0 mt-1">@output</pre>
+            </div>
+        }
     }
 </div>
 
+<style>
+    .ps-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0.5rem 0 2rem;
+    }
+
+    .ps-topbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.85rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid rgba(127,127,127,.2);
+    }
+
+    .ps-back {
+        display: inline-block;
+        font-size: 0.8rem;
+        opacity: 0.75;
+        text-decoration: none;
+        margin-bottom: 0.2rem;
+    }
+
+        .ps-back:hover {
+            opacity: 1;
+        }
+
+    .ps-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.25;
+    }
+
+    .ps-meta {
+        font-size: 0.8rem;
+        opacity: 0.65;
+        margin-top: 0.2rem;
+    }
+
+    .ps-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+
+    .ps-lang {
+        background: #21262d;
+        color: #e6edf3;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 0.4rem 0.65rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-run, .btn-submit {
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 0.42rem 1.05rem;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-run {
+        background: #1f6feb;
+    }
+
+        .btn-run:hover:not(:disabled) {
+            background: #388bfd;
+        }
+
+    .btn-submit {
+        background: #238636;
+    }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #2ea043;
+        }
+
+        .btn-run:disabled, .btn-submit:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+    .ps-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.3fr);
+        gap: 1rem;
+        min-height: calc(100vh - 220px);
+    }
+    @media (max-width: 992px) {
+        .ps-grid
+
+    {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    }
+
+    .ps-panel {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 420px;
+    }
+
+    .ps-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.55rem 0.95rem;
+        font-size: 0.72rem;
+        font-weight: 650;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #8b949e;
+        border-bottom: 1px solid #30363d;
+        background: #161b22;
+    }
+
+    .ps-hint {
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+        opacity: 0.8;
+    }
+
+    .ps-statement {
+        padding: 1rem 1.1rem;
+        overflow-y: auto;
+        flex: 1;
+        color: #e6edf3;
+        font-size: 0.92rem;
+        line-height: 1.55;
+    }
+
+    .ps-body {
+        white-space: pre-wrap;
+        margin-bottom: 0.75rem;
+    }
+
+    .ps-section-label {
+        font-size: 0.72rem;
+        font-weight: 650;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: #8b949e;
+        margin: 0.75rem 0 0.45rem;
+    }
+
+    .ps-sample {
+        margin-bottom: 0.65rem;
+        padding: 0.65rem 0.8rem;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.82rem;
+    }
+
+    .ps-sample-label {
+        color: #8b949e;
+        font-size: 0.72rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .ps-sample pre {
+        margin: 0 0 0.45rem;
+        white-space: pre-wrap;
+        color: #e6edf3;
+        font-family: inherit;
+    }
+
+        .ps-sample pre:last-child {
+            margin-bottom: 0;
+        }
+
+    .ps-editor-wrap {
+        flex: 1;
+        display: flex;
+        min-height: 420px;
+    }
+
+    .ps-editor {
+        flex: 1;
+        width: 100%;
+        min-height: 420px;
+        border: none !important;
+        resize: vertical;
+        padding: 1rem 1.1rem;
+        background: #0d1117 !important;
+        color: #e6edf3 !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+        font-size: 0.9rem !important;
+        line-height: 1.55 !important;
+        tab-size: 4;
+        outline: none;
+        box-shadow: none !important;
+    }
+
+    .ps-verdict {
+        margin-top: 0.85rem;
+        padding: 0.7rem 1rem;
+        border-radius: 10px;
+        font-weight: 650;
+        font-size: 0.92rem;
+    }
+
+    .ps-verdict-info {
+        font-weight: 500;
+        opacity: 0.9;
+        margin-left: 0.25rem;
+    }
+
+    .ps-verdict.ac {
+        background: #123524;
+        color: #3fb950;
+        border: 1px solid #238636;
+    }
+
+    .ps-verdict.wa {
+        background: #3d1219;
+        color: #f85149;
+        border: 1px solid #da3633;
+    }
+
+    .ps-verdict.ce {
+        background: #3d2e00;
+        color: #d4a72c;
+        border: 1px solid #9e6a03;
+    }
+
+    .ps-verdict.tle {
+        background: #3d2800;
+        color: #f0883e;
+        border: 1px solid #9e6a03;
+    }
+
+    .ps-verdict.re {
+        background: #3d1219;
+        color: #ff7b72;
+        border: 1px solid #da3633;
+    }
+
+    .ps-verdict.other {
+        background: #121d3d;
+        color: #58a6ff;
+        border: 1px solid #1f6feb;
+    }
+
+    .ps-console {
+        margin-top: 0.55rem;
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 10px;
+        padding: 0.75rem 0.95rem;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.8rem;
+        color: #8b949e;
+        max-height: 220px;
+        overflow: auto;
+    }
+
+        .ps-console strong {
+            color: #c9d1d9;
+        }
+
+        .ps-console pre {
+            margin: 0;
+            white-space: pre-wrap;
+            color: #c9d1d9;
+            font-family: inherit;
+            font-size: inherit;
+        }
+</style>
+
 @code {
     [Parameter] public Guid Id { get; set; }
+
     private Prob? problem;
     private bool loading = true, busy;
     private string? error, verdict, output, info;
     private string language = "cpp";
-    private string code = "#include <iostream>\n#include <vector>\n#include <algorithm>\n#include <string>\n#include <map>\n#include <set>\n#include <queue>\n#include <stack>\n#include <cmath>\nusing namespace std;\nint main(){\n  ios::sync_with_stdio(false);\n  cin.tie(nullptr);\n  \n  return 0;\n}\n";
+    private string mode = "";
+    private string code =
+@"#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <map>
+#include <set>
+#include <queue>
+#include <stack>
+#include <cmath>
+using namespace std;
+int main(){
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+
+  return 0;
+}
+";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -80,17 +420,34 @@
             var resp = await Http.GetAsync($"api/coding/problems/{Id}");
             var raw = await resp.Content.ReadAsStringAsync();
             var api = D<ApiResult<Prob>>(raw);
-            if (api?.IsSuccess == true) problem = api.Data;
-            else error = api?.Message ?? "Failed";
+            if (api?.IsSuccess == true)
+                problem = api.Data;
+            else
+                error = api?.Message ?? "Failed to load problem";
         }
         catch (Exception ex) { error = ex.Message; }
-        finally { loading = false; StateHasChanged(); }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
     }
 
     private async Task Run()
     {
-        if (problem?.Samples.Count is not > 0) { error = "No sample"; return; }
-        busy = true; error = null; verdict = null; output = null;
+        if (problem?.Samples == null || problem.Samples.Count == 0)
+        {
+            error = "No sample test case";
+            return;
+        }
+
+        busy = true;
+        mode = "run";
+        error = null;
+        verdict = null;
+        output = null;
+        info = null;
+
         try
         {
             var s = problem.Samples[0];
@@ -103,39 +460,90 @@
             });
             var raw = await resp.Content.ReadAsStringAsync();
             var api = D<ApiResult<RunDto>>(raw);
+
             if (api?.IsSuccess == true && api.Data != null)
             {
-                verdict = api.Data.Status;
-                output = $"stdout:\n{api.Data.Stdout}\n\nstderr:\n{api.Data.Stderr}\n\n{api.Data.CompileOutput}";
+                var r = api.Data;
+                verdict = r.Status;
+                info = "sample #1";
+
+                var parts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(r.CompileOutput))
+                    parts.Add("compile:\n" + r.CompileOutput.Trim());
+                if (!string.IsNullOrWhiteSpace(r.Stdout))
+                    parts.Add("stdout:\n" + r.Stdout.Trim());
+                if (!string.IsNullOrWhiteSpace(r.Stderr))
+                    parts.Add("stderr:\n" + r.Stderr.Trim());
+                if (parts.Count == 0)
+                    parts.Add("(no output)");
+                output = string.Join("\n\n", parts);
             }
-            else error = api?.Message ?? "Run failed";
+            else
+            {
+                error = api?.Message ?? "Run failed";
+            }
         }
         catch (Exception ex) { error = ex.Message; }
-        finally { busy = false; }
+        finally
+        {
+            busy = false;
+            mode = "";
+        }
     }
 
     private async Task Submit()
     {
-        busy = true; error = null; verdict = null; output = null; info = null;
+        busy = true;
+        mode = "submit";
+        error = null;
+        verdict = null;
+        output = null;
+        info = null;
+
         try
         {
             var resp = await Http.PostAsJsonAsync($"api/coding/problems/{Id}/submit",
                 new { Language = language, SourceCode = code });
             var raw = await resp.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(raw)) { error = $"HTTP {(int)resp.StatusCode}"; return; }
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"HTTP {(int)resp.StatusCode}";
+                return;
+            }
+
             var api = D<ApiResult<SubDto>>(raw);
             if (api?.IsSuccess == true && api.Data != null)
             {
                 verdict = api.Data.Verdict;
                 info = $"{api.Data.PassedCount}/{api.Data.TotalCount} tests";
                 if (api.Data.Cases != null)
+                {
                     output = string.Join("\n", api.Data.Cases.Select(c =>
                         $"#{c.Index} {(c.IsSample ? "sample" : "hidden")}: {c.Status}"));
+                }
             }
-            else error = api?.Message ?? "Submit failed";
+            else
+            {
+                error = api?.Message ?? "Submit failed";
+            }
         }
         catch (Exception ex) { error = ex.Message; }
-        finally { busy = false; }
+        finally
+        {
+            busy = false;
+            mode = "";
+        }
+    }
+
+    private static string VerdictClass(string? v)
+    {
+        v = (v ?? "").ToLowerInvariant();
+        if (v.Contains("accept")) return "ac";
+        if (v.Contains("wrong")) return "wa";
+        if (v.Contains("compilation") || v.Contains("compile")) return "ce";
+        if (v.Contains("time")) return "tle";
+        if (v.Contains("runtime")) return "re";
+        return "other";
     }
 
     private static T? D<T>(string? raw) =>
@@ -150,8 +558,21 @@
         public int TimeLimitMs { get; set; }
         public List<Sample> Samples { get; set; } = new();
     }
-    public class Sample { public string Input { get; set; } = ""; public string ExpectedOutput { get; set; } = ""; }
-    public class RunDto { public string Status { get; set; } = ""; public string Stdout { get; set; } = ""; public string Stderr { get; set; } = ""; public string CompileOutput { get; set; } = ""; }
+
+    public class Sample
+    {
+        public string Input { get; set; } = "";
+        public string ExpectedOutput { get; set; } = "";
+    }
+
+    public class RunDto
+    {
+        public string Status { get; set; } = "";
+        public string Stdout { get; set; } = "";
+        public string Stderr { get; set; } = "";
+        public string CompileOutput { get; set; } = "";
+    }
+
     public class SubDto
     {
         public string Verdict { get; set; } = "";
@@ -159,6 +580,18 @@
         public int TotalCount { get; set; }
         public List<CaseDto>? Cases { get; set; }
     }
-    public class CaseDto { public int Index { get; set; } public bool IsSample { get; set; } public string Status { get; set; } = ""; }
-    public class ApiResult<T> { public bool IsSuccess { get; set; } public string? Message { get; set; } public T? Data { get; set; } }
+
+    public class CaseDto
+    {
+        public int Index { get; set; }
+        public bool IsSample { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
 }
