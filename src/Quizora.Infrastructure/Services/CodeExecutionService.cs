@@ -8,6 +8,7 @@ namespace Quizora.Infrastructure.Services;
 /// <summary>
 /// Own C/C++ runner — no Judge0 / external API.
 /// Needs gcc/g++ on PATH (Windows: MSYS2/MinGW, Linux: apt install g++).
+/// Provides bits/stdc++.h shim so Codeforces-style includes work on minimal hosts.
 /// </summary>
 public class CodeExecutionService : ICodeExecutionService
 {
@@ -15,6 +16,37 @@ public class CodeExecutionService : ICodeExecutionService
     private static readonly TimeSpan RunTimeout = TimeSpan.FromSeconds(3);
     private const int MaxSourceBytes = 50_000;
     private const int MaxOutputChars = 20_000;
+
+    /// <summary>Shim when system has no bits/stdc++.h (e.g. some Docker images).</summary>
+    private const string StdCppShim =
+        "#pragma once\n" +
+        "#include <iostream>\n" +
+        "#include <iomanip>\n" +
+        "#include <sstream>\n" +
+        "#include <fstream>\n" +
+        "#include <string>\n" +
+        "#include <vector>\n" +
+        "#include <array>\n" +
+        "#include <deque>\n" +
+        "#include <queue>\n" +
+        "#include <stack>\n" +
+        "#include <list>\n" +
+        "#include <map>\n" +
+        "#include <unordered_map>\n" +
+        "#include <set>\n" +
+        "#include <unordered_set>\n" +
+        "#include <algorithm>\n" +
+        "#include <numeric>\n" +
+        "#include <cmath>\n" +
+        "#include <cstdlib>\n" +
+        "#include <cstring>\n" +
+        "#include <ctime>\n" +
+        "#include <climits>\n" +
+        "#include <cctype>\n" +
+        "#include <bitset>\n" +
+        "#include <utility>\n" +
+        "#include <tuple>\n" +
+        "#include <functional>\n";
 
     public async Task<CodeRunResultDto> RunAsync(CodeRunRequestDto request, CancellationToken ct = default)
     {
@@ -53,6 +85,14 @@ public class CodeExecutionService : ICodeExecutionService
         {
             await File.WriteAllTextAsync(sourceFile, request.SourceCode, ct);
 
+            // bits/stdc++.h shim for Codeforces-style code
+            if (isCpp)
+            {
+                var bitsDir = Path.Combine(work, "bits");
+                Directory.CreateDirectory(bitsDir);
+                await File.WriteAllTextAsync(Path.Combine(bitsDir, "stdc++.h"), StdCppShim, ct);
+            }
+
             var compiler = isCpp
                 ? ResolveCompiler("g++", "g++.exe")
                 : ResolveCompiler("gcc", "gcc.exe");
@@ -66,8 +106,9 @@ public class CodeExecutionService : ICodeExecutionService
                 return result;
             }
 
+            // -I work so #include <bits/stdc++.h> finds work/bits/stdc++.h
             var compileArgs = isCpp
-                ? $"-O2 -std=c++17 -pipe \"{sourceFile}\" -o \"{exeFile}\""
+                ? $"-O2 -std=c++17 -pipe -I\"{work}\" \"{sourceFile}\" -o \"{exeFile}\""
                 : $"-O2 -std=c11 -pipe \"{sourceFile}\" -o \"{exeFile}\"";
 
             var compile = await RunProcessAsync(compiler, compileArgs, work, null, CompileTimeout, ct);
@@ -137,7 +178,6 @@ public class CodeExecutionService : ICodeExecutionService
 
     private static string? ResolveCompiler(string unixName, string winName)
     {
-        // 1. PATH theke khujbe
         var fromPath = FindOnPath(OperatingSystem.IsWindows() ? winName : unixName)
                        ?? FindOnPath(unixName);
         if (fromPath != null)
@@ -145,7 +185,6 @@ public class CodeExecutionService : ICodeExecutionService
 
         if (OperatingSystem.IsWindows())
         {
-            // 2. Common MSYS2 + MinGW locations
             var candidates = new[]
             {
                 @"C:\msys64\ucrt64\bin\g++.exe",
@@ -165,7 +204,6 @@ public class CodeExecutionService : ICodeExecutionService
                     return path;
             }
 
-            // 3. Last try: where command
             try
             {
                 var whereResult = RunWhereCommand(winName);
@@ -206,18 +244,13 @@ public class CodeExecutionService : ICodeExecutionService
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-
             using var proc = Process.Start(psi);
             if (proc == null) return null;
-
             var output = proc.StandardOutput.ReadToEnd();
             proc.WaitForExit(2000);
-
-            var firstLine = output
+            return output
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .FirstOrDefault()?.Trim();
-
-            return firstLine;
         }
         catch
         {

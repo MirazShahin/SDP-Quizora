@@ -240,4 +240,48 @@ html[data-theme="dark"] .list-group-item {
 
 .badge.bg-secondary {
     background-color: #475569 !important;
+    /* ===== Coding Practice – more realistic size ===== */
+    .problem-list
+
+{
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.problem-list .list-group-item {
+    padding: 1.15rem 1.4rem !important;
+    min-height: 72px;
+}
+
+.problem-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    margin-bottom: 0.2rem;
+}
+
+.problem-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted) !important;
+}
+
+.problem-list .badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* Dark mode polish */
+html[data-theme="dark"] .problem-list .list-group-item {
+    background-color: #1e293b !important;
+}
+
+    html[data-theme="dark"] .problem-list .list-group-item:hover {
+        background-color: #334155 !important;
+    }
+
+html[data-theme="dark"] .problem-title {
+    color: #f1f5f9 !important;
 }
