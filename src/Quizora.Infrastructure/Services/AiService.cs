@@ -19,9 +19,9 @@ public class AiService : IAiService
         _http = http;
         _apiKey = config["Ai:ApiKey"]
             ?? throw new InvalidOperationException("Ai:ApiKey missing");
-        _model = config["Ai:Model"] ?? "gemini-2.0-flash";
+        _model = config["Ai:Model"] ?? "llama-3.3-70b-versatile";
         _http.BaseAddress = new Uri(
-            config["Ai:BaseUrl"] ?? "https://generativelanguage.googleapis.com/v1beta/");
+            config["Ai:BaseUrl"] ?? "https://api.groq.com/openai/v1/");
     }
 
     public async Task<string> GetCoachFeedbackAsync(string question, string? userAnswer = null)
@@ -110,47 +110,31 @@ public class AiService : IAiService
 
     private async Task<string> ChatAsync(string system, string user)
     {
-        // key query param — Bearer নয়
-        var url =
-            $"models/{_model}:generateContent?key={Uri.EscapeDataString(_apiKey)}";
+        _http.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _apiKey);
 
         var body = new
         {
-            system_instruction = new
+            model = _model,
+            messages = new object[]
             {
-                parts = new[] { new { text = system } }
+            new { role = "system", content = system },
+            new { role = "user", content = user }
             },
-            contents = new[]
-            {
-            new
-            {
-                role = "user",
-                parts = new[] { new { text = user } }
-            }
-        },
-            generationConfig = new
-            {
-                temperature = 0.7
-            }
+            temperature = 0.7
         };
 
-        var response = await _http.PostAsJsonAsync(url, body);
+        var response = await _http.PostAsJsonAsync("chat/completions", body);
         var json = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"Gemini error {(int)response.StatusCode}: {json}");
+            throw new Exception($"Groq error {(int)response.StatusCode}: {json}");
 
         using var doc = JsonDocument.Parse(json);
-
-        var root = doc.RootElement;
-        if (!root.TryGetProperty("candidates", out var candidates) ||
-            candidates.GetArrayLength() == 0)
-            throw new Exception("Gemini returned no candidates: " + json);
-
-        return candidates[0]
+        return doc.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
             .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
             .GetString()
             ?.Trim() ?? "";
     }
