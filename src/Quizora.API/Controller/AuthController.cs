@@ -180,4 +180,63 @@ public class AuthController : ControllerBase
 
         return null;
     }
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult<Result<ForgotPasswordResponseDto>>> ForgotPassword(ForgotPasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+            return Result<ForgotPasswordResponseDto>.Failure("Email is required");
+
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var user = await _userRepository.GetByEmailAsync(email);
+
+        if (user == null)
+            return Result<ForgotPasswordResponseDto>.Failure("No account found with this email");
+
+        var token = Guid.NewGuid().ToString("N");
+        user.PasswordResetToken = token;
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(30);
+        await _userRepository.SaveChangesAsync();
+
+        // Blazor URL — নিজের Web পোর্ট অনুযায়ী বদলাও
+        var blazorBase = "https://localhost:7229";
+        var resetLink = $"{blazorBase}/reset-password?email={Uri.EscapeDataString(email)}&token={token}";
+
+        var response = new ForgotPasswordResponseDto
+        {
+            Message = "Reset link generated. Click the link below to set a new password.",
+            ResetLink = resetLink
+        };
+
+        return Result<ForgotPasswordResponseDto>.Success(response, "Reset link ready");
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult<Result>> ResetPassword(ResetPasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Token))
+            return Result.Failure("Invalid reset request");
+
+        if (string.IsNullOrWhiteSpace(dto.NewPassword))
+            return Result.Failure("New password is required");
+
+        if (dto.NewPassword != dto.ConfirmPassword)
+            return Result.Failure("Passwords do not match");
+
+        var passwordError = ValidatePassword(dto.NewPassword);
+        if (passwordError != null)
+            return Result.Failure(passwordError);
+
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var user = await _userRepository.GetByResetTokenAsync(email, dto.Token);
+
+        if (user == null)
+            return Result.Failure("Invalid or expired reset link. Please request a new one.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        await _userRepository.SaveChangesAsync();
+
+        return Result.Success("Password reset successfully. You can now login.");
+    }
 }

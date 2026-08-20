@@ -29,6 +29,15 @@ public class UserRepository : IUserRepository
             .Include(u => u.Candidate)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
+    public async Task<User?> GetByResetTokenAsync(string email, string token)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u =>
+                u.Email == email &&
+                u.PasswordResetToken == token &&
+                u.PasswordResetTokenExpiry != null &&
+                u.PasswordResetTokenExpiry > DateTime.UtcNow);
+    }
 
     public async Task AddAsync(User user)
     {
