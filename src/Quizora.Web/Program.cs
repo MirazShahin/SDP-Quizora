@@ -38,6 +38,10 @@ builder.Services.AddScoped(sp =>
         BaseAddress = new Uri(apiBase)
     };
 });
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://quizora-api-o7gy.onrender.com/")
+});
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TestService>();
