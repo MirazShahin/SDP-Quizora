@@ -198,7 +198,7 @@ public class AuthController : ControllerBase
         await _userRepository.SaveChangesAsync();
 
         // Blazor URL — নিজের Web পোর্ট অনুযায়ী বদলাও
-        var blazorBase = "https://localhost:7229";
+        var blazorBase = _configuration["App:FrontendUrl"] ?? "https://quizora-web.onrender.com";
         var resetLink = $"{blazorBase}/reset-password?email={Uri.EscapeDataString(email)}&token={token}";
 
         var response = new ForgotPasswordResponseDto
