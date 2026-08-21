@@ -28,38 +28,27 @@ public class EmailService : IEmailService
         var body = $@"
 <!DOCTYPE html>
 <html>
-<body style='margin:0; padding:0; background:#f1f5f9; font-family:Segoe UI, Arial, sans-serif;'>
-  <div style='max-width:560px; margin:32px auto; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 8px 24px rgba(15,23,42,.08);'>
-    <div style='background:linear-gradient(135deg,#0f172a,#1e3a8a 50%,#7c3aed); padding:28px 32px; color:#fff;'>
-      <div style='font-size:12px; letter-spacing:2px; opacity:.85;'>QUIZORA</div>
-      <h1 style='margin:8px 0 0; font-size:22px;'>Test Result</h1>
+<body style='margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Arial,sans-serif;'>
+  <div style='max-width:560px;margin:32px auto;background:#ffffff;border-radius:14px;overflow:hidden;'>
+    <div style='background:linear-gradient(135deg,#0f172a,#1e3a8a);padding:28px 32px;color:#fff;'>
+      <div style='font-size:12px;letter-spacing:2px;opacity:.85;'>QUIZORA</div>
+      <h1 style='margin:8px 0 0;font-size:22px;'>Test Result</h1>
     </div>
-    <div style='padding:28px 32px; color:#0f172a;'>
+    <div style='padding:28px 32px;color:#0f172a;'>
       <p>Dear <strong>{Escape(candidateName)}</strong>,</p>
-      <p>
-        Your result for <strong>{Escape(testTitle)}</strong>
-        at <strong>{Escape(companyName)}</strong> is ready.
-      </p>
-      <div style='background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin:20px 0; text-align:center;'>
-        <div style='font-size:13px; color:#64748b;'>Score</div>
-        <div style='font-size:32px; font-weight:700; color:{percentColor};'>{score} / {totalQuestions}</div>
-        <div style='color:{percentColor}; font-weight:600;'>{percentage}%</div>
+      <p>Your result for <strong>{Escape(testTitle)}</strong> at <strong>{Escape(companyName)}</strong> is ready.</p>
+      <div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:20px 0;text-align:center;'>
+        <div style='font-size:13px;color:#64748b;'>Score</div>
+        <div style='font-size:32px;font-weight:700;color:{percentColor};'>{score} / {totalQuestions}</div>
+        <div style='color:{percentColor};font-weight:600;'>{percentage}%</div>
       </div>
-      <p style='color:#64748b; font-size:14px;'>
-        Keep practicing and good luck with your next steps.
-      </p>
-      <p style='margin-top:24px; color:#94a3b8; font-size:13px;'>
-        — {Escape(companyName)}<br/>Sent via Quizora
-      </p>
+      <p style='color:#64748b;font-size:13px;'>— Team Quizora</p>
     </div>
   </div>
 </body>
 </html>";
 
-        await SendAsync(
-            toEmail,
-            $"Your result for {testTitle} – {companyName}",
-            body);
+        await SendEmailAsync(toEmail, $"Quizora - Result: {testTitle}", body);
     }
 
     public async Task SendInterviewCallEmailAsync(
@@ -74,71 +63,81 @@ public class EmailService : IEmailService
         var body = $@"
 <!DOCTYPE html>
 <html>
-<body style='margin:0; padding:0; background:#f1f5f9; font-family:Segoe UI, Arial, sans-serif;'>
-  <div style='max-width:560px; margin:32px auto; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 8px 24px rgba(15,23,42,.08);'>
-    <div style='background:linear-gradient(135deg,#0f172a,#16a34a); padding:28px 32px; color:#fff;'>
-      <div style='font-size:12px; letter-spacing:2px; opacity:.85;'>QUIZORA</div>
-      <h1 style='margin:8px 0 0; font-size:22px;'>Interview Invitation</h1>
+<body style='margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Arial,sans-serif;'>
+  <div style='max-width:560px;margin:32px auto;background:#ffffff;border-radius:14px;overflow:hidden;'>
+    <div style='background:linear-gradient(135deg,#0f172a,#7c3aed);padding:28px 32px;color:#fff;'>
+      <div style='font-size:12px;letter-spacing:2px;opacity:.85;'>QUIZORA</div>
+      <h1 style='margin:8px 0 0;font-size:22px;'>Interview Invitation</h1>
     </div>
-    <div style='padding:28px 32px; color:#0f172a;'>
+    <div style='padding:28px 32px;color:#0f172a;'>
       <p>Dear <strong>{Escape(candidateName)}</strong>,</p>
       <p>
-        Congratulations! Based on your performance in
-        <strong>{Escape(testTitle)}</strong> for
-        <strong>{Escape(companyName)}</strong>, you have been
-        <strong>shortlisted for the next interview round</strong>.
+        Congratulations! Based on your performance in <strong>{Escape(testTitle)}</strong>
+        ({score}/{totalQuestions}, {percentage}%), <strong>{Escape(companyName)}</strong>
+        would like to invite you for an interview.
       </p>
-      <div style='background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:16px; margin:20px 0; text-align:center;'>
-        <div style='font-size:13px; color:#166534;'>Your Score</div>
-        <div style='font-size:32px; font-weight:700; color:#15803d;'>{score} / {totalQuestions}</div>
-        <div style='color:#166534; font-weight:600;'>{percentage}%</div>
-      </div>
-      <p>
-        Our team will contact you shortly with the interview schedule.
-        Please keep an eye on this inbox.
-      </p>
-      <p style='margin-top:24px; color:#94a3b8; font-size:13px;'>
-        — {Escape(companyName)}<br/>Sent via Quizora
-      </p>
+      <p style='color:#64748b;font-size:13px;'>— Team Quizora</p>
     </div>
   </div>
 </body>
 </html>";
 
-        await SendAsync(
-            toEmail,
-            $"Interview Call – {testTitle} | {companyName}",
-            body);
+        await SendEmailAsync(toEmail, $"Quizora - Interview Call: {testTitle}", body);
     }
 
-    private async Task SendAsync(string toEmail, string subject, string htmlBody)
+    public async Task SendPasswordResetEmailAsync(string toEmail, string fullName, string resetLink)
     {
-        var from = _config["Email:From"] ?? "noreply@quizora.local";
+        var body = $@"
+<!DOCTYPE html>
+<html>
+<body style='margin:0;padding:0;background:#f1f5f9;font-family:Segoe UI,Arial,sans-serif;'>
+  <div style='max-width:560px;margin:32px auto;background:#fff;border-radius:14px;overflow:hidden;'>
+    <div style='background:linear-gradient(135deg,#0f172a,#1e3a8a);padding:28px 32px;color:#fff;'>
+      <div style='font-size:12px;letter-spacing:2px;opacity:.85;'>QUIZORA</div>
+      <h1 style='margin:8px 0 0;font-size:22px;'>Reset Password</h1>
+    </div>
+    <div style='padding:28px 32px;color:#0f172a;'>
+      <p>Dear <strong>{Escape(fullName)}</strong>,</p>
+      <p>We received a request to reset your password. Click the button below:</p>
+      <p style='text-align:center;margin:28px 0;'>
+        <a href='{resetLink}'
+           style='display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;
+                  padding:12px 28px;border-radius:8px;font-weight:600;'>
+          Reset Password
+        </a>
+      </p>
+      <p style='font-size:13px;color:#64748b;'>This link expires in <strong>30 minutes</strong>.</p>
+      <p style='font-size:13px;color:#64748b;'>If you did not request this, ignore this email.</p>
+    </div>
+  </div>
+</body>
+</html>";
+
+        await SendEmailAsync(toEmail, "Quizora - Reset Your Password", body);
+    }
+
+    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
+    {
+        var from = _config["Email:From"] ?? throw new InvalidOperationException("Email:From missing");
         var host = _config["Email:SmtpHost"] ?? "smtp.gmail.com";
         var port = int.Parse(_config["Email:SmtpPort"] ?? "587");
-        var user = _config["Email:Username"];
-        var pass = _config["Email:Password"];
-
-        using var message = new MailMessage
-        {
-            From = new MailAddress(from, "Quizora"),
-            Subject = subject,
-            Body = htmlBody,
-            IsBodyHtml = true
-        };
-        message.To.Add(toEmail);
+        var username = _config["Email:Username"] ?? from;
+        var password = _config["Email:Password"] ?? throw new InvalidOperationException("Email:Password missing");
 
         using var client = new SmtpClient(host, port)
         {
-            EnableSsl = true
+            EnableSsl = true,
+            Credentials = new NetworkCredential(username, password)
         };
 
-        if (!string.IsNullOrWhiteSpace(user) && !string.IsNullOrWhiteSpace(pass))
-            client.Credentials = new NetworkCredential(user, pass);
+        using var message = new MailMessage(from, toEmail, subject, htmlBody)
+        {
+            IsBodyHtml = true
+        };
 
         await client.SendMailAsync(message);
     }
 
-    private static string Escape(string? value)
-        => System.Net.WebUtility.HtmlEncode(value ?? "");
+    private static string Escape(string? value) =>
+        WebUtility.HtmlEncode(value ?? string.Empty);
 }

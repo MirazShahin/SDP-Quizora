@@ -19,4 +19,6 @@ public interface IEmailService
         int score,
         int totalQuestions,
         double percentage);
+
+    Task SendPasswordResetEmailAsync(string toEmail, string fullName, string resetLink);
 }

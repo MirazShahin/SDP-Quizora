@@ -18,11 +18,12 @@ public class AuthController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
-
-    public AuthController(IUserRepository userRepository, IConfiguration configuration)
+    private readonly IEmailService _emailService;
+    public AuthController(IUserRepository userRepository, IConfiguration configuration, IEmailService emailService)
     {
         _userRepository = userRepository;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     [HttpPost("register")]
@@ -181,33 +182,39 @@ public class AuthController : ControllerBase
         return null;
     }
     [HttpPost("forgot-password")]
-    public async Task<ActionResult<Result<ForgotPasswordResponseDto>>> ForgotPassword(ForgotPasswordDto dto)
+    public async Task<ActionResult<Result>> ForgotPassword(ForgotPasswordDto dto)
     {
+        const string msg = "If this email exists, a password reset link has been sent.";
+
         if (string.IsNullOrWhiteSpace(dto.Email))
-            return Result<ForgotPasswordResponseDto>.Failure("Email is required");
+            return Result.Failure("Email is required");
 
         var email = dto.Email.Trim().ToLowerInvariant();
         var user = await _userRepository.GetByEmailAsync(email);
 
         if (user == null)
-            return Result<ForgotPasswordResponseDto>.Failure("No account found with this email");
+            return Result.Success(msg);
 
-        var token = Guid.NewGuid().ToString("N");
+        var tokenBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        var token = Convert.ToHexString(tokenBytes);
+
         user.PasswordResetToken = token;
         user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(30);
         await _userRepository.SaveChangesAsync();
 
-        // Blazor URL — নিজের Web পোর্ট অনুযায়ী বদলাও
-        var blazorBase = _configuration["App:FrontendUrl"] ?? "https://quizora-web.onrender.com";
-        var resetLink = $"{blazorBase}/reset-password?email={Uri.EscapeDataString(email)}&token={token}";
+        var frontendUrl = _configuration["App:FrontendUrl"] ?? "https://quizora-web.onrender.com";
+        var resetLink = $"{frontendUrl}/reset-password?email={Uri.EscapeDataString(email)}&token={token}";
 
-        var response = new ForgotPasswordResponseDto
+        try
         {
-            Message = "Reset link generated. Click the link below to set a new password.",
-            ResetLink = resetLink
-        };
+            await _emailService.SendPasswordResetEmailAsync(user.Email, user.FullName, resetLink);
+        }
+        catch
+        {
+            return Result.Failure("Could not send email. Please try again later.");
+        }
 
-        return Result<ForgotPasswordResponseDto>.Success(response, "Reset link ready");
+        return Result.Success(msg);
     }
 
     [HttpPost("reset-password")]
