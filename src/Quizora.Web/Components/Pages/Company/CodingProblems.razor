@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h3 class="fw-bold mb-0">Coding Problem Bank</h3>
-            <p class="text-muted small mb-0">Codeforces-style: Title + Statement + Sample/Hidden test cases (no starter code)</p>
+            <p class="text-muted small mb-0">Title + Statement + Sample/Hidden test cases</p>
         </div>
         <button class="btn btn-primary btn-sm" @onclick="ShowCreate">+ New Problem</button>
     </div>
@@ -38,11 +38,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Statement (Codeforces style)</label>
+                    <label class="form-label fw-semibold">Statement</label>
                     <textarea class="form-control font-monospace" rows="14" @bind="form.Statement"
                               placeholder="@StatementPlaceholder"></textarea>
                     <div class="form-text">
-                        Input / Output format লিখো statement-এর ভিতরেই। Sample test আলাদা করে নিচে যোগ করো।
+                        Write Input/Output format inside the statement and add sample test separately. 
                     </div>
                 </div>
 
