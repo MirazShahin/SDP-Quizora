@@ -14,4 +14,6 @@ public class Candidate : BaseEntity
 
     public User User { get; set; } = null!;
     public ICollection<TestInvitation> Invitations { get; set; } = new List<TestInvitation>();
+
 }
+

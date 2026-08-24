@@ -20,6 +20,7 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddScoped<AuthorizedHandler>();
 
 // API URL
@@ -29,6 +30,7 @@ var apiBase = builder.Configuration["ApiBaseUrl"]
 if (!apiBase.EndsWith("/"))
     apiBase += "/";
 
+// ✅ শুধু এটা — AuthorizedHandler সহ
 builder.Services.AddScoped(sp =>
 {
     var handler = sp.GetRequiredService<AuthorizedHandler>();
@@ -38,10 +40,12 @@ builder.Services.AddScoped(sp =>
         BaseAddress = new Uri(apiBase)
     };
 });
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://quizora-api-o7gy.onrender.com/")
-});
+
+// ❌ এই ব্লক মুছে দাও — এটাই 401-এর কারণ
+// builder.Services.AddScoped(sp => new HttpClient
+// {
+//     BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://quizora-api-o7gy.onrender.com/")
+// });
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TestService>();
@@ -52,17 +56,15 @@ builder.Services.AddScoped<QuizApiClient>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<AiClient>();
 builder.Services.AddScoped<CodeClient>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // HSTS Render এ দরকার নেই (proxy আগে থেকে HTTPS করে)
 }
 
 app.UseAntiforgery();
-
-// Static files (MapStaticAssets এর বদলে এটা বেশি স্টেবল)
 app.UseStaticFiles();
 
 app.MapGet("/health", () => Results.Ok("OK"));
