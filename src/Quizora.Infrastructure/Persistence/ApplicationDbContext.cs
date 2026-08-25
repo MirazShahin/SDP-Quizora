@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quizora.Domain.Entities;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace Quizora.Infrastructure.Persistence;
 
@@ -36,6 +34,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
     public DbSet<CodingTestCase> CodingTestCases => Set<CodingTestCase>();
     public DbSet<CodingSubmission> CodingSubmissions => Set<CodingSubmission>();
+    public DbSet<TestCodingProblem> TestCodingProblems => Set<TestCodingProblem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,8 +126,8 @@ public class ApplicationDbContext : DbContext
                   .HasForeignKey(a => a.AttemptId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
-        // ==================== Practice ====================
 
+        // ==================== Practice ====================
         modelBuilder.Entity<PracticeCategory>(entity =>
         {
             entity.Property(c => c.Name).HasMaxLength(100).IsRequired();
@@ -167,7 +166,7 @@ public class ApplicationDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-
+        // ==================== Interview ====================
         modelBuilder.Entity<InterviewTopic>(entity =>
         {
             entity.Property(t => t.Name).HasMaxLength(150).IsRequired();
@@ -183,8 +182,8 @@ public class ApplicationDbContext : DbContext
             entity.Property(qa => qa.Question).IsRequired();
             entity.Property(qa => qa.Answer).IsRequired();
         });
-        // ==================== Mock Test ====================
 
+        // ==================== Mock Test ====================
         modelBuilder.Entity<MockTest>(entity =>
         {
             entity.Property(m => m.Title).HasMaxLength(200).IsRequired();
@@ -215,6 +214,8 @@ public class ApplicationDbContext : DbContext
                   .HasForeignKey(a => a.MockTestId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
+
+        // ==================== Question Bank ====================
         modelBuilder.Entity<QuestionBank>(entity =>
         {
             entity.Property(q => q.Text).IsRequired();
@@ -242,6 +243,8 @@ public class ApplicationDbContext : DbContext
                   .HasForeignKey(iq => iq.QuestionBankId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
+
+        // ==================== Notification ====================
         modelBuilder.Entity<Notification>(e =>
         {
             e.HasKey(x => x.Id);
@@ -253,6 +256,8 @@ public class ApplicationDbContext : DbContext
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        // ==================== Coding ====================
         modelBuilder.Entity<CodingProblem>(e =>
         {
             e.Property(x => x.Title).HasMaxLength(200);
@@ -268,11 +273,21 @@ public class ApplicationDbContext : DbContext
             e.Property(x => x.Input).HasMaxLength(8000);
             e.Property(x => x.ExpectedOutput).HasMaxLength(8000);
         });
+
+        // Contest coding problems (only once)
         modelBuilder.Entity<TestCodingProblem>(e =>
         {
             e.HasIndex(x => new { x.TestId, x.CodingProblemId }).IsUnique();
-            e.HasOne(x => x.Test).WithMany().HasForeignKey(x => x.TestId).OnDelete(DeleteBehavior.Cascade);
-            e.HasOne(x => x.Problem).WithMany().HasForeignKey(x => x.CodingProblemId).OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(x => x.Test)
+             .WithMany(t => t.CodingProblems)
+             .HasForeignKey(x => x.TestId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(x => x.Problem)
+             .WithMany()
+             .HasForeignKey(x => x.CodingProblemId)
+             .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<CodingSubmission>(e =>
