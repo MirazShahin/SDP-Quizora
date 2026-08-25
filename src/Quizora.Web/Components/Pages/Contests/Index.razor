@@ -43,9 +43,10 @@
         <div class="row g-3">
             @foreach (var c in contests)
             {
+                var contestId = c.Id;
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0 contest-card" style="cursor:pointer"
-                         @onclick="() => Navigation.NavigateTo($"/contests/{c.Id}")">
+                         @onclick="() => GoToContest(contestId)">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h5 class="card-title mb-0">@c.Title</h5>
@@ -105,6 +106,11 @@
         {
             loading = false;
         }
+    }
+
+    private void GoToContest(Guid id)
+    {
+        Navigation.NavigateTo($"/contests/{id}");
     }
 
     private static string StatusBadge(string status) => status switch
