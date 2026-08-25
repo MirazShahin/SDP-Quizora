@@ -36,7 +36,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CodingProblem> CodingProblems => Set<CodingProblem>();
     public DbSet<CodingTestCase> CodingTestCases => Set<CodingTestCase>();
     public DbSet<CodingSubmission> CodingSubmissions => Set<CodingSubmission>();
-   
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

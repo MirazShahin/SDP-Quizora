@@ -1,0 +1,86 @@
+﻿@page "/company/contests"
+@rendermode InteractiveServer
+@using Quizora.Application.Common
+@using Quizora.Application.DTOs.Contest
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">My Contests</h2>
+        <a href="/company/contests/create" class="btn btn-primary">+ Create Contest</a>
+    </div>
+
+    @if (loading)
+    {
+        <p class="text-muted">Loading...</p>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    else if (contests.Count == 0)
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <h5 class="text-muted">You have not created any contests yet</h5>
+                <a href="/company/contests/create" class="btn btn-primary mt-2">Create your first contest</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="list-group problem-list">
+            @foreach (var c in contests)
+            {
+                <a href="@($"/contests/{c.Id}")" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="problem-title">@c.Title</div>
+                            <div class="problem-meta">
+                                @c.ProblemCount problems · @(c.DurationInMinutes ?? 0) min
+                                · <span class="badge @StatusBadge(c.Status)">@c.Status</span>
+                            </div>
+                        </div>
+                        <span class="text-primary">View →</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ContestListItemDto> contests = new();
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<Result<List<ContestListItemDto>>>("api/contests/my");
+            if (result?.IsSuccess == true && result.Data != null)
+                contests = result.Data;
+            else
+                error = result?.Message ?? "Failed to load";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static string StatusBadge(string status) => status switch
+    {
+        "Running" => "bg-success",
+        "Upcoming" => "bg-primary",
+        "Ended" => "bg-secondary",
+        "Open" => "bg-info text-dark",
+        _ => "bg-secondary"
+    };
+}
