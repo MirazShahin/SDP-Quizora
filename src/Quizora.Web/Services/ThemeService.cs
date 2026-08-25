@@ -1,11 +1,12 @@
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 
 namespace Quizora.Web.Services;
 
 public class ThemeService
 {
     private readonly IJSRuntime _js;
-    public bool IsDark { get; private set; } = true;
+    // Default = Light mode (user requirement)
+    public bool IsDark { get; private set; } = false;
     public event Action? OnChange;
 
     public ThemeService(IJSRuntime js) => _js = js;
@@ -15,12 +16,14 @@ public class ThemeService
         try
         {
             var saved = await _js.InvokeAsync<string?>("localStorage.getItem", "quizora-theme");
-            IsDark = saved != "light";
+            // Only dark when explicitly saved as "dark". Everything else → light.
+            IsDark = string.Equals(saved, "dark", StringComparison.OrdinalIgnoreCase);
             await ApplyAsync();
         }
         catch
         {
-            IsDark = true;
+            // On first load / prerender → Light
+            IsDark = false;
         }
     }
 

@@ -3,9 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Quizora.Application.Common;
 using Quizora.Application.DTOs.Code;
 using Quizora.Application.Interfaces;
-
 namespace Quizora.API.Controllers;
-
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Candidate")]
@@ -17,8 +15,6 @@ public class CodeController : ControllerBase
     {
         _runner = runner;
     }
-
-    /// <summary>Run C or C++ — own gcc/g++ engine</summary>
     [HttpPost("run")]
     public async Task<IActionResult> Run([FromBody] CodeRunRequestDto dto, CancellationToken ct)
     {

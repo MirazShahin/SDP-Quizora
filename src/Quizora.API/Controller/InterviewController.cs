@@ -15,7 +15,6 @@ public class InterviewController : ControllerBase
         _interviewRepository = interviewRepository;
     }
 
-    // সব টপিক
     [HttpGet("topics")]
     public async Task<ActionResult<Result<object>>> GetTopics()
     {
@@ -33,7 +32,6 @@ public class InterviewController : ControllerBase
         return Result<object>.Success(result);
     }
 
-    // কোনো টপিকের সব প্রশ্ন + উত্তর
     [HttpGet("topics/{topicId}/qas")]
     public async Task<ActionResult<Result<object>>> GetQAs(Guid topicId)
     {
