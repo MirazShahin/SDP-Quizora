@@ -21,37 +21,46 @@ public class ContestsController : ControllerBase
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    // ========== PUBLIC: List all public contests (everyone) ==========
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<Result<List<ContestListItemDto>>>> GetPublicContests()
     {
         var now = DateTime.UtcNow;
 
-        var contests = await _db.Tests
+        var rows = await _db.Tests
             .AsNoTracking()
-            .Include(t => t.Company)
-            .Include(t => t.CodingProblems)
             .Where(t => t.IsContest && t.IsPublic && t.Status != TestStatus.Draft)
             .OrderByDescending(t => t.ContestStartAt ?? t.CreatedAt)
-            .Select(t => new ContestListItemDto
+            .Select(t => new
             {
-                Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
-                DurationInMinutes = t.DurationInMinutes,
-                ContestStartAt = t.ContestStartAt,
-                ContestEndAt = t.ContestEndAt,
+                t.Id,
+                t.Title,
+                t.Description,
+                t.DurationInMinutes,
+                t.ContestStartAt,
+                t.ContestEndAt,
+                t.Status,
                 ProblemCount = t.CodingProblems.Count,
-                CompanyName = t.Company != null ? t.Company.CompanyName : "",
-                Status = ComputeStatus(t.ContestStartAt, t.ContestEndAt, t.Status, now)
+                CompanyName = t.Company != null ? t.Company.CompanyName : ""
             })
             .ToListAsync();
+
+        var contests = rows.Select(t => new ContestListItemDto
+        {
+            Id = t.Id,
+            Title = t.Title,
+            Description = t.Description,
+            DurationInMinutes = t.DurationInMinutes,
+            ContestStartAt = t.ContestStartAt,
+            ContestEndAt = t.ContestEndAt,
+            ProblemCount = t.ProblemCount,
+            CompanyName = t.CompanyName,
+            Status = ComputeStatus(t.ContestStartAt, t.ContestEndAt, t.Status, now)
+        }).ToList();
 
         return Ok(Result<List<ContestListItemDto>>.Success(contests));
     }
 
-    // ========== PUBLIC: Contest details ==========
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     public async Task<ActionResult<Result<ContestDetailDto>>> GetContest(Guid id)
@@ -101,7 +110,6 @@ public class ContestsController : ControllerBase
         return Ok(Result<ContestDetailDto>.Success(dto));
     }
 
-    // ========== COMPANY: Create Contest ==========
     [HttpPost]
     [Authorize(Roles = "Company")]
     public async Task<ActionResult<Result<ContestDetailDto>>> CreateContest([FromBody] CreateContestDto dto)
@@ -123,12 +131,12 @@ public class ContestsController : ControllerBase
         if (user?.Company == null)
             return Ok(Result<ContestDetailDto>.Failure("Company profile not found"));
 
-        // Validate problems exist
+        var distinctIds = dto.CodingProblemIds.Distinct().ToList();
         var problems = await _db.CodingProblems
-            .Where(p => dto.CodingProblemIds.Contains(p.Id) && p.IsActive)
+            .Where(p => distinctIds.Contains(p.Id) && p.IsActive)
             .ToListAsync();
 
-        if (problems.Count != dto.CodingProblemIds.Count)
+        if (problems.Count != distinctIds.Count)
             return Ok(Result<ContestDetailDto>.Failure("One or more problems not found or inactive"));
 
         var test = new Test
@@ -152,7 +160,7 @@ public class ContestsController : ControllerBase
         for (int i = 0; i < dto.CodingProblemIds.Count; i++)
         {
             var points = (dto.Points != null && i < dto.Points.Count) ? dto.Points[i] : 100;
-            _db.Set<TestCodingProblem>().Add(new TestCodingProblem
+            _db.TestCodingProblems.Add(new TestCodingProblem
             {
                 Id = Guid.NewGuid(),
                 TestId = test.Id,
@@ -164,12 +172,9 @@ public class ContestsController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
-
-        // Return detail
         return await GetContest(test.Id);
     }
 
-    // ========== COMPANY: My Contests ==========
     [HttpGet("my")]
     [Authorize(Roles = "Company")]
     public async Task<ActionResult<Result<List<ContestListItemDto>>>> GetMyContests()
@@ -180,25 +185,38 @@ public class ContestsController : ControllerBase
             return Ok(Result<List<ContestListItemDto>>.Failure("Company not found"));
 
         var now = DateTime.UtcNow;
+        var companyId = user.Company.Id;
+        var companyName = user.Company.CompanyName;
 
-        var list = await _db.Tests
+        var rows = await _db.Tests
             .AsNoTracking()
-            .Include(t => t.CodingProblems)
-            .Where(t => t.IsContest && t.CompanyId == user.Company.Id)
+            .Where(t => t.IsContest && t.CompanyId == companyId)
             .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new ContestListItemDto
+            .Select(t => new
             {
-                Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
-                DurationInMinutes = t.DurationInMinutes,
-                ContestStartAt = t.ContestStartAt,
-                ContestEndAt = t.ContestEndAt,
-                ProblemCount = t.CodingProblems.Count,
-                CompanyName = user.Company.CompanyName,
-                Status = ComputeStatus(t.ContestStartAt, t.ContestEndAt, t.Status, now)
+                t.Id,
+                t.Title,
+                t.Description,
+                t.DurationInMinutes,
+                t.ContestStartAt,
+                t.ContestEndAt,
+                t.Status,
+                ProblemCount = t.CodingProblems.Count
             })
             .ToListAsync();
+
+        var list = rows.Select(t => new ContestListItemDto
+        {
+            Id = t.Id,
+            Title = t.Title,
+            Description = t.Description,
+            DurationInMinutes = t.DurationInMinutes,
+            ContestStartAt = t.ContestStartAt,
+            ContestEndAt = t.ContestEndAt,
+            ProblemCount = t.ProblemCount,
+            CompanyName = companyName,
+            Status = ComputeStatus(t.ContestStartAt, t.ContestEndAt, t.Status, now)
+        }).ToList();
 
         return Ok(Result<List<ContestListItemDto>>.Success(list));
     }
@@ -209,7 +227,6 @@ public class ContestsController : ControllerBase
         if (start.HasValue && now < start.Value) return "Upcoming";
         if (end.HasValue && now > end.Value) return "Ended";
         if (start.HasValue && end.HasValue && now >= start.Value && now <= end.Value) return "Running";
-        if (!start.HasValue && !end.HasValue) return "Open";
         return "Open";
     }
 }
