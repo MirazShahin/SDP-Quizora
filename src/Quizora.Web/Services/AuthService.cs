@@ -4,8 +4,9 @@ using Quizora.Application.DTOs.Auth;
 using Quizora.Web.Auth;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Blazored.LocalStorage;
-using ILocalStorageService = Blazored.LocalStorage.ILocalStorageService;
+
 namespace Quizora.Web.Services;
 
 public class AuthService
@@ -13,6 +14,11 @@ public class AuthService
     private readonly HttpClient _http;
     private readonly ILocalStorageService _localStorage;
     private readonly AuthenticationStateProvider _authStateProvider;
+
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public AuthService(HttpClient http, ILocalStorageService localStorage, AuthenticationStateProvider authStateProvider)
     {
@@ -26,18 +32,25 @@ public class AuthService
         try
         {
             var response = await _http.PostAsJsonAsync("api/Auth/register", dto);
+            var content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                return Result<AuthResponseDto>.Failure($"Error: {response.StatusCode} - {errorContent}");
-            }
+                return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(
+                    $"Error: {response.StatusCode} - {content}",
+                    "Registration failed. Please try again."));
 
-            return await response.Content.ReadFromJsonAsync<Result<AuthResponseDto>>();
+            try
+            {
+                return JsonSerializer.Deserialize<Result<AuthResponseDto>>(content, JsonOpts);
+            }
+            catch
+            {
+                return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(content, "Registration failed."));
+            }
         }
         catch (Exception ex)
         {
-            return Result<AuthResponseDto>.Failure(FriendlyError.Describe(ex));
+            return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(ex.Message, "Cannot reach server."));
         }
     }
 
@@ -50,26 +63,39 @@ public class AuthService
 
             if (!response.IsSuccessStatusCode)
             {
-                return Result<AuthResponseDto>.Failure($"Error {response.StatusCode}: {content}");
+                return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(
+                    $"Error {response.StatusCode}: {content}",
+                    "Login failed. Please try again."));
             }
 
-            var result = System.Text.Json.JsonSerializer.Deserialize<Result<AuthResponseDto>>(content, new System.Text.Json.JsonSerializerOptions
+            Result<AuthResponseDto>? result;
+            try
             {
-                PropertyNameCaseInsensitive = true
-            });
+                result = JsonSerializer.Deserialize<Result<AuthResponseDto>>(content, JsonOpts);
+            }
+            catch
+            {
+                return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(content, "Login failed."));
+            }
 
             if (result != null && result.IsSuccess && result.Data != null)
             {
                 await _localStorage.SetItemAsStringAsync("authToken", result.Data.Token);
                 ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Data.Token);
-                _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Data.Token);
+                _http.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", result.Data.Token);
+            }
+            else if (result != null && !result.IsSuccess)
+            {
+                result = Result<AuthResponseDto>.Failure(
+                    ApiErrors.Friendly(result.Message, result.Message ?? "Login failed"));
             }
 
             return result;
         }
         catch (Exception ex)
         {
-            return Result<AuthResponseDto>.Failure(FriendlyError.Describe(ex));
+            return Result<AuthResponseDto>.Failure(ApiErrors.Friendly(ex.Message, "Cannot reach server."));
         }
     }
 

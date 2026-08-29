@@ -9,14 +9,27 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow border-0" style="border-radius: 1rem;">
             <div class="card-body p-4">
-                <h3 class="text-center mb-4">Login</h3>
+                <h3 class="text-center mb-1 fw-bold">Login</h3>
+                <p class="text-center text-muted small mb-4">Quizora · by HaMiko</p>
 
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    <div class="alert alert-danger">@errorMessage</div>
+                    <div class="alert @(isServerIssue ? "alert-warning" : "alert-danger") border-0 shadow-sm">
+                        @if (isServerIssue)
+                        {
+                            <div class="fw-semibold mb-1">Server connection issue</div>
+                        }
+                        <div class="small mb-0">@errorMessage</div>
+                        @if (isServerIssue)
+                        {
+                            <div class="small text-muted mt-2">
+                                If the API was sleeping (free hosting), open the API URL once, wait ~1 minute, then retry.
+                            </div>
+                        }
+                    </div>
                 }
 
                 <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="loginForm">
@@ -52,29 +65,30 @@
 @code {
     private LoginDto loginModel = new();
     private string? errorMessage;
-    private bool isLoading = false;
+    private bool isLoading;
+    private bool isServerIssue;
 
     private async Task HandleLogin()
     {
         isLoading = true;
         errorMessage = null;
+        isServerIssue = false;
 
         var result = await AuthService.Login(loginModel);
 
         if (result != null && result.IsSuccess && result.Data != null)
         {
             if (result.Data.Role == UserRole.Company)
-            {
                 Navigation.NavigateTo("/company/dashboard", forceLoad: true);
-            }
             else
-            {
                 Navigation.NavigateTo("/candidate/dashboard", forceLoad: true);
-            }
         }
         else
         {
             errorMessage = result?.Message ?? "Login failed";
+            var m = errorMessage.ToLowerInvariant();
+            isServerIssue = m.Contains("server") || m.Contains("unavailable") || m.Contains("reach")
+                            || m.Contains("timeout") || m.Contains("sleeping") || m.Contains("suspended");
         }
 
         isLoading = false;

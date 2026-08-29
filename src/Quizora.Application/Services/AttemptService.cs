@@ -117,11 +117,16 @@ public class AttemptService : IAttemptService
             bankQuestions = new List<QuestionBank>();
         }
 
+        var cheat = dto.CheatSummary;
         var attempt = new TestAttempt
         {
             InvitationId = invitationId,
             SubmittedAt = DateTime.UtcNow,
-            TotalQuestions = bankQuestions.Count > 0 ? bankQuestions.Count : dto.Answers.Count
+            TotalQuestions = bankQuestions.Count > 0 ? bankQuestions.Count : dto.Answers.Count,
+            TabSwitches = cheat?.TabSwitches ?? 0,
+            FocusLost = cheat?.FocusLost ?? 0,
+            PasteAttempts = cheat?.PasteAttempts ?? 0,
+            CopyAttempts = cheat?.CopyAttempts ?? 0
         };
 
         int correctCount = 0;
@@ -182,7 +187,11 @@ public class AttemptService : IAttemptService
             TotalQuestions = attempt.TotalQuestions,
             Percentage = percentage,
             SubmittedAt = attempt.SubmittedAt,
-            Status = "Completed"
+            Status = "Completed",
+            TabSwitches = attempt.TabSwitches,
+            FocusLost = attempt.FocusLost,
+            PasteAttempts = attempt.PasteAttempts,
+            CopyAttempts = attempt.CopyAttempts
         };
 
         return Result<ResultDto>.Success(resultDto, "Test submitted successfully");
@@ -230,7 +239,11 @@ public class AttemptService : IAttemptService
             TotalQuestions = attempt.TotalQuestions,
             Percentage = percentage,
             SubmittedAt = attempt.SubmittedAt,
-            Status = invitation.Status.ToString()
+            Status = invitation.Status.ToString(),
+            TabSwitches = attempt.TabSwitches,
+            FocusLost = attempt.FocusLost,
+            PasteAttempts = attempt.PasteAttempts,
+            CopyAttempts = attempt.CopyAttempts
         };
 
         return Result<ResultDto>.Success(resultDto);
@@ -271,7 +284,11 @@ public class AttemptService : IAttemptService
                 TotalQuestions = attempt.TotalQuestions,
                 Percentage = percentage,
                 SubmittedAt = attempt.SubmittedAt,
-                Status = invitation.Status.ToString()
+                Status = invitation.Status.ToString(),
+                TabSwitches = attempt.TabSwitches,
+                FocusLost = attempt.FocusLost,
+                PasteAttempts = attempt.PasteAttempts,
+                CopyAttempts = attempt.CopyAttempts
             });
         }
 
