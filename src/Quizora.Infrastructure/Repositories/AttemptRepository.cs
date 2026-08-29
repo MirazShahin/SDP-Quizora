@@ -25,7 +25,7 @@ public class AttemptRepository : IAttemptRepository
     public async Task AddAsync(TestAttempt attempt)
     {
         await _context.TestAttempts.AddAsync(attempt);
-        await _context.SaveChangesAsync(); // ← must save
+        await _context.SaveChangesAsync(); // must
     }
 
     public async Task SaveChangesAsync()

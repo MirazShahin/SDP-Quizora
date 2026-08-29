@@ -42,16 +42,10 @@ public class AttemptService : IAttemptService
         if (invitation.CandidateId != user.Candidate.Id)
             return Result<List<QuestionDto>>.Failure("Unauthorized");
 
-        // Already has an attempt → cannot open test again (even if status drifted)
         var existingAttempt = await _attemptRepository.GetByInvitationIdAsync(invitationId);
         if (existingAttempt != null)
         {
-            if (invitation.Status != InvitationStatus.Completed)
-            {
-                invitation.Status = InvitationStatus.Completed;
-                invitation.UpdatedAt = DateTime.UtcNow;
-                await _invitationRepository.SaveChangesAsync();
-            }
+            await _invitationRepository.MarkCompletedAsync(invitationId);
             return Result<List<QuestionDto>>.Failure(
                 "Test already completed. You cannot retake this test.");
         }
@@ -77,7 +71,6 @@ public class AttemptService : IAttemptService
             questions = await _questionBankRepository.GetRandomOfficialQuestionsAsync(50);
             if (questions.Count < 10)
                 return Result<List<QuestionDto>>.Failure("Not enough questions in the Official bank");
-
             await _questionBankRepository.SaveInvitationQuestionsAsync(invitationId, questions);
         }
 
@@ -101,125 +94,122 @@ public class AttemptService : IAttemptService
 
     public async Task<Result<ResultDto>> SubmitTestAsync(Guid userId, Guid invitationId, SubmitTestDto dto)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user?.Candidate == null)
-            return Result<ResultDto>.Failure("Candidate not found");
-
-        var invitation = await _invitationRepository.GetByIdAsync(invitationId);
-        if (invitation == null)
-            return Result<ResultDto>.Failure("Invitation not found");
-
-        if (invitation.CandidateId != user.Candidate.Id)
-            return Result<ResultDto>.Failure("Unauthorized");
-
-        // Block double submit / retake
-        var existingAttempt = await _attemptRepository.GetByInvitationIdAsync(invitationId);
-        if (existingAttempt != null || invitation.Status == InvitationStatus.Completed)
+        try
         {
-            if (invitation.Status != InvitationStatus.Completed)
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user?.Candidate == null)
+                return Result<ResultDto>.Failure("Candidate not found");
+
+            var invitation = await _invitationRepository.GetByIdAsync(invitationId);
+            if (invitation == null)
+                return Result<ResultDto>.Failure("Invitation not found");
+
+            if (invitation.CandidateId != user.Candidate.Id)
+                return Result<ResultDto>.Failure("Unauthorized");
+
+            var existingAttempt = await _attemptRepository.GetByInvitationIdAsync(invitationId);
+            if (existingAttempt != null || invitation.Status == InvitationStatus.Completed)
             {
-                invitation.Status = InvitationStatus.Completed;
-                invitation.UpdatedAt = DateTime.UtcNow;
-                await _invitationRepository.SaveChangesAsync();
+                await _invitationRepository.MarkCompletedAsync(invitationId);
+                return Result<ResultDto>.Failure("Test already completed. You cannot submit again.");
             }
-            return Result<ResultDto>.Failure("Test already completed. You cannot submit again.");
-        }
 
-        if (invitation.Status == InvitationStatus.Expired)
-            return Result<ResultDto>.Failure("Invitation expired");
+            if (invitation.Status == InvitationStatus.Expired)
+                return Result<ResultDto>.Failure("Invitation expired");
 
-        var assigned = await _questionBankRepository.GetInvitationQuestionsAsync(invitationId);
-        var bankIds = assigned.Select(a => a.QuestionBankId).ToList();
-        var bankQuestions = await _questionBankRepository.GetByIdsAsync(bankIds);
+            var assigned = await _questionBankRepository.GetInvitationQuestionsAsync(invitationId);
+            var bankIds = assigned.Select(a => a.QuestionBankId).ToList();
+            var bankQuestions = await _questionBankRepository.GetByIdsAsync(bankIds);
 
-        if (bankQuestions.Count == 0)
-        {
-            var test = await _testRepository.GetByIdWithQuestionsAsync(invitation.TestId);
-            if (test == null)
-                return Result<ResultDto>.Failure("Test not found");
-            bankQuestions = new List<QuestionBank>();
-        }
-
-        var cheat = dto.CheatSummary;
-        var attempt = new TestAttempt
-        {
-            InvitationId = invitationId,
-            SubmittedAt = DateTime.UtcNow,
-            TotalQuestions = bankQuestions.Count > 0 ? bankQuestions.Count : dto.Answers.Count,
-            TabSwitches = cheat?.TabSwitches ?? 0,
-            FocusLost = cheat?.FocusLost ?? 0,
-            PasteAttempts = cheat?.PasteAttempts ?? 0,
-            CopyAttempts = cheat?.CopyAttempts ?? 0
-        };
-
-        int correctCount = 0;
-        int mcqCount = 0;
-
-        foreach (var answerDto in dto.Answers)
-        {
-            var question = bankQuestions.FirstOrDefault(q => q.Id == answerDto.QuestionId);
-            var type = question?.QuestionType ?? "MCQ";
-
-            if (type.Equals("Coding", StringComparison.OrdinalIgnoreCase)
-                || type.Equals("ShortAnswer", StringComparison.OrdinalIgnoreCase))
+            if (bankQuestions.Count == 0)
             {
+                var test = await _testRepository.GetByIdWithQuestionsAsync(invitation.TestId);
+                if (test == null)
+                    return Result<ResultDto>.Failure("Test not found");
+            }
+
+            var cheat = dto.CheatSummary;
+            var attempt = new TestAttempt
+            {
+                InvitationId = invitationId,
+                SubmittedAt = DateTime.UtcNow,
+                TotalQuestions = bankQuestions.Count > 0 ? bankQuestions.Count : dto.Answers.Count,
+                TabSwitches = cheat?.TabSwitches ?? 0,
+                FocusLost = cheat?.FocusLost ?? 0,
+                PasteAttempts = cheat?.PasteAttempts ?? 0,
+                CopyAttempts = cheat?.CopyAttempts ?? 0
+            };
+
+            int correctCount = 0;
+            int mcqCount = 0;
+
+            foreach (var answerDto in dto.Answers)
+            {
+                var question = bankQuestions.FirstOrDefault(q => q.Id == answerDto.QuestionId);
+                var type = question?.QuestionType ?? "MCQ";
+
+                if (type.Equals("Coding", StringComparison.OrdinalIgnoreCase)
+                    || type.Equals("ShortAnswer", StringComparison.OrdinalIgnoreCase))
+                {
+                    attempt.Answers.Add(new Answer
+                    {
+                        QuestionId = answerDto.QuestionId,
+                        SelectedOptionId = null,
+                        AnswerText = answerDto.AnswerText,
+                        IsCorrect = false
+                    });
+                    continue;
+                }
+
+                mcqCount++;
+                var selectedOption = question?.Options.FirstOrDefault(o => o.Id == answerDto.SelectedOptionId);
+                bool isCorrect = selectedOption?.IsCorrect ?? false;
+                if (isCorrect) correctCount++;
+
                 attempt.Answers.Add(new Answer
                 {
                     QuestionId = answerDto.QuestionId,
-                    SelectedOptionId = null,
+                    SelectedOptionId = answerDto.SelectedOptionId,
                     AnswerText = answerDto.AnswerText,
-                    IsCorrect = false
+                    IsCorrect = isCorrect
                 });
-                continue;
             }
 
-            mcqCount++;
-            var selectedOption = question?.Options.FirstOrDefault(o => o.Id == answerDto.SelectedOptionId);
-            bool isCorrect = selectedOption?.IsCorrect ?? false;
-            if (isCorrect) correctCount++;
+            attempt.Score = correctCount;
+            if (attempt.TotalQuestions == 0)
+                attempt.TotalQuestions = Math.Max(mcqCount, dto.Answers.Count);
 
-            attempt.Answers.Add(new Answer
+            // 1) Save attempt (AddAsync must call SaveChanges)
+            await _attemptRepository.AddAsync(attempt);
+
+            // 2) Force Completed in DB
+            await _invitationRepository.MarkCompletedAsync(invitationId);
+
+            double percentage = attempt.TotalQuestions == 0
+                ? 0
+                : Math.Round((double)correctCount / attempt.TotalQuestions * 100, 2);
+
+            return Result<ResultDto>.Success(new ResultDto
             {
-                QuestionId = answerDto.QuestionId,
-                SelectedOptionId = answerDto.SelectedOptionId,
-                AnswerText = answerDto.AnswerText,
-                IsCorrect = isCorrect
-            });
+                InvitationId = invitationId,
+                CandidateName = user.FullName,
+                CandidateEmail = user.Email,
+                Score = correctCount,
+                TotalQuestions = attempt.TotalQuestions,
+                Percentage = percentage,
+                SubmittedAt = attempt.SubmittedAt,
+                Status = "Completed",
+                TabSwitches = attempt.TabSwitches,
+                FocusLost = attempt.FocusLost,
+                PasteAttempts = attempt.PasteAttempts,
+                CopyAttempts = attempt.CopyAttempts
+            }, "Test submitted successfully");
         }
-
-        attempt.Score = correctCount;
-        if (attempt.TotalQuestions == 0)
-            attempt.TotalQuestions = Math.Max(mcqCount, dto.Answers.Count);
-
-        // Save attempt
-        await _attemptRepository.AddAsync(attempt);
-
-        // Mark invitation completed (must persist)
-        invitation.Status = InvitationStatus.Completed;
-        invitation.UpdatedAt = DateTime.UtcNow;
-        await _invitationRepository.SaveChangesAsync();
-
-        double percentage = attempt.TotalQuestions == 0
-            ? 0
-            : Math.Round((double)correctCount / attempt.TotalQuestions * 100, 2);
-
-        var resultDto = new ResultDto
+        catch (Exception ex)
         {
-            InvitationId = invitationId,
-            CandidateName = user.FullName,
-            CandidateEmail = user.Email,
-            Score = correctCount,
-            TotalQuestions = attempt.TotalQuestions,
-            Percentage = percentage,
-            SubmittedAt = attempt.SubmittedAt,
-            Status = "Completed",
-            TabSwitches = attempt.TabSwitches,
-            FocusLost = attempt.FocusLost,
-            PasteAttempts = attempt.PasteAttempts,
-            CopyAttempts = attempt.CopyAttempts
-        };
-
-        return Result<ResultDto>.Success(resultDto, "Test submitted successfully");
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            return Result<ResultDto>.Failure($"Submit failed: {msg}");
+        }
     }
 
     public async Task<Result<ResultDto>> GetResultAsync(Guid userId, Guid invitationId)
@@ -234,7 +224,6 @@ public class AttemptService : IAttemptService
 
         bool isCandidate = user.Candidate != null && invitation.CandidateId == user.Candidate.Id;
         bool isCompany = user.Company != null;
-
         if (!isCandidate && !isCompany)
             return Result<ResultDto>.Failure("Unauthorized");
 
@@ -292,12 +281,8 @@ public class AttemptService : IAttemptService
             var attempt = await _attemptRepository.GetByInvitationIdAsync(invitation.Id);
             if (attempt == null) continue;
 
-            // Heal status if attempt exists but still Pending
             if (invitation.Status != InvitationStatus.Completed)
-            {
-                invitation.Status = InvitationStatus.Completed;
-                invitation.UpdatedAt = DateTime.UtcNow;
-            }
+                await _invitationRepository.MarkCompletedAsync(invitation.Id);
 
             var candidateUser = invitation.Candidate?.User;
             double percentage = attempt.TotalQuestions == 0
@@ -321,7 +306,6 @@ public class AttemptService : IAttemptService
             });
         }
 
-        await _invitationRepository.SaveChangesAsync();
         return Result<List<ResultDto>>.Success(resultList);
     }
 }

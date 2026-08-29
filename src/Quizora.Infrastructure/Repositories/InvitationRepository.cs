@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Quizora.Application.Interfaces;
 using Quizora.Domain.Entities;
+using Quizora.Domain.Enums;
 using Quizora.Infrastructure.Persistence;
 
 namespace Quizora.Infrastructure.Repositories;
@@ -34,11 +35,13 @@ public class InvitationRepository : IInvitationRepository
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
     }
+
     public async Task<TestInvitation?> GetByTestAndCandidateAsync(Guid testId, Guid candidateId)
     {
         return await _context.TestInvitations
             .FirstOrDefaultAsync(i => i.TestId == testId && i.CandidateId == candidateId);
     }
+
     public async Task<List<TestInvitation>> GetByTestIdAsync(Guid testId)
     {
         return await _context.TestInvitations
@@ -59,10 +62,20 @@ public class InvitationRepository : IInvitationRepository
     public async Task AddAsync(TestInvitation invitation)
     {
         await _context.TestInvitations.AddAsync(invitation);
+        await _context.SaveChangesAsync();
     }
 
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
+    }
+
+    public async Task MarkCompletedAsync(Guid invitationId)
+    {
+        await _context.TestInvitations
+            .Where(i => i.Id == invitationId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(i => i.Status, InvitationStatus.Completed)
+                .SetProperty(i => i.UpdatedAt, DateTime.UtcNow));
     }
 }

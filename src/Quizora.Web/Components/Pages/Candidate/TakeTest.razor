@@ -45,6 +45,19 @@
             </div>
         </div>
     }
+    else if (kickedForTabSwitch && !string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="text-center py-5">
+            <div class="alert alert-danger d-inline-block px-5 py-4 text-start">
+                <h4 class="mb-2">Could not close test properly</h4>
+                <p class="mb-2 small">@FriendlyError(errorMessage)</p>
+                <p class="text-muted small mb-3">
+                    Tab limit reached, but server did not save the attempt. Contact support or try Submit again if still open.
+                </p>
+                <a href="/candidate/dashboard" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+        </div>
+    }
     else if (!string.IsNullOrEmpty(errorMessage) && questions == null)
     {
         <div class="alert alert-danger">@FriendlyError(errorMessage)</div>
@@ -74,7 +87,7 @@
         {
             <div class="alert alert-warning border-0 shadow-sm">
                 <strong>Warning:</strong> You left the test tab.
-                If you switch tabs <u>again</u>, this test will be closed.
+                If you switch tabs <u>again</u>, this test will be closed and submitted.
             </div>
         }
 
@@ -110,7 +123,6 @@
                                     <option value="c">C</option>
                                 </select>
                             </div>
-
                             @if (!string.IsNullOrWhiteSpace(q.SampleInput))
                             {
                                 <div class="small text-muted mb-1">Sample input</div>
@@ -121,14 +133,12 @@
                                 <div class="small text-muted mb-1">Sample output</div>
                                 <pre class="bg-dark text-light p-2 rounded small mb-2">@q.SampleOutput</pre>
                             }
-
                             <label class="form-label">Your full program (C / C++)</label>
                             <textarea class="form-control font-monospace mb-2"
                                       rows="14"
                                       placeholder="@(string.IsNullOrWhiteSpace(q.StarterCode) ? "// Write complete program with main()" : q.StarterCode)"
                                       value="@textAnswers.GetValueOrDefault(q.Id)"
                                       @onchange="e => SetTextAnswer(q.Id, e.Value?.ToString() ?? string.Empty)"></textarea>
-
                             <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
                                 <button type="button" class="btn btn-outline-success btn-sm"
                                         disabled="@(runningId == q.Id)"
@@ -141,7 +151,6 @@
                                     <span class="small text-muted">@rr.TimeMs ms</span>
                                 }
                             </div>
-
                             @if (runResults.TryGetValue(q.Id, out var r) && r != null)
                             {
                                 @if (!r.Compiled && !string.IsNullOrWhiteSpace(r.CompileOutput))
@@ -205,7 +214,6 @@
     [Parameter] public Guid InvitationId { get; set; }
 
     private DotNetObjectReference<TakeTest>? dotNetRef;
-
     private List<QuestionDto>? questions;
     private Dictionary<Guid, Guid> selectedAnswers = new();
     private Dictionary<Guid, string> textAnswers = new();
@@ -224,7 +232,6 @@
     private int totalQuestions => questions?.Count ?? 0;
     private int attemptedCount;
 
-    // Anti-cheat: 1st = warning, 2nd = kick out
     private int tabSwitches;
     private bool antiCheatActive;
 
@@ -294,7 +301,7 @@
             await JS.InvokeVoidAsync("QuizoraAntiCheat.register", dotNetRef);
             antiCheatActive = true;
         }
-        catch { /* JS missing — skip */ }
+        catch { }
     }
 
     private async Task DisableAntiCheatAsync()
@@ -306,27 +313,33 @@
         dotNetRef = null;
     }
 
-    /// <summary>1st tab leave = warning; 2nd = submit + leave test</summary>
     [JSInvokable]
     public async Task OnVisibilityHidden()
     {
-        if (isSubmitted || isSubmitting) return;
+        if (isSubmitted || isSubmitting || kickedForTabSwitch) return;
 
         tabSwitches++;
 
-        if (tabSwitches >= 2)
+        if (tabSwitches == 1)
         {
-            kickedForTabSwitch = true;
-            await SubmitTest(auto: true);
-            await DisableAntiCheatAsync();
-            Navigation.NavigateTo("/candidate/dashboard", forceLoad: true);
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
+        // 2nd leave → show reason, submit, go dashboard only if saved
+        kickedForTabSwitch = true;
         await InvokeAsync(StateHasChanged);
+        await Task.Delay(1200);
+
+        await SubmitTest(auto: true);
+        await DisableAntiCheatAsync();
+
+        if (isSubmitted)
+            Navigation.NavigateTo("/candidate/dashboard", forceLoad: true);
+        else
+            await InvokeAsync(StateHasChanged);
     }
 
-    // Not used in simple mode — keep for JS compatibility
     [JSInvokable] public Task OnWindowBlur() => Task.CompletedTask;
     [JSInvokable] public Task OnCopyAttempt() => Task.CompletedTask;
     [JSInvokable] public Task OnPasteAttempt() => Task.CompletedTask;
@@ -369,8 +382,7 @@
         errorMessage = null;
     }
 
-    private string GetLang(Guid id)
-        => codeLang.TryGetValue(id, out var l) ? l : "cpp";
+    private string GetLang(Guid id) => codeLang.TryGetValue(id, out var l) ? l : "cpp";
 
     private void SetLang(Guid id, string lang)
         => codeLang[id] = lang is "c" or "cpp" ? lang : "cpp";
@@ -388,14 +400,9 @@
             return;
         }
 
-        var (result, err) = await CodeClient.RunAsync(
-            GetLang(q.Id), src, q.SampleInput, q.SampleOutput);
-
-        if (err != null)
-            errorMessage = FriendlyError(err);
-        else
-            runResults[q.Id] = result;
-
+        var (result, err) = await CodeClient.RunAsync(GetLang(q.Id), src, q.SampleInput, q.SampleOutput);
+        if (err != null) errorMessage = FriendlyError(err);
+        else runResults[q.Id] = result;
         runningId = null;
     }
 
@@ -439,6 +446,7 @@
             };
 
             var result = await AttemptService.SubmitTest(InvitationId, dto);
+
             if (result != null && result.IsSuccess)
             {
                 isSubmitted = true;
@@ -448,14 +456,13 @@
             }
             else
             {
+                // IMPORTANT: do NOT force isSubmitted on failure
                 errorMessage = result?.Message ?? "Failed to submit test";
-                if (auto) isSubmitted = true;
             }
         }
         catch (Exception ex)
         {
             errorMessage = FriendlyError(ex.Message);
-            if (auto) isSubmitted = true;
         }
         finally
         {
