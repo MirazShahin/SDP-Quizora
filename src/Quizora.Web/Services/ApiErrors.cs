@@ -1,8 +1,5 @@
 ﻿namespace Quizora.Web.Services;
 
-/// <summary>
-/// Maps raw HTTP / network failures into short user-friendly messages.
-/// </summary>
 public static class ApiErrors
 {
     public static string Friendly(string? raw, string fallback = "Something went wrong. Please try again.")
