@@ -30,18 +30,47 @@ public class TestService
         }
         catch (Exception ex)
         {
-            return Result<List<TestDto>>.Failure($"Exception: {ex.Message}");
+            return Result<List<TestDto>>.Failure(FriendlyError.Describe(ex));
         }
     }
 
     public async Task<Result<TestDto>?> CreateTest(CreateTestDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/Tests", dto);
-        return await response.Content.ReadFromJsonAsync<Result<TestDto>>();
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/Tests", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return Result<TestDto>.Failure($"API Error {(int)response.StatusCode}: {errorContent}");
+            }
+
+            return await response.Content.ReadFromJsonAsync<Result<TestDto>>();
+        }
+        catch (Exception ex)
+        {
+            return Result<TestDto>.Failure(FriendlyError.Describe(ex));
+        }
     }
+
     public async Task<Result?> AddQuestion(Guid testId, CreateQuestionDto dto)
     {
-        var response = await _http.PostAsJsonAsync($"api/Tests/{testId}/questions", dto);
-        return await response.Content.ReadFromJsonAsync<Result>();
+        try
+        {
+            var response = await _http.PostAsJsonAsync($"api/Tests/{testId}/questions", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return Result.Failure($"API Error {(int)response.StatusCode}: {errorContent}");
+            }
+
+            return await response.Content.ReadFromJsonAsync<Result>();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(FriendlyError.Describe(ex));
+        }
     }
 }

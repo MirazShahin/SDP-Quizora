@@ -1,5 +1,4 @@
-﻿using Intersoft.Crosslight.Mobile;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Quizora.Application.Common;
 using Quizora.Application.DTOs.Auth;
 using Quizora.Web.Auth;
@@ -38,7 +37,7 @@ public class AuthService
         }
         catch (Exception ex)
         {
-            return Result<AuthResponseDto>.Failure($"Exception: {ex.Message}");
+            return Result<AuthResponseDto>.Failure(FriendlyError.Describe(ex));
         }
     }
 
@@ -70,7 +69,7 @@ public class AuthService
         }
         catch (Exception ex)
         {
-            return Result<AuthResponseDto>.Failure($"Exception: {ex.Message}");
+            return Result<AuthResponseDto>.Failure(FriendlyError.Describe(ex));
         }
     }
 

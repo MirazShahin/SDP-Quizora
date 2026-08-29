@@ -32,7 +32,7 @@ public class AttemptService
         }
         catch (Exception ex)
         {
-            return Result<List<QuestionDto>>.Failure($"Request failed: {ex.Message}");
+            return Result<List<QuestionDto>>.Failure(FriendlyError.Describe(ex));
         }
     }
 
@@ -54,7 +54,7 @@ public class AttemptService
         }
         catch (Exception ex)
         {
-            return Result<ResultDto>.Failure($"Request failed: {ex.Message}");
+            return Result<ResultDto>.Failure(FriendlyError.Describe(ex));
         }
     }
 }

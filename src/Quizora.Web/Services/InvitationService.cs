@@ -40,7 +40,7 @@ public class InvitationService
         }
         catch (Exception ex)
         {
-            return Result.Failure($"Request failed: {ex.Message}");
+            return Result.Failure(FriendlyError.Describe(ex));
         }
     }
 
@@ -61,7 +61,7 @@ public class InvitationService
         }
         catch (Exception ex)
         {
-            return Result<List<InvitationDto>>.Failure($"Exception: {ex.Message}");
+            return Result<List<InvitationDto>>.Failure(FriendlyError.Describe(ex));
         }
     }
     public async Task<Result<BulkInviteResultDto>?> BulkInvite(BulkInviteDto dto)
@@ -75,7 +75,7 @@ public class InvitationService
         }
         catch (Exception ex)
         {
-            return Result<BulkInviteResultDto>.Failure(ex.Message);
+            return Result<BulkInviteResultDto>.Failure(FriendlyError.Describe(ex));
         }
     }
 }

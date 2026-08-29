@@ -60,7 +60,7 @@ public class QuizApiClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 
@@ -89,7 +89,7 @@ public class QuizApiClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 

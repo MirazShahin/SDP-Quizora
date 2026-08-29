@@ -14,11 +14,25 @@ public class InterviewService
 
     public async Task<Result<object>?> GetTopics()
     {
-        return await _http.GetFromJsonAsync<Result<object>>("api/Interview/topics");
+        try
+        {
+            return await _http.GetFromJsonAsync<Result<object>>("api/Interview/topics");
+        }
+        catch (Exception ex)
+        {
+            return Result<object>.Failure(FriendlyError.Describe(ex));
+        }
     }
 
     public async Task<Result<object>?> GetQAs(Guid topicId)
     {
-        return await _http.GetFromJsonAsync<Result<object>>($"api/Interview/topics/{topicId}/qas");
+        try
+        {
+            return await _http.GetFromJsonAsync<Result<object>>($"api/Interview/topics/{topicId}/qas");
+        }
+        catch (Exception ex)
+        {
+            return Result<object>.Failure(FriendlyError.Describe(ex));
+        }
     }
 }

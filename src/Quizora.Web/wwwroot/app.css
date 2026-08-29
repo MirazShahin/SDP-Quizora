@@ -1,4 +1,4 @@
-/* ===== Quizora – Premium Light / Dark Theme ===== */
+ï»¿/* ===== Quizora ï¿½ Premium Light / Dark Theme ===== */
 /* Default = Light. Toggle sets data-theme="dark" on <html> */
 
 :root,
@@ -60,7 +60,7 @@ main {
     color: var(--text-primary);
 }
 
-/* ===== Typography – force readable colors everywhere ===== */
+/* ===== Typography ï¿½ force readable colors everywhere ===== */
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
     color: var(--text-primary) !important;
@@ -403,7 +403,7 @@ pre, code, .code-block {
         transform: translateY(-1px);
     }
 
-/* ===== Dark mode safety net – catch any remaining hard-coded dark text ===== */
+/* ===== Dark mode safety net ï¿½ catch any remaining hard-coded dark text ===== */
 html[data-theme="dark"] .text-dark,
 html[data-theme="dark"] .text-black,
 html[data-theme="dark"] [style*="color: black"],
@@ -465,4 +465,147 @@ html[data-theme="dark"] .btn:not(.btn-primary):not(.btn-success):not(.btn-danger
 /* Smooth theme transition for main surfaces */
 body, main, .card, .list-group-item, .form-control, .table {
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ===== Friendly error / empty-state UI ===== */
+
+/* Full-connection-lost banner (SignalR circuit drop) â€” replaces the bare
+   default Blazor text with a proper floating card. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 2000;
+    max-width: 92vw;
+    width: 460px;
+    padding: 0;
+    border-radius: 14px;
+    background: transparent;
+    border: none;
+}
+
+/* Blazor's own JS toggles the outer element between "none" and "block" â€”
+   this inner wrapper is always flex, so the layout is correct either way. */
+.quizora-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.quizora-banner-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.quizora-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+    .quizora-banner-text strong {
+        color: var(--text-primary);
+    }
+
+    .quizora-banner-text span {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+    }
+
+#blazor-error-ui .reload {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+    #blazor-error-ui .reload:hover {
+        opacity: 0.92;
+    }
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 4px;
+}
+
+/* In-page ErrorBoundary fallback â€” shown when a component throws instead
+   of crashing the whole circuit. */
+.quizora-error-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px auto;
+    max-width: 640px;
+    box-shadow: var(--shadow-soft);
+}
+
+.quizora-error-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.quizora-error-body h3 {
+    margin: 0 0 6px 0;
+    color: var(--text-primary) !important;
+    font-size: 1.15rem;
+}
+
+.quizora-error-body p {
+    color: var(--text-muted);
+    margin-bottom: 14px;
+}
+
+.quizora-error-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Full-width status pages: 404, 403/unauthorized, session-checking */
+.quizora-status-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 55vh;
+    padding: 40px 20px;
+    gap: 6px;
+}
+
+.quizora-status-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+}
+
+.quizora-status-page h2 {
+    color: var(--text-primary) !important;
+    margin-bottom: 6px;
+}
+
+.quizora-status-page p {
+    color: var(--text-muted);
+    max-width: 420px;
+    margin-bottom: 18px;
 }

@@ -1,0 +1,29 @@
+﻿@* Shown inside an <ErrorBoundary> whenever a page throws an unhandled exception.
+   Keeps the rest of the app (sidebar, nav) alive instead of crashing the whole circuit. *@
+
+<div class="quizora-error-card" role="alert">
+    <div class="quizora-error-icon">⚠️</div>
+    <div class="quizora-error-body">
+        <h3>Something went wrong on this page</h3>
+        <p>
+            We hit an unexpected problem while loading this section. This is usually temporary —
+            our server might be busy or briefly unreachable.
+        </p>
+        <div class="quizora-error-actions">
+            <button class="btn btn-primary" @onclick="Recover">Try again</button>
+            <a class="btn btn-outline-secondary" href="/">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnRecover { get; set; }
+
+    private async Task Recover()
+    {
+        if (OnRecover.HasDelegate)
+        {
+            await OnRecover.InvokeAsync();
+        }
+    }
+}

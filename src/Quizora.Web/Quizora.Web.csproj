@@ -5,8 +5,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-		<PackageReference Include="Intersoft.Crosslight" Version="6.0.5000.975" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" /> 
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 	</ItemGroup>
 

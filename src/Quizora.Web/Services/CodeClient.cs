@@ -43,7 +43,7 @@ public class CodeClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 

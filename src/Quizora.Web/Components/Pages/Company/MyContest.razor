@@ -1,86 +1,55 @@
-﻿@page "/company/contests"
-@rendermode InteractiveServer
-@using Quizora.Application.Common
-@using Quizora.Application.DTOs.Contest
-@inject HttpClient Http
-@inject NavigationManager Navigation
+﻿@inherits LayoutComponentBase
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">My Contests</h2>
-        <a href="/company/contests/create" class="btn btn-primary">+ Create Contest</a>
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
     </div>
 
-    @if (loading)
-    {
-        <p class="text-muted">Loading...</p>
-    }
-    else if (!string.IsNullOrEmpty(error))
-    {
-        <div class="alert alert-danger">@error</div>
-    }
-    else if (contests.Count == 0)
-    {
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center py-5">
-                <h5 class="text-muted">You have not created any contests yet</h5>
-                <a href="/company/contests/create" class="btn btn-primary mt-2">Create your first contest</a>
-            </div>
+    <main>
+        <div class="top-row px-4 d-flex align-items-center justify-content-end gap-3">
+            <ThemeToggle />
+            <a href="/about" class="top-link">About</a>
         </div>
-    }
-    else
-    {
-        <div class="list-group problem-list">
-            @foreach (var c in contests)
-            {
-                <a href="@($"/contests/{c.Id}")" class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="problem-title">@c.Title</div>
-                            <div class="problem-meta">
-                                @c.ProblemCount problems · @(c.DurationInMinutes ?? 0) min
-                                · <span class="badge @StatusBadge(c.Status)">@c.Status</span>
-                            </div>
-                        </div>
-                        <span class="text-primary">View →</span>
-                    </div>
-                </a>
-            }
+
+        <article class="content px-4">
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <FriendlyErrorFallback OnRecover="RecoverFromError" />
+                </ErrorContent>
+            </ErrorBoundary>
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    <div class="quizora-banner-inner">
+        <span class="quizora-banner-icon">📡</span>
+        <div class="quizora-banner-text">
+            <strong>Connection to the server was lost.</strong>
+            <span>Please reload the page to reconnect.</span>
         </div>
-    }
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss" title="Dismiss">🗙</span>
+    </div>
 </div>
 
 @code {
-    private List<ContestListItemDto> contests = new();
-    private bool loading = true;
-    private string? error;
+    private ErrorBoundary? _errorBoundary;
 
-    protected override async Task OnInitializedAsync()
+    // Lets the "Try again" button in FriendlyErrorFallback reset the boundary
+    // and re-render the page instead of leaving the user stuck on the error card.
+    private void RecoverFromError()
     {
-        try
-        {
-            var result = await Http.GetFromJsonAsync<Result<List<ContestListItemDto>>>("api/contests/my");
-            if (result?.IsSuccess == true && result.Data != null)
-                contests = result.Data;
-            else
-                error = result?.Message ?? "Failed to load";
-        }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-        }
-        finally
-        {
-            loading = false;
-        }
+        _errorBoundary?.Recover();
     }
 
-    private static string StatusBadge(string status) => status switch
+    protected override void OnParametersSet()
     {
-        "Running" => "bg-success",
-        "Upcoming" => "bg-primary",
-        "Ended" => "bg-secondary",
-        "Open" => "bg-info text-dark",
-        _ => "bg-secondary"
-    };
+        // Reset the boundary on every navigation so a previous page's error
+        // doesn't stick around when the user moves to a different page.
+        _errorBoundary?.Recover();
+    }
 }

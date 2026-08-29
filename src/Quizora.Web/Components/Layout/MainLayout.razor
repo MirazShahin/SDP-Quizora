@@ -1,24 +1,98 @@
-@inherits LayoutComponentBase
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+main {
+    flex: 1;
+}
 
-    <main>
-        <div class="top-row px-4 d-flex align-items-center justify-content-end gap-3">
-            <ThemeToggle />
-            <a href="/about" class="top-link">About</a>
-        </div>
+.sidebar {
+    background: var(--bg-sidebar, linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%));
+}
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+.top-row {
+    background-color: var(--top-row-bg, rgba(255,255,255,0.9));
+    border-bottom: 1px solid var(--border-color, #d0d0d0);
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+    .top-row ::deep a, .top-row ::deep .btn-link {
+        white-space: nowrap;
+        margin-left: 0.5rem;
+        text-decoration: none;
+    }
+
+    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
+        text-decoration: underline;
+    }
+
+    .top-row ::deep a:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+
+    .top-row ::deep a, .top-row ::deep .btn-link {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row.auth ::deep a:first-child {
+        flex: 1;
+        text-align: right;
+        width: 0;
+    }
+
+    .top-row, article {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+#blazor-error-ui {
+    color-scheme: light only;
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }

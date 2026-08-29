@@ -26,7 +26,7 @@ public class AiClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 
@@ -43,7 +43,7 @@ public class AiClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 
@@ -60,7 +60,7 @@ public class AiClient
         }
         catch (Exception ex)
         {
-            return (null, ex.Message);
+            return (null, FriendlyError.Describe(ex));
         }
     }
 
