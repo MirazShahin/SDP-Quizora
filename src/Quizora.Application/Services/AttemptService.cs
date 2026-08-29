@@ -14,12 +14,13 @@ public class AttemptService : IAttemptService
     private readonly ITestRepository _testRepository;
     private readonly IUserRepository _userRepository;
     private readonly IQuestionBankRepository _questionBankRepository;
+
     public AttemptService(
-     IInvitationRepository invitationRepository,
-     IAttemptRepository attemptRepository,
-     ITestRepository testRepository,
-     IUserRepository userRepository,
-     IQuestionBankRepository questionBankRepository)
+        IInvitationRepository invitationRepository,
+        IAttemptRepository attemptRepository,
+        ITestRepository testRepository,
+        IUserRepository userRepository,
+        IQuestionBankRepository questionBankRepository)
     {
         _invitationRepository = invitationRepository;
         _attemptRepository = attemptRepository;
@@ -41,15 +42,28 @@ public class AttemptService : IAttemptService
         if (invitation.CandidateId != user.Candidate.Id)
             return Result<List<QuestionDto>>.Failure("Unauthorized");
 
+        // Already has an attempt → cannot open test again (even if status drifted)
+        var existingAttempt = await _attemptRepository.GetByInvitationIdAsync(invitationId);
+        if (existingAttempt != null)
+        {
+            if (invitation.Status != InvitationStatus.Completed)
+            {
+                invitation.Status = InvitationStatus.Completed;
+                invitation.UpdatedAt = DateTime.UtcNow;
+                await _invitationRepository.SaveChangesAsync();
+            }
+            return Result<List<QuestionDto>>.Failure(
+                "Test already completed. You cannot retake this test.");
+        }
+
         if (invitation.Status == InvitationStatus.Completed)
-            return Result<List<QuestionDto>>.Failure("Test already completed");
+            return Result<List<QuestionDto>>.Failure(
+                "Test already completed. You cannot retake this test.");
 
         if (invitation.Status == InvitationStatus.Expired)
             return Result<List<QuestionDto>>.Failure("Invitation expired");
 
-        // আগে অ্যাসাইন করা আছে কিনা চেক
         var existing = await _questionBankRepository.GetInvitationQuestionsAsync(invitationId);
-
         List<QuestionBank> questions;
 
         if (existing.Any())
@@ -60,7 +74,6 @@ public class AttemptService : IAttemptService
         }
         else
         {
-            // Mix: mostly MCQ + up to 3 coding problems from own bank
             questions = await _questionBankRepository.GetRandomOfficialQuestionsAsync(50);
             if (questions.Count < 10)
                 return Result<List<QuestionDto>>.Failure("Not enough questions in the Official bank");
@@ -99,8 +112,18 @@ public class AttemptService : IAttemptService
         if (invitation.CandidateId != user.Candidate.Id)
             return Result<ResultDto>.Failure("Unauthorized");
 
-        if (invitation.Status == InvitationStatus.Completed)
-            return Result<ResultDto>.Failure("Test already completed");
+        // Block double submit / retake
+        var existingAttempt = await _attemptRepository.GetByInvitationIdAsync(invitationId);
+        if (existingAttempt != null || invitation.Status == InvitationStatus.Completed)
+        {
+            if (invitation.Status != InvitationStatus.Completed)
+            {
+                invitation.Status = InvitationStatus.Completed;
+                invitation.UpdatedAt = DateTime.UtcNow;
+                await _invitationRepository.SaveChangesAsync();
+            }
+            return Result<ResultDto>.Failure("Test already completed. You cannot submit again.");
+        }
 
         if (invitation.Status == InvitationStatus.Expired)
             return Result<ResultDto>.Failure("Invitation expired");
@@ -108,9 +131,9 @@ public class AttemptService : IAttemptService
         var assigned = await _questionBankRepository.GetInvitationQuestionsAsync(invitationId);
         var bankIds = assigned.Select(a => a.QuestionBankId).ToList();
         var bankQuestions = await _questionBankRepository.GetByIdsAsync(bankIds);
+
         if (bankQuestions.Count == 0)
         {
-            // fallback: test-owned questions
             var test = await _testRepository.GetByIdWithQuestionsAsync(invitation.TestId);
             if (test == null)
                 return Result<ResultDto>.Failure("Test not found");
@@ -168,8 +191,10 @@ public class AttemptService : IAttemptService
         if (attempt.TotalQuestions == 0)
             attempt.TotalQuestions = Math.Max(mcqCount, dto.Answers.Count);
 
+        // Save attempt
         await _attemptRepository.AddAsync(attempt);
 
+        // Mark invitation completed (must persist)
         invitation.Status = InvitationStatus.Completed;
         invitation.UpdatedAt = DateTime.UtcNow;
         await _invitationRepository.SaveChangesAsync();
@@ -195,8 +220,8 @@ public class AttemptService : IAttemptService
         };
 
         return Result<ResultDto>.Success(resultDto, "Test submitted successfully");
-
     }
+
     public async Task<Result<ResultDto>> GetResultAsync(Guid userId, Guid invitationId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
@@ -207,7 +232,6 @@ public class AttemptService : IAttemptService
         if (invitation == null)
             return Result<ResultDto>.Failure("Invitation not found");
 
-        // Candidate নিজের result দেখতে পারবে, Company নিজের test এর result দেখতে পারবে
         bool isCandidate = user.Candidate != null && invitation.CandidateId == user.Candidate.Id;
         bool isCompany = user.Company != null;
 
@@ -230,7 +254,7 @@ public class AttemptService : IAttemptService
             ? 0
             : Math.Round((double)attempt.Score / attempt.TotalQuestions * 100, 2);
 
-        var resultDto = new ResultDto
+        return Result<ResultDto>.Success(new ResultDto
         {
             InvitationId = invitationId,
             CandidateName = candidateUser?.FullName ?? "",
@@ -244,9 +268,7 @@ public class AttemptService : IAttemptService
             FocusLost = attempt.FocusLost,
             PasteAttempts = attempt.PasteAttempts,
             CopyAttempts = attempt.CopyAttempts
-        };
-
-        return Result<ResultDto>.Success(resultDto);
+        });
     }
 
     public async Task<Result<List<ResultDto>>> GetResultsByTestAsync(Guid userId, Guid testId)
@@ -265,10 +287,17 @@ public class AttemptService : IAttemptService
         var invitations = await _invitationRepository.GetByTestIdAsync(testId);
         var resultList = new List<ResultDto>();
 
-        foreach (var invitation in invitations.Where(i => i.Status == InvitationStatus.Completed))
+        foreach (var invitation in invitations)
         {
             var attempt = await _attemptRepository.GetByInvitationIdAsync(invitation.Id);
             if (attempt == null) continue;
+
+            // Heal status if attempt exists but still Pending
+            if (invitation.Status != InvitationStatus.Completed)
+            {
+                invitation.Status = InvitationStatus.Completed;
+                invitation.UpdatedAt = DateTime.UtcNow;
+            }
 
             var candidateUser = invitation.Candidate?.User;
             double percentage = attempt.TotalQuestions == 0
@@ -284,7 +313,7 @@ public class AttemptService : IAttemptService
                 TotalQuestions = attempt.TotalQuestions,
                 Percentage = percentage,
                 SubmittedAt = attempt.SubmittedAt,
-                Status = invitation.Status.ToString(),
+                Status = "Completed",
                 TabSwitches = attempt.TabSwitches,
                 FocusLost = attempt.FocusLost,
                 PasteAttempts = attempt.PasteAttempts,
@@ -292,6 +321,7 @@ public class AttemptService : IAttemptService
             });
         }
 
+        await _invitationRepository.SaveChangesAsync();
         return Result<List<ResultDto>>.Success(resultList);
     }
 }

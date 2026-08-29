@@ -33,14 +33,15 @@
                     </button>
                 }
             </div>
-
             @if (notifLoading)
             {
                 <p class="text-muted small mb-0">Loading notifications...</p>
             }
             else if (notifications.Count == 0)
             {
-                <p class="text-muted small mb-0">No notifications yet. When a company shares your score or interview call, it appears here.</p>
+                <p class="text-muted small mb-0">
+                    No notifications yet. When a company shares your score or interview call, it appears here.
+                </p>
             }
             else
             {
@@ -93,21 +94,23 @@
         <div class="row g-3">
             @foreach (var inv in invitations)
             {
+                var canStart = CanStart(inv);
+                var statusLabel = StatusLabel(inv);
+                var badgeClass = StatusBadgeClass(inv);
+
                 <div class="col-md-6">
                     <div class="card h-100 shadow-sm border-0 test-inv-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
                                 <h5 class="card-title mb-0 fw-semibold">@inv.TestTitle</h5>
-                                <span class="badge @(inv.Status == InvitationStatus.Completed ? "bg-success" : "bg-warning text-dark")">
-                                    @inv.Status
-                                </span>
+                                <span class="badge @badgeClass">@statusLabel</span>
                             </div>
                             <p class="text-muted small mb-3">
                                 Company: <strong>@inv.CompanyName</strong><br />
                                 Invited: @inv.CreatedAt.ToString("dd MMM yyyy")
                             </p>
 
-                            @if (inv.Status == InvitationStatus.Pending)
+                            @if (canStart)
                             {
                                 <div class="d-flex flex-wrap gap-2">
                                     <a href="/candidate/test/@inv.Id" class="btn btn-primary btn-sm px-3">
@@ -118,14 +121,26 @@
                                     </a>
                                 </div>
                             }
+                            else if (IsCompleted(inv))
+                            {
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                                        Already completed
+                                    </button>
+                                    <span class="small text-muted">You cannot retake this test.</span>
+                                </div>
+                            }
+                            else if (IsExpired(inv))
+                            {
+                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                                    Expired
+                                </button>
+                            }
                             else
                             {
-                                <div class="d-flex flex-wrap gap-2">
-                                    <button class="btn btn-outline-secondary btn-sm" disabled>Completed</button>
-                                    <a href="/candidate/contest/@inv.Id" class="btn btn-outline-primary btn-sm px-3">
-                                        View Contest
-                                    </a>
-                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                                    Not available
+                                </button>
                             }
                         </div>
                     </div>
@@ -166,7 +181,6 @@
     private List<InvitationDto>? invitations;
     private bool isLoading = true;
     private string? errorMessage;
-
     private List<NotifItem> notifications = new();
     private bool notifLoading = true;
     private int unreadCount => notifications.Count(n => !n.IsRead);
@@ -176,9 +190,7 @@
         if (!firstRender) return;
         try
         {
-            var notifTask = LoadNotifications();
-            var invTask = LoadInvitations();
-            await Task.WhenAll(notifTask, invTask);
+            await Task.WhenAll(LoadNotifications(), LoadInvitations());
         }
         finally
         {
@@ -211,10 +223,8 @@
             var response = await Http.GetAsync("api/Notifications");
             var json = await response.Content.ReadAsStringAsync();
             if (string.IsNullOrWhiteSpace(json)) return;
-
             var res = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<NotifItem>>>(json,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
             if (res?.IsSuccess == true)
                 notifications = res.Data ?? new();
         }
@@ -240,6 +250,38 @@
             foreach (var n in notifications) n.IsRead = true;
         }
         catch { }
+    }
+
+    // —— Status helpers (robust against enum / string issues) ——
+    private static string StatusName(InvitationDto inv)
+        => inv.Status.ToString();
+
+    private static bool CanStart(InvitationDto inv)
+        => inv.Status == InvitationStatus.Pending
+           || string.Equals(StatusName(inv), "Pending", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsCompleted(InvitationDto inv)
+        => inv.Status == InvitationStatus.Completed
+           || string.Equals(StatusName(inv), "Completed", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsExpired(InvitationDto inv)
+        => inv.Status == InvitationStatus.Expired
+           || string.Equals(StatusName(inv), "Expired", StringComparison.OrdinalIgnoreCase);
+
+    private static string StatusLabel(InvitationDto inv)
+    {
+        if (IsCompleted(inv)) return "Completed";
+        if (IsExpired(inv)) return "Expired";
+        if (CanStart(inv)) return "Pending";
+        return StatusName(inv);
+    }
+
+    private static string StatusBadgeClass(InvitationDto inv)
+    {
+        if (IsCompleted(inv)) return "bg-success";
+        if (IsExpired(inv)) return "bg-secondary";
+        if (CanStart(inv)) return "bg-warning text-dark";
+        return "bg-secondary";
     }
 
     public class NotifItem

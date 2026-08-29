@@ -18,18 +18,21 @@ public class AttemptRepository : IAttemptRepository
     {
         return await _context.TestAttempts
             .Include(a => a.Answers)
+            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.InvitationId == invitationId);
     }
 
     public async Task AddAsync(TestAttempt attempt)
     {
         await _context.TestAttempts.AddAsync(attempt);
+        await _context.SaveChangesAsync(); // ← must save
     }
 
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
     }
+
     public async Task<List<TestAttempt>> GetByTestIdAsync(Guid testId)
     {
         return await _context.TestAttempts
