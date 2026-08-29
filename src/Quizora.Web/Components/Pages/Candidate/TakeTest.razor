@@ -4,9 +4,11 @@
 @using Quizora.Application.DTOs.Questions
 @using Quizora.Application.DTOs.Attempts
 @using Quizora.Web.Services
+@using Microsoft.JSInterop
 @inject AttemptService AttemptService
 @inject CodeClient CodeClient
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container mt-4">
     @if (isLoading)
@@ -20,13 +22,19 @@
     {
         <div class="text-center py-5">
             <div class="alert alert-success d-inline-block px-5 py-4 text-start">
-                <h3 class="mb-3">টেস্ট সম্পন্ন হয়েছে!</h3>
+                <h3 class="mb-3">Test submitted</h3>
                 <p class="mb-1">
                     <strong>Attempted:</strong> @attemptedCount / @totalQuestions
                 </p>
-                @if (timeUp)
+                @if (kickedForTabSwitch)
                 {
-                    <p class="mb-3 text-muted small">Time is over. Your answers have been submitted automatically.</p>
+                    <p class="mb-3 text-danger small">
+                        Test closed because you left the tab twice.
+                    </p>
+                }
+                else if (timeUp)
+                {
+                    <p class="mb-3 text-muted small">Time is over. Your answers were submitted automatically.</p>
                 }
                 else
                 {
@@ -39,7 +47,7 @@
     }
     else if (!string.IsNullOrEmpty(errorMessage) && questions == null)
     {
-        <div class="alert alert-danger">@errorMessage</div>
+        <div class="alert alert-danger">@FriendlyError(errorMessage)</div>
         <a href="/candidate/dashboard" class="btn btn-secondary">Back</a>
     }
     else if (questions == null || !questions.Any())
@@ -49,19 +57,30 @@
     }
     else
     {
-        <div class="alert @(remainingSeconds <= 300 ? "alert-danger" : "alert-primary") d-flex justify-content-between align-items-center sticky-top shadow-sm">
+        <div class="alert @(remainingSeconds <= 300 ? "alert-danger" : "alert-primary") d-flex justify-content-between align-items-center sticky-top shadow-sm flex-wrap gap-2">
             <div>
                 <strong>Time Remaining</strong>
                 <span class="ms-2 badge bg-dark">@AnsweredCount / @questions.Count answered</span>
+                <span class="ms-2 badge @(tabSwitches >= 2 ? "bg-danger" : tabSwitches == 1 ? "bg-warning text-dark" : "bg-secondary")">
+                    Tab: @tabSwitches/2
+                </span>
             </div>
             <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px;">
                 @FormatTime()
             </div>
         </div>
 
+        @if (tabSwitches == 1)
+        {
+            <div class="alert alert-warning border-0 shadow-sm">
+                <strong>Warning:</strong> You left the test tab.
+                If you switch tabs <u>again</u>, this test will be closed.
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="alert alert-warning">@errorMessage</div>
+            <div class="alert alert-warning">@FriendlyError(errorMessage)</div>
         }
 
         @for (int i = 0; i < questions.Count; i++)
@@ -70,7 +89,7 @@
             var isShort = string.Equals(q.QuestionType, "ShortAnswer", StringComparison.OrdinalIgnoreCase);
             var isCoding = string.Equals(q.QuestionType, "Coding", StringComparison.OrdinalIgnoreCase);
 
-            <div class="card mb-3 shadow-sm">
+            <div class="card mb-3 shadow-sm border-0" style="border-radius: 12px;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
                         <h5 class="card-title mb-0" style="white-space: pre-wrap;">@($"{i + 1}. {q.Text}")</h5>
@@ -185,6 +204,8 @@
 @code {
     [Parameter] public Guid InvitationId { get; set; }
 
+    private DotNetObjectReference<TakeTest>? dotNetRef;
+
     private List<QuestionDto>? questions;
     private Dictionary<Guid, Guid> selectedAnswers = new();
     private Dictionary<Guid, string> textAnswers = new();
@@ -193,14 +214,19 @@
     private Guid? runningId;
 
     private bool isLoading = true;
-    private bool isSubmitting = false;
-    private bool isSubmitted = false;
-    private bool timeUp = false;
+    private bool isSubmitting;
+    private bool isSubmitted;
+    private bool timeUp;
+    private bool kickedForTabSwitch;
     private string? errorMessage;
     private int remainingSeconds = 45 * 60;
     private System.Threading.Timer? timer;
     private int totalQuestions => questions?.Count ?? 0;
-    private int attemptedCount = 0;
+    private int attemptedCount;
+
+    // Anti-cheat: 1st = warning, 2nd = kick out
+    private int tabSwitches;
+    private bool antiCheatActive;
 
     private int AnsweredCount
     {
@@ -218,9 +244,7 @@
                         n++;
                 }
                 else if (selectedAnswers.ContainsKey(q.Id))
-                {
                     n++;
-                }
             }
             return n;
         }
@@ -244,6 +268,7 @@
                     codeLang[q.Id] = "cpp";
                 }
                 StartTimer();
+                await EnableAntiCheatAsync();
             }
             else
             {
@@ -252,7 +277,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = FriendlyError(ex.Message);
         }
         finally
         {
@@ -260,6 +285,51 @@
             StateHasChanged();
         }
     }
+
+    private async Task EnableAntiCheatAsync()
+    {
+        try
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("QuizoraAntiCheat.register", dotNetRef);
+            antiCheatActive = true;
+        }
+        catch { /* JS missing — skip */ }
+    }
+
+    private async Task DisableAntiCheatAsync()
+    {
+        if (!antiCheatActive) return;
+        try { await JS.InvokeVoidAsync("QuizoraAntiCheat.unregister"); } catch { }
+        antiCheatActive = false;
+        dotNetRef?.Dispose();
+        dotNetRef = null;
+    }
+
+    /// <summary>1st tab leave = warning; 2nd = submit + leave test</summary>
+    [JSInvokable]
+    public async Task OnVisibilityHidden()
+    {
+        if (isSubmitted || isSubmitting) return;
+
+        tabSwitches++;
+
+        if (tabSwitches >= 2)
+        {
+            kickedForTabSwitch = true;
+            await SubmitTest(auto: true);
+            await DisableAntiCheatAsync();
+            Navigation.NavigateTo("/candidate/dashboard", forceLoad: true);
+            return;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Not used in simple mode — keep for JS compatibility
+    [JSInvokable] public Task OnWindowBlur() => Task.CompletedTask;
+    [JSInvokable] public Task OnCopyAttempt() => Task.CompletedTask;
+    [JSInvokable] public Task OnPasteAttempt() => Task.CompletedTask;
 
     private void StartTimer()
     {
@@ -319,13 +389,10 @@
         }
 
         var (result, err) = await CodeClient.RunAsync(
-            GetLang(q.Id),
-            src,
-            q.SampleInput,
-            q.SampleOutput);
+            GetLang(q.Id), src, q.SampleInput, q.SampleOutput);
 
         if (err != null)
-            errorMessage = err;
+            errorMessage = FriendlyError(err);
         else
             runResults[q.Id] = result;
 
@@ -355,6 +422,13 @@
             var dto = new SubmitTestDto
             {
                 InvitationId = InvitationId,
+                CheatSummary = new CheatSummaryDto
+                {
+                    TabSwitches = tabSwitches,
+                    FocusLost = 0,
+                    PasteAttempts = 0,
+                    CopyAttempts = 0
+                },
                 Answers = questions.Select(q => new SubmitAnswerDto
                 {
                     QuestionId = q.Id,
@@ -370,6 +444,7 @@
                 isSubmitted = true;
                 timer?.Dispose();
                 timer = null;
+                await DisableAntiCheatAsync();
             }
             else
             {
@@ -379,7 +454,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Unexpected error: {ex.Message}";
+            errorMessage = FriendlyError(ex.Message);
             if (auto) isSubmitted = true;
         }
         finally
@@ -391,5 +466,16 @@
 
     private async Task SubmitTest() => await SubmitTest(auto: false);
 
-    public void Dispose() => timer?.Dispose();
+    private static string FriendlyError(string? raw)
+    {
+        try { return ApiErrors.Friendly(raw); }
+        catch { return string.IsNullOrWhiteSpace(raw) ? "Something went wrong." : raw; }
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+        try { _ = DisableAntiCheatAsync(); } catch { }
+        dotNetRef?.Dispose();
+    }
 }
