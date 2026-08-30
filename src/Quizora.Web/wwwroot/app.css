@@ -1,23 +1,26 @@
-﻿/* ===== Quizora � Premium Light / Dark Theme ===== */
-/* Default = Light. Toggle sets data-theme="dark" on <html> */
+﻿/* ===== Quizora - White / Teal Theme ===== */
+/* Default = Light (white + teal accent). Toggle sets data-theme="dark" on <html> */
 
 :root,
 html[data-theme="light"] {
-    --bg-body: #f1f5f9;
+    --bg-body: #ffffff;
     --bg-content: #ffffff;
     --bg-card: #ffffff;
-    --bg-sidebar: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
-    --bg-hover: rgba(99, 102, 241, 0.08);
+    --bg-sidebar: linear-gradient(180deg, #134e4a 0%, #0f766e 55%, #0d9488 100%);
+    --bg-hover: rgba(13, 148, 136, 0.08);
     --text-primary: #0f172a;
     --text-secondary: #334155;
     --text-muted: #64748b;
     --border-color: rgba(15, 23, 42, 0.12);
-    --top-row-bg: rgba(255, 255, 255, 0.92);
+    --top-row-bg: rgba(255, 255, 255, 0.95);
     --top-link: #334155;
     --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.08);
     --input-bg: #ffffff;
     --input-text: #0f172a;
-    --link-color: #2563eb;
+    --link-color: #0f766e;
+    --accent: #0f766e;
+    --accent-hover: #115e59;
+    --accent-soft: rgba(15, 118, 110, 0.12);
     --table-stripe: rgba(15, 23, 42, 0.03);
     --code-bg: #f8fafc;
 }
@@ -26,8 +29,8 @@ html[data-theme="dark"] {
     --bg-body: #0b1220;
     --bg-content: #0f172a;
     --bg-card: #1e293b;
-    --bg-sidebar: linear-gradient(180deg, #020617 0%, #1e1b4b 55%, #4c1d95 100%);
-    --bg-hover: rgba(99, 102, 241, 0.15);
+    --bg-sidebar: linear-gradient(180deg, #042f2e 0%, #134e4a 55%, #0f766e 100%);
+    --bg-hover: rgba(45, 212, 191, 0.15);
     --text-primary: #f1f5f9;
     --text-secondary: #e2e8f0;
     --text-muted: #94a3b8;
@@ -37,7 +40,10 @@ html[data-theme="dark"] {
     --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.35);
     --input-bg: #1e293b;
     --input-text: #f1f5f9;
-    --link-color: #60a5fa;
+    --link-color: #2dd4bf;
+    --accent: #0f766e;
+    --accent-hover: #115e59;
+    --accent-soft: rgba(45, 212, 191, 0.16);
     --table-stripe: rgba(255, 255, 255, 0.03);
     --code-bg: #0f172a;
 }
@@ -140,8 +146,8 @@ input[type="search"] {
     .form-select:focus {
         background-color: var(--input-bg) !important;
         color: var(--input-text) !important;
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.25) !important;
     }
 
 .form-check-label,
@@ -247,13 +253,13 @@ a, .btn-link {
 
 .btn-primary {
     color: #fff !important;
-    background-color: #4f46e5 !important;
-    border-color: #4338ca !important;
+    background-color: var(--accent) !important;
+    border-color: var(--accent-hover) !important;
 }
 
     .btn-primary:hover {
-        background-color: #4338ca !important;
-        border-color: #3730a3 !important;
+        background-color: var(--accent-hover) !important;
+        border-color: #115e59 !important;
     }
 
 .btn-outline-primary {
@@ -318,7 +324,7 @@ a, .btn-link {
 }
 
 .badge.bg-primary {
-    background-color: #4f46e5 !important;
+    background-color: var(--accent) !important;
     color: #fff !important;
 }
 
@@ -459,7 +465,7 @@ html[data-theme="dark"] .btn:not(.btn-primary):not(.btn-success):not(.btn-danger
 /* Focus styles */
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
 .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.35);
 }
 
 /* Smooth theme transition for main surfaces */
@@ -524,7 +530,7 @@ body, main, .card, .list-group-item, .form-control, .table {
     }
 
 #blazor-error-ui .reload {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #14b8a6, #0d9488);
     color: #fff !important;
     text-decoration: none;
     padding: 6px 14px;
