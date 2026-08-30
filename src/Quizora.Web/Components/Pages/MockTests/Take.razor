@@ -7,6 +7,7 @@
 @inject QuizApiClient QuizApi
 @inject NavigationManager Navigation
 @inject ILocalStorageService LocalStorage
+@inject HttpClient Http
 @implements IDisposable
 
 <div class="container py-4">
@@ -41,6 +42,10 @@
                             <span>❌ @(score.TotalQuestions - score.Score) wrong</span>
                         </div>
                         <span class="badge rounded-pill fs-6 px-3 py-2 @analysis.BadgeClass">@analysis.Grade</span>
+                        @if (recorded)
+                        {
+                            <div class="small text-success mt-2">Saved to your performance (Weak Topics).</div>
+                        }
                     </div>
                 </div>
 
@@ -93,8 +98,9 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-2 justify-content-center mb-4">
+                <div class="d-flex gap-2 justify-content-center mb-4 flex-wrap">
                     <a class="btn btn-dark px-4" href="/mock-tests">All Mocks</a>
+                    <a class="btn btn-outline-primary" href="/candidate/weak-topics">Weak Topics</a>
                     <button type="button" class="btn btn-outline-secondary" @onclick="Restart">
                         Retake (new questions)
                     </button>
@@ -114,12 +120,10 @@
                 ⏱ @FormatTime(secondsLeft)
             </div>
         </div>
-
         <div class="progress mb-4" style="height:5px">
             <div class="progress-bar @(secondsLeft <= 60 ? "bg-danger" : "bg-primary")"
                  style="width:@ProgressPercent()%"></div>
         </div>
-
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
@@ -163,7 +167,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="d-flex flex-wrap gap-1 justify-content-center mt-3">
                     @for (int n = 0; n < quiz.Questions.Count; n++)
                     {
@@ -221,29 +224,27 @@
 
         .opt-btn:hover {
             border-color: #0d6efd;
-            color: var(--text-primary, #0f172a) !important;
+            color: var(--text-primary) !important;
         }
 
         .opt-btn.selected {
             background: #0d6efd !important;
-            color: #ffffff !important;
+            color: #fff !important;
             border-color: #0d6efd;
         }
 
     .question-text {
-        color: var(--text-primary, #0f172a) !important;
+        color: var(--text-primary) !important;
     }
 
     .review-item.ok {
         background: rgba(25,135,84,.08);
         border: 1px solid rgba(25,135,84,.35);
-        color: var(--text-primary);
     }
 
     .review-item.bad {
         background: rgba(220,53,69,.08);
         border: 1px solid rgba(220,53,69,.35);
-        color: var(--text-primary);
     }
 
     .nav-q {
@@ -254,13 +255,14 @@
         border-radius: 16px;
     }
 </style>
+
 @code {
     private string category = "Linux";
     private string difficulty = "EASY";
     private string title = "Mock Test";
     private int amount = 10;
     private int totalMinutes = 15;
-    private bool isLoading = true, showResult, submitting, timerStarted;
+    private bool isLoading = true, showResult, submitting, timerStarted, recorded;
     private string? error;
     private TriviaQuizStart? quiz;
     private TriviaScore? score;
@@ -305,6 +307,7 @@
         isLoading = true;
         error = null;
         showResult = false;
+        recorded = false;
         answers.Clear();
         index = 0;
         quiz = null;
@@ -313,20 +316,17 @@
 
         var seen = await GetSeenFingerprints();
         var (data, err) = await QuizApi.StartAsync(amount, category, difficulty, seen);
-
         if ((err != null || data == null || data.Questions.Count == 0) && seen.Count > 0)
         {
             await ClearSeen();
             (data, err) = await QuizApi.StartAsync(amount, category, difficulty, null);
         }
-
         if (err != null || data == null || data.Questions.Count == 0)
         {
             error = err ?? "No questions available for this mock.";
             isLoading = false;
             return;
         }
-
         quiz = data;
         isLoading = false;
     }
@@ -351,8 +351,7 @@
 
     private async Task ClearSeen()
     {
-        try { await LocalStorage.RemoveItemAsync(SeenKeyPrefix + category); }
-        catch { }
+        try { await LocalStorage.RemoveItemAsync(SeenKeyPrefix + category); } catch { }
     }
 
     private async Task MarkSeen(IEnumerable<TriviaQuizQuestion> questions)
@@ -367,8 +366,7 @@
                 if (fp.Length > 0 && !seen.Contains(fp, StringComparer.OrdinalIgnoreCase))
                     seen.Add(fp);
             }
-            if (seen.Count > 100)
-                seen = seen.TakeLast(100).ToList();
+            if (seen.Count > 100) seen = seen.TakeLast(100).ToList();
             await LocalStorage.SetItemAsync(key, seen);
         }
         catch { }
@@ -428,23 +426,48 @@
                     SelectedOptionId = kv.Value
                 }).ToList()
             };
+
             var (data, err) = await QuizApi.SubmitAsync(body);
             if (err != null || data == null)
             {
                 error = err ?? "Submit failed";
                 return;
             }
+
             score = data;
             showResult = true;
             await MarkSeen(quiz.Questions);
+
+            // ★ Weak Topics-এর জন্য DB-তে save
+            await RecordPerformanceAsync(data);
         }
         finally { submitting = false; }
+    }
+
+    private async Task RecordPerformanceAsync(TriviaScore data)
+    {
+        try
+        {
+            var res = await Http.PostAsJsonAsync("api/Practice/record-session", new
+            {
+                Category = category,
+                Score = data.Score,
+                TotalQuestions = data.TotalQuestions,
+                Source = "Mock"
+            });
+            recorded = res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            recorded = false;
+        }
     }
 
     private async Task Restart()
     {
         showResult = false;
         score = null;
+        recorded = false;
         await LoadQuiz();
     }
 
@@ -512,13 +535,13 @@
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
         text = text.ToLowerInvariant();
-        if (text.Contains("docker") || text.Contains("container") || text.Contains("dockerfile")) return "Docker";
+        if (text.Contains("docker") || text.Contains("container")) return "Docker";
         if (text.Contains("linux") || text.Contains("bash") || text.Contains("chmod")) return "Linux";
         if (text.Contains("sql") || text.Contains("join") || text.Contains("database")) return "SQL / DB";
         if (text.Contains("python") || text.Contains("dict") || text.Contains("list")) return "Python";
         if (text.Contains("javascript") || text.Contains("node")) return "JavaScript";
-        if (text.Contains("git") || text.Contains("ci/cd") || text.Contains("kubernetes") || text.Contains("devops")) return "DevOps";
-        if (text.Contains("complexity") || text.Contains("algorithm") || text.Contains("big o")) return "Algorithms";
+        if (text.Contains("git") || text.Contains("kubernetes") || text.Contains("devops")) return "DevOps";
+        if (text.Contains("algorithm") || text.Contains("big o")) return "Algorithms";
         return null;
     }
 

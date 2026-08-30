@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Quizora.Application.Common;
 using Quizora.Application.DTOs.Trivia;
 using Quizora.Application.Interfaces;
 using Quizora.Domain.Entities;
+using Quizora.Infrastructure.Persistence;
 using Quizora.Infrastructure.Services;
 using System.Security.Claims;
 
@@ -15,17 +17,19 @@ public class PracticeController : ControllerBase
 {
     private readonly IPracticeRepository _practiceRepository;
     private readonly QuizApiService _quizApi;
+    private readonly ApplicationDbContext _db;
 
     public PracticeController(
         IPracticeRepository practiceRepository,
-        QuizApiService quizApi)
+        QuizApiService quizApi,
+        ApplicationDbContext db)
     {
         _practiceRepository = practiceRepository;
         _quizApi = quizApi;
+        _db = db;
     }
 
     // ───────── DB categories ─────────
-
     [HttpGet("categories")]
     public async Task<ActionResult<Result<object>>> GetCategories()
     {
@@ -68,7 +72,6 @@ public class PracticeController : ControllerBase
     public async Task<ActionResult<Result<object>>> Submit([FromBody] PracticeSubmitDto dto)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
         var category = await _practiceRepository.GetCategoryWithQuestionsAsync(dto.CategoryId);
         if (category == null)
             return Result<object>.Failure("Category not found");
@@ -80,7 +83,6 @@ public class PracticeController : ControllerBase
         {
             var question = category.Questions.FirstOrDefault(q => q.Id == answer.QuestionId);
             if (question == null) continue;
-
             var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
             if (correctOption != null && correctOption.Id == answer.SelectedOptionId)
                 score++;
@@ -106,13 +108,69 @@ public class PracticeController : ControllerBase
         }, "Practice submitted successfully");
     }
 
+    /// <summary>
+    /// QuizAPI Mock / Practice score → save for Weak Topics analysis
+    /// </summary>
+    [HttpPost("record-session")]
+    [Authorize(Roles = "Candidate")]
+    public async Task<IActionResult> RecordSession([FromBody] RecordSessionDto dto)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Ok(Result.Failure("Not authenticated"));
+
+            var userId = Guid.Parse(userIdClaim);
+
+            if (dto == null || dto.TotalQuestions <= 0)
+                return Ok(Result.Failure("Invalid session data"));
+
+            var name = string.IsNullOrWhiteSpace(dto.Category)
+                ? "General"
+                : dto.Category.Trim();
+
+            var cat = await _db.PracticeCategories
+                .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
+
+            if (cat == null)
+            {
+                cat = new PracticeCategory
+                {
+                    Name = name,
+                    Description = "Auto from " + (string.IsNullOrWhiteSpace(dto.Source) ? "Mock" : dto.Source),
+                    Order = 99
+                };
+                _db.PracticeCategories.Add(cat);
+                await _db.SaveChangesAsync();
+            }
+
+            var score = Math.Clamp(dto.Score, 0, dto.TotalQuestions);
+
+            _db.PracticeAttempts.Add(new PracticeAttempt
+            {
+                UserId = userId,
+                CategoryId = cat.Id,
+                Score = score,
+                TotalQuestions = dto.TotalQuestions,
+                CompletedAt = DateTime.UtcNow
+            });
+
+            await _db.SaveChangesAsync();
+            return Ok(Result.Success("Session recorded"));
+        }
+        catch (Exception ex)
+        {
+            return Ok(Result.Failure(ex.InnerException?.Message ?? ex.Message));
+        }
+    }
+
     [HttpGet("my-attempts")]
     [Authorize]
     public async Task<ActionResult<Result<object>>> GetMyAttempts()
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var attempts = await _practiceRepository.GetAttemptsByUserAsync(userId);
-
         var result = attempts.Select(a => new
         {
             a.Id,
@@ -128,10 +186,6 @@ public class PracticeController : ControllerBase
     }
 
     // ───────── QuizAPI.io (IT) ─────────
-
-    /// <summary>
-    /// exclude = pipe-separated question fingerprints (to avoid repeats)
-    /// </summary>
     [HttpGet("quizapi")]
     [AllowAnonymous]
     public async Task<IActionResult> GetFromQuizApi(
@@ -161,7 +215,6 @@ public class PracticeController : ControllerBase
             }
 
             var quiz = await _quizApi.StartQuizAsync(limit, category, difficulty, excludeList);
-
             if (quiz.Questions.Count == 0)
                 return Ok(Result<object>.Failure(
                     "No new questions left. Try another category or clear mock history."));
@@ -208,4 +261,12 @@ public class PracticeAnswerDto
 {
     public Guid QuestionId { get; set; }
     public Guid SelectedOptionId { get; set; }
+}
+
+public class RecordSessionDto
+{
+    public string Category { get; set; } = "General";
+    public int Score { get; set; }
+    public int TotalQuestions { get; set; }
+    public string Source { get; set; } = "Mock";
 }
