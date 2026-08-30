@@ -378,7 +378,10 @@ pre, code, .code-block {
 }
 
 /* ===== Top bar & Theme Toggle ===== */
-.top-row {
+/* Scoped to main's top-row only — the sidebar's brand/logo box also uses
+   the "top-row" class (from Blazor's default template) but needs its own
+   dark, semi-transparent background so the white logo text stays legible. */
+main > .top-row {
     background-color: var(--top-row-bg) !important;
     border-bottom: 1px solid var(--border-color);
 }
@@ -408,6 +411,25 @@ pre, code, .code-block {
         background: rgba(127, 127, 127, 0.12);
         transform: translateY(-1px);
     }
+
+/* ===== Sidebar nav links (hard override) =====
+   The sidebar always sits on the dark teal gradient regardless of
+   light/dark theme, so its links must always render light text.
+   This wins over Bootstrap's default .nav-link color and any other
+   conflicting rule. */
+.sidebar .nav-link,
+.sidebar a {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        color: #ffffff !important;
+    }
+
+.sidebar .nav-box.active {
+    color: #115e59 !important;
+}
 
 /* ===== Dark mode safety net � catch any remaining hard-coded dark text ===== */
 html[data-theme="dark"] .text-dark,
