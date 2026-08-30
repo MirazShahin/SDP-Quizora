@@ -21,6 +21,12 @@ public class ContestsController : ControllerBase
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    private Guid? TryGetUserId()
+    {
+        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(raw, out var id) ? id : null;
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<Result<List<ContestListItemDto>>>> GetPublicContests()
@@ -92,6 +98,20 @@ public class ContestsController : ControllerBase
             })
             .ToList();
 
+        var status = ComputeStatus(test.ContestStartAt, test.ContestEndAt, test.Status, now);
+
+        DateTime? registrationClosesAt = test.ContestStartAt?.AddMinutes(-5);
+        var registrationOpen = registrationClosesAt.HasValue
+            && now < registrationClosesAt.Value
+            && status != "Ended";
+
+        var registeredCount = await _db.ContestRegistrations
+            .CountAsync(r => r.ContestId == id);
+
+        var currentUserId = TryGetUserId();
+        var isRegistered = currentUserId.HasValue && await _db.ContestRegistrations
+            .AnyAsync(r => r.ContestId == id && r.UserId == currentUserId.Value);
+
         var dto = new ContestDetailDto
         {
             Id = test.Id,
@@ -101,8 +121,12 @@ public class ContestsController : ControllerBase
             ContestStartAt = test.ContestStartAt,
             ContestEndAt = test.ContestEndAt,
             IsPublic = test.IsPublic,
-            Status = ComputeStatus(test.ContestStartAt, test.ContestEndAt, test.Status, now),
-            Problems = problems
+            Status = status,
+            Problems = problems,
+            IsRegistered = isRegistered,
+            RegistrationOpen = registrationOpen,
+            RegistrationClosesAt = registrationClosesAt,
+            RegisteredCount = registeredCount
         };
 
         return Ok(Result<ContestDetailDto>.Success(dto));
@@ -166,7 +190,7 @@ public class ContestsController : ControllerBase
                                 .ToList();
 
                     var ac = list.FirstOrDefault(s => IsAccepted(s.Verdict));
-                    
+
                     var wrongBefore = 0;
                     foreach (var s in list)
                     {
@@ -341,6 +365,44 @@ public class ContestsController : ControllerBase
 
         await _db.SaveChangesAsync();
         return await GetContest(test.Id);
+    }
+    [HttpPost("{id:guid}/register")]
+    [Authorize(Roles = "Candidate")]
+    public async Task<IActionResult> Register(Guid id)
+    {
+        var test = await _db.Tests.FirstOrDefaultAsync(t => t.Id == id && t.IsContest);
+        if (test == null)
+            return Ok(Result.Failure("Contest not found"));
+
+        var now = DateTime.UtcNow;
+        var start = test.ContestStartAt;
+
+        if (!start.HasValue)
+            return Ok(Result.Failure("Contest start time not set"));
+
+        // Registration closes 5 minutes before start
+        var regDeadline = start.Value.AddMinutes(-5);
+        if (now >= regDeadline)
+            return Ok(Result.Failure(
+                "Registration closed. Closes 5 minutes before contest start."));
+
+        if (test.ContestEndAt.HasValue && now > test.ContestEndAt.Value)
+            return Ok(Result.Failure("Contest already ended"));
+
+        var userId = GetUserId();
+        var exists = await _db.ContestRegistrations
+            .AnyAsync(r => r.ContestId == id && r.UserId == userId);
+        if (exists)
+            return Ok(Result.Success("Already registered"));
+
+        _db.ContestRegistrations.Add(new ContestRegistration
+        {
+            ContestId = id,
+            UserId = userId,
+            RegisteredAt = now
+        });
+        await _db.SaveChangesAsync();
+        return Ok(Result.Success("Registered successfully"));
     }
 
     [HttpGet("my")]

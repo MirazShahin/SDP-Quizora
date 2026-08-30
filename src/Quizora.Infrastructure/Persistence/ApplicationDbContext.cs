@@ -36,7 +36,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CodingTestCase> CodingTestCases => Set<CodingTestCase>();
     public DbSet<CodingSubmission> CodingSubmissions => Set<CodingSubmission>();
     public DbSet<TestCodingProblem> TestCodingProblems => Set<TestCodingProblem>();
-
+    public DbSet<ContestRegistration> ContestRegistrations => Set<ContestRegistration>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -291,6 +291,14 @@ public class ApplicationDbContext : DbContext
             e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(x => x.Problem).WithMany().HasForeignKey(x => x.CodingProblemId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => new { x.UserId, x.CodingProblemId });
+        });
+        modelBuilder.Entity<ContestRegistration>(e =>
+        {
+            e.HasIndex(x => new { x.ContestId, x.UserId }).IsUnique();
+            e.HasOne(x => x.Contest).WithMany().HasForeignKey(x => x.ContestId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

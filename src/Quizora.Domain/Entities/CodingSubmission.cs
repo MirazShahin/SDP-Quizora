@@ -6,8 +6,7 @@ public class CodingSubmission : BaseEntity
 {
     public Guid UserId { get; set; }
     public Guid CodingProblemId { get; set; }
-
-    /// <summary>Set when submit is from a contest; null for practice.</summary>
+     
     public Guid? ContestId { get; set; }
 
     public string Language { get; set; } = "cpp";

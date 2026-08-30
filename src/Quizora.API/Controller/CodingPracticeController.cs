@@ -29,14 +29,22 @@ public class CodingPracticeController : ControllerBase
 
     private static string Norm(string? s) =>
         (s ?? "").Replace("\r\n", "\n").TrimEnd('\r', '\n', ' ', '\t');
-     
+
     [HttpGet("problems")]
     public async Task<IActionResult> List()
     {
         try
         {
+            var now = DateTime.UtcNow;
+            var lockedProblemIds = await _db.Tests.AsNoTracking()
+                .Where(t => t.IsContest &&
+                            t.ContestStartAt.HasValue &&
+                            (!t.ContestEndAt.HasValue || now <= t.ContestEndAt.Value))
+                .SelectMany(t => t.CodingProblems.Select(cp => cp.CodingProblemId))
+                .ToListAsync();
+
             var problems = await _db.CodingProblems.AsNoTracking()
-                .Where(p => p.IsActive)
+                .Where(p => p.IsActive && !lockedProblemIds.Contains(p.Id))
                 .OrderBy(p => p.Order).ThenBy(p => p.Title)
                 .Select(p => new
                 {
@@ -45,7 +53,7 @@ public class CodingPracticeController : ControllerBase
                     p.TimeLimitMs
                 })
                 .ToListAsync();
-             
+
             Dictionary<Guid, string> statusMap = new();
             try
             {
@@ -65,7 +73,7 @@ public class CodingPracticeController : ControllerBase
             }
             catch
             {
-                
+
             }
 
             var result = problems.Select(p => new
@@ -83,7 +91,7 @@ public class CodingPracticeController : ControllerBase
             return Ok(Result<object>.Failure(ex.InnerException?.Message ?? ex.Message));
         }
     }
-     
+
     [HttpGet("problems/{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
@@ -106,7 +114,7 @@ public class CodingPracticeController : ControllerBase
             Samples = samples
         }));
     }
-     
+
     [HttpPost("problems/{id:guid}/submit")]
     public async Task<IActionResult> Submit(Guid id, [FromBody] SubmitDto dto, CancellationToken ct)
     {
@@ -133,23 +141,41 @@ public class CodingPracticeController : ControllerBase
             string? compileOut = null;
             string verdict = "Accepted";
             Guid? contestIdToSave = null;
-            if (dto.ContestId.HasValue)
+
+            // Find any contest — running OR upcoming — that this problem currently
+            // belongs to, regardless of whether the caller passed a ContestId.
+            // Without this lookup, someone could bypass the registration check
+            // entirely by simply omitting ContestId from the request body.
+            var now = DateTime.UtcNow;
+            var lockingContest = await _db.Tests.AsNoTracking()
+                .Where(t => t.IsContest &&
+                            t.CodingProblems.Any(cp => cp.CodingProblemId == id) &&
+                            t.ContestStartAt.HasValue &&
+                            (!t.ContestEndAt.HasValue || now <= t.ContestEndAt.Value))
+                .FirstOrDefaultAsync(ct);
+
+            if (lockingContest != null)
             {
-                var contest = await _db.Tests.AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == dto.ContestId && t.IsContest, ct);
+                bool running = now >= lockingContest.ContestStartAt!.Value;
 
-                if (contest != null)
+                // Must reference the actual locking contest, not an unrelated one.
+                if (dto.ContestId != lockingContest.Id)
+                    return Ok(Result.Failure(running
+                        ? "This problem is part of a live contest. Please solve it from the contest page."
+                        : "This problem belongs to an upcoming contest and isn't open yet."));
+
+                if (running)
                 {
-                    var now = DateTime.UtcNow;
-                    bool running =
-                        contest.ContestStartAt.HasValue && now >= contest.ContestStartAt.Value &&
-                        (!contest.ContestEndAt.HasValue || now <= contest.ContestEndAt.Value);
-
                     bool registered = await _db.ContestRegistrations
-                        .AnyAsync(r => r.ContestId == dto.ContestId && r.UserId == UserId, ct);
+                        .AnyAsync(r => r.ContestId == lockingContest.Id && r.UserId == UserId, ct);
 
-                    if (dto.ContestId.HasValue && running && !registered)
+                    if (!registered)
                         return Ok(Result.Failure("You are not registered for this contest."));
+                }
+                else
+                {
+                    // Contest hasn't started yet — nobody may submit, registered or not.
+                    return Ok(Result.Failure("This contest hasn't started yet."));
                 }
             }
             foreach (var (tc, i) in cases.Select((t, i) => (t, i)))

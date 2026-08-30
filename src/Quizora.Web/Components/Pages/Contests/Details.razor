@@ -51,9 +51,18 @@
                 }
                 else if (registrationOpen)
                 {
-                    <button type="button" class="btn btn-primary" disabled="@regBusy" @onclick="RegisterAsync">
-                        @(regBusy ? "Registering…" : "Register for contest")
-                    </button>
+                    <AuthorizeView Roles="Candidate">
+                        <Authorized>
+                            <button type="button" class="btn btn-primary" disabled="@regBusy" @onclick="RegisterAsync">
+                                @(regBusy ? "Registering…" : "Register for contest")
+                            </button>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="/login" class="btn btn-primary">
+                                Login to register
+                            </a>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 }
             </div>
         </div>
@@ -251,41 +260,14 @@
         }
     }
 
-    /// <summary>
-    /// Reads extra registration fields if API sends them (JSON extension).
-    /// Until backend is ready, computes client-side fallback from start time.
-    /// </summary>
+    /// <summary>Reads the real registration fields the API now returns.</summary>
     private void ApplyRegistrationFields(ContestDetailDto c)
     {
-        // Prefer API fields via dynamic re-fetch raw JSON if you add them to DTO.
-        // Fallback logic (same rules as backend):
-        var start = c.ContestStartAt;
-        if (start.HasValue)
-        {
-            registrationClosesAt = start.Value.AddMinutes(-5);
-            registrationOpen = DateTime.UtcNow < registrationClosesAt.Value
-                               && c.Status != "Ended";
-        }
-        else
-        {
-            registrationClosesAt = null;
-            registrationOpen = false;
-        }
-
-        // These stay false/0 until API returns them — add to ContestDetailDto:
-        // IsRegistered, RegistrationOpen, RegistrationClosesAt, RegisteredCount
-        isRegistered = GetExtraBool(c, "IsRegistered");
-        registeredCount = GetExtraInt(c, "RegisteredCount");
-        if (GetExtraBool(c, "RegistrationOpen") || registrationOpen)
-        {
-            // if DTO has property use it; else keep fallback
-        }
+        isRegistered = c.IsRegistered;
+        registrationOpen = c.RegistrationOpen;
+        registrationClosesAt = c.RegistrationClosesAt;
+        registeredCount = c.RegisteredCount;
     }
-
-    // Temporary: when you add properties to ContestDetailDto, replace helpers with direct access:
-    // isRegistered = c.IsRegistered; etc.
-    private static bool GetExtraBool(ContestDetailDto c, string _) => false;
-    private static int GetExtraInt(ContestDetailDto c, string _) => 0;
 
     private async Task RegisterAsync()
     {

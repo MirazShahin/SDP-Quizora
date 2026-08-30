@@ -37,6 +37,18 @@ public class ContestDetailDto
     public string Status { get; set; } = "";
     public bool IsPublic { get; set; }
     public List<ContestProblemItemDto> Problems { get; set; } = new();
+
+    /// <summary>True if the currently-authenticated user is registered for this contest.</summary>
+    public bool IsRegistered { get; set; }
+
+    /// <summary>True while registration is still open (before start - 5 min, and contest not ended).</summary>
+    public bool RegistrationOpen { get; set; }
+
+    /// <summary>Exact moment registration closes (ContestStartAt - 5 minutes).</summary>
+    public DateTime? RegistrationClosesAt { get; set; }
+
+    /// <summary>Total number of candidates registered so far.</summary>
+    public int RegisteredCount { get; set; }
 }
 
 public class ContestProblemItemDto
