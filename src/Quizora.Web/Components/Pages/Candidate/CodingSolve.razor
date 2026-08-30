@@ -1,9 +1,262 @@
 ﻿@page "/candidate/coding/{Id:guid}"
+@page "/candidate/coding/solve/{Id:guid}"
 @rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient Http
 
-<h3>Coding Solve OK</h3>
-<p>Problem Id: @Id</p>
+<div class="container py-4">
+    @if (loading)
+    {
+        <p class="text-muted">Loading problem...</p>
+    }
+    else if (!string.IsNullOrEmpty(error) && problem == null)
+    {
+        <div class="alert alert-danger">@error</div>
+        <a href="/candidate/coding" class="btn btn-outline-secondary btn-sm">← All problems</a>
+    }
+    else if (problem != null)
+    {
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div>
+                <a href="/candidate/coding" class="small text-muted text-decoration-none">← All problems</a>
+                <h3 class="fw-bold mb-1">@problem.Title</h3>
+                <div class="small text-muted">Time limit: @problem.TimeLimitMs ms</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <select class="form-select form-select-sm" style="width:auto" @bind="language">
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                </select>
+                <button class="btn btn-primary btn-sm" disabled="@busy" @onclick="Run">
+                    @(busy && mode == "run" ? "Running..." : "Run")
+                </button>
+                <button class="btn btn-success btn-sm" disabled="@busy" @onclick="Submit">
+                    @(busy && mode == "submit" ? "Judging..." : "Submit")
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header small fw-semibold">Statement</div>
+                    <div class="card-body">
+                        <pre class="small mb-3" style="white-space:pre-wrap">@problem.Statement</pre>
+                        @if (problem.Samples?.Count > 0)
+                        {
+                            <div class="fw-semibold small mb-2">Samples</div>
+                            @foreach (var s in problem.Samples)
+                            {
+                                <div class="border rounded p-2 mb-2 small">
+                                    <div class="text-muted">Input</div>
+                                    <pre class="mb-1">@(string.IsNullOrEmpty(s.Input) ? "(empty)" : s.Input)</pre>
+                                    <div class="text-muted">Output</div>
+                                    <pre class="mb-0">@(string.IsNullOrEmpty(s.ExpectedOutput) ? "(empty)" : s.ExpectedOutput)</pre>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header small fw-semibold">Solution</div>
+                    <div class="card-body p-0">
+                        <textarea class="form-control border-0 font-monospace"
+                                  style="min-height:420px;resize:vertical"
+                                  @bind="code"
+                                  @bind:event="oninput"
+                                  spellcheck="false"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(verdict))
+        {
+            <div class="alert mt-3 @(verdict.Contains("Accept", StringComparison.OrdinalIgnoreCase) ? "alert-success" : "alert-warning")">
+                <strong>@verdict</strong>
+                @if (!string.IsNullOrEmpty(info))
+                {
+                    <span> · @info</span>
+                }
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(output))
+        {
+            <div class="card border-0 shadow-sm mt-2">
+                <div class="card-body">
+                    <strong class="small">Output / tests</strong>
+                    <pre class="small mb-0 mt-1">@output</pre>
+                </div>
+            </div>
+        }
+    }
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }
+
+    private Prob? problem;
+    private bool loading = true, busy;
+    private string? error, verdict, output, info;
+    private string language = "cpp";
+    private string mode = "";
+    private string code =
+@"#include <iostream>
+using namespace std;
+int main() {
+  ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  return 0;
+}
+";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var resp = await Http.GetAsync($"api/coding/problems/{Id}");
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Empty response (HTTP {(int)resp.StatusCode})";
+                return;
+            }
+            var api = D<ApiResult<Prob>>(raw);
+            if (api?.IsSuccess == true && api.Data != null)
+            {
+                problem = api.Data;
+                problem.Samples ??= new();
+            }
+            else
+                error = api?.Message ?? $"Failed (HTTP {(int)resp.StatusCode})";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Run()
+    {
+        if (problem?.Samples == null || problem.Samples.Count == 0)
+        {
+            error = "No sample test case";
+            return;
+        }
+        busy = true; mode = "run";
+        error = verdict = output = info = null;
+        try
+        {
+            var s = problem.Samples[0];
+            var resp = await Http.PostAsJsonAsync("api/Code/run", new
+            {
+                Language = language,
+                SourceCode = code,
+                Stdin = s.Input,
+                ExpectedOutput = s.ExpectedOutput
+            });
+            var raw = await resp.Content.ReadAsStringAsync();
+            var api = D<ApiResult<RunDto>>(raw);
+            if (api?.IsSuccess == true && api.Data != null)
+            {
+                var r = api.Data;
+                verdict = r.Status;
+                info = "sample #1";
+                var parts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(r.CompileOutput)) parts.Add("compile:\n" + r.CompileOutput.Trim());
+                if (!string.IsNullOrWhiteSpace(r.Stdout)) parts.Add("stdout:\n" + r.Stdout.Trim());
+                if (!string.IsNullOrWhiteSpace(r.Stderr)) parts.Add("stderr:\n" + r.Stderr.Trim());
+                output = parts.Count > 0 ? string.Join("\n\n", parts) : "(no output)";
+            }
+            else error = api?.Message ?? "Run failed";
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { busy = false; mode = ""; }
+    }
+
+    private async Task Submit()
+    {
+        busy = true; mode = "submit";
+        error = verdict = output = info = null;
+        try
+        {
+            var resp = await Http.PostAsJsonAsync($"api/coding/problems/{Id}/submit",
+                new { Language = language, SourceCode = code });
+            var raw = await resp.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"HTTP {(int)resp.StatusCode}";
+                return;
+            }
+            var api = D<ApiResult<SubDto>>(raw);
+            if (api?.IsSuccess == true && api.Data != null)
+            {
+                verdict = api.Data.Verdict;
+                info = $"{api.Data.PassedCount}/{api.Data.TotalCount} tests";
+                if (api.Data.Cases != null)
+                    output = string.Join("\n", api.Data.Cases.Select(c =>
+                        $"#{c.Index} {(c.IsSample ? "sample" : "hidden")}: {c.Status}"));
+            }
+            else error = api?.Message ?? "Submit failed";
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { busy = false; mode = ""; }
+    }
+
+    private static T? D<T>(string? raw) =>
+        string.IsNullOrWhiteSpace(raw) ? default :
+        System.Text.Json.JsonSerializer.Deserialize<T>(raw,
+            new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+    public class Prob
+    {
+        public string Title { get; set; } = "";
+        public string Statement { get; set; } = "";
+        public int TimeLimitMs { get; set; }
+        public List<Sample> Samples { get; set; } = new();
+    }
+    public class Sample
+    {
+        public string Input { get; set; } = "";
+        public string ExpectedOutput { get; set; } = "";
+    }
+    public class RunDto
+    {
+        public string Status { get; set; } = "";
+        public string Stdout { get; set; } = "";
+        public string Stderr { get; set; } = "";
+        public string CompileOutput { get; set; } = "";
+    }
+    public class SubDto
+    {
+        public string Verdict { get; set; } = "";
+        public int PassedCount { get; set; }
+        public int TotalCount { get; set; }
+        public List<CaseDto>? Cases { get; set; }
+    }
+    public class CaseDto
+    {
+        public int Index { get; set; }
+        public bool IsSample { get; set; }
+        public string Status { get; set; } = "";
+    }
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
 }
