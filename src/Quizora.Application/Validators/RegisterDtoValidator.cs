@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using Quizora.Application.DTOs.Auth;
-using Quizora.Domain.Enums;
 using System.Text.RegularExpressions;
 
 namespace Quizora.Application.Validators;
@@ -26,12 +25,24 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             .Matches("[0-9]").WithMessage("Password must contain at least one number")
             .Matches(@"[\W_]").WithMessage("Password must contain at least one special character (!@#$%^&* etc.)");
 
-        RuleFor(x => x.Role)
-            .IsInEnum().WithMessage("Invalid role");
+        RuleFor(x => x.ConfirmPassword)
+            .NotEmpty().WithMessage("Confirm password is required")
+            .Equal(x => x.Password).WithMessage("Password and confirm password do not match");
 
-        RuleFor(x => x.CompanyName)
-            .NotEmpty().WithMessage("Company name is required")
-            .When(x => x.Role == UserRole.Company);
+        // Optional profile fields
+        RuleFor(x => x.Phone)
+            .MaximumLength(20).WithMessage("Phone is too long")
+            .Matches(@"^[0-9+\-\s]*$").WithMessage("Phone contains invalid characters")
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+
+        RuleFor(x => x.Gender)
+            .Must(g => g is null || g == "" || g == "Male" || g == "Female" || g == "Other")
+            .WithMessage("Invalid gender");
+
+        RuleFor(x => x.BloodGroup)
+            .Must(bg => bg is null || bg == "" ||
+                        new[] { "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-" }.Contains(bg))
+            .WithMessage("Invalid blood group");
     }
 
     private static bool BeValidEmail(string? email)
@@ -39,7 +50,7 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
         if (string.IsNullOrWhiteSpace(email))
             return false;
 
-        var pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        var pattern = @"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$";
         return Regex.IsMatch(email.Trim(), pattern);
     }
 
@@ -49,7 +60,6 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             return false;
 
         var domain = email.Trim().ToLowerInvariant().Split('@').LastOrDefault() ?? "";
-
         var typos = new HashSet<string>
         {
             "gmail.cm", "gmail.con", "gmail.co", "gmail.cpm", "gmail.om", "gmail.comm",
@@ -58,7 +68,6 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             "outlook.cm", "outlook.con",
             "hotmail.cm", "hotmail.con"
         };
-
         return !typos.Contains(domain);
     }
 }

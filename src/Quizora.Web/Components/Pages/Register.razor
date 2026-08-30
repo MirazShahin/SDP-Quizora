@@ -2,17 +2,16 @@
 @rendermode InteractiveServer
 @using Quizora.Web.Services
 @using Quizora.Application.DTOs.Auth
-@using Quizora.Domain.Enums
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
                     <h3 class="text-center fw-bold mb-1">Register</h3>
-                    <p class="text-center text-muted mb-4">Create your account</p>
+                    <p class="text-center text-muted mb-4">Create your candidate account</p>
 
                     @if (!string.IsNullOrEmpty(successMessage))
                     {
@@ -42,9 +41,45 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
-                                <InputText type="password" class="form-control" @bind-Value="model.Password" />
+                                <InputText type="password" class="form-control" @bind-Value="model.Password"/>
                                 <div class="form-text">
                                     Min 8 chars · Uppercase · Lowercase · Number · Special (!@@#$%)
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <InputText type="password" class="form-control" @bind-Value="model.ConfirmPassword" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Phone</label>
+                                <InputText class="form-control" @bind-Value="model.Phone" placeholder="01XXXXXXXXX" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Gender</label>
+                                    <InputSelect class="form-select" @bind-Value="model.Gender">
+                                        <option value="">Select</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </InputSelect>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Blood Group</label>
+                                    <InputSelect class="form-select" @bind-Value="model.BloodGroup">
+                                        <option value="">Select</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                    </InputSelect>
                                 </div>
                             </div>
 
@@ -66,7 +101,7 @@
 </div>
 
 @code {
-    private RegisterDto model = new() { Role = UserRole.Candidate };
+    private RegisterDto model = new();
     private bool isLoading;
     private string? errorMessage;
     private string? successMessage;
@@ -123,8 +158,11 @@
         var passErr = ValidatePassword(model.Password);
         if (passErr != null) return passErr;
 
-        if (model.Role == UserRole.Company && string.IsNullOrWhiteSpace(model.CompanyName))
-            return "Company name is required";
+        if (string.IsNullOrWhiteSpace(model.ConfirmPassword))
+            return "Confirm password is required";
+
+        if (model.Password != model.ConfirmPassword)
+            return "Password and confirm password do not match";
 
         return null;
     }
@@ -135,7 +173,7 @@
             return "Email is required";
 
         email = email.Trim();
-        var pattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        var pattern = @"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$";
         if (!System.Text.RegularExpressions.Regex.IsMatch(email, pattern))
             return "Please enter a valid email address (e.g. name@gmail.com)";
 
@@ -148,7 +186,6 @@
             "outlook.cm", "outlook.con",
             "hotmail.cm", "hotmail.con"
         };
-
         if (typos.Contains(domain))
             return "Email domain looks wrong. Did you mean gmail.com / yahoo.com / outlook.com?";
 

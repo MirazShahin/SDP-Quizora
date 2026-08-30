@@ -42,36 +42,30 @@ public class AuthController : ControllerBase
         if (passwordError != null)
             return Result<AuthResponseDto>.Failure(passwordError);
 
+        if (string.IsNullOrWhiteSpace(dto.ConfirmPassword))
+            return Result<AuthResponseDto>.Failure("Confirm password is required");
+
+        if (dto.Password != dto.ConfirmPassword)
+            return Result<AuthResponseDto>.Failure("Password and confirm password do not match");
+
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLower());
         if (existingUser != null)
             return Result<AuthResponseDto>.Failure("Email already exists");
 
+        // Public register = always Candidate (Company = admin, separate)
         var user = new User
         {
             FullName = dto.FullName.Trim(),
             Email = dto.Email.Trim().ToLower(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Role = dto.Role
-        };
-
-        if (dto.Role == UserRole.Company)
-        {
-            if (string.IsNullOrWhiteSpace(dto.CompanyName))
-                return Result<AuthResponseDto>.Failure("Company name is required");
-
-            user.Company = new Company
+            Role = UserRole.Candidate,
+            Candidate = new Candidate
             {
-                CompanyName = dto.CompanyName.Trim()
-            };
-        }
-        else if (dto.Role == UserRole.Candidate)
-        {
-            user.Candidate = new Candidate();
-        }
-        else
-        {
-            return Result<AuthResponseDto>.Failure("Invalid role");
-        }
+                Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(),
+                Gender = string.IsNullOrWhiteSpace(dto.Gender) ? null : dto.Gender.Trim(),
+                BloodGroup = string.IsNullOrWhiteSpace(dto.BloodGroup) ? null : dto.BloodGroup.Trim()
+            }
+        };
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();

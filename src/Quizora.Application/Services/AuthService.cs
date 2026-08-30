@@ -27,29 +27,17 @@ public class AuthService : IAuthService
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email.ToLowerInvariant().Trim());
         if (existingUser != null)
             return Result<AuthResponseDto>.Failure("Email already exists");
-
-        if (dto.Role == UserRole.Company && string.IsNullOrWhiteSpace(dto.CompanyName))
-            return Result<AuthResponseDto>.Failure("Company name is required");
+         
 
         var user = new User
         {
             FullName = dto.FullName.Trim(),
             Email = dto.Email.ToLowerInvariant().Trim(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Role = dto.Role
+            //Role = dto.Role
         };
 
-        if (dto.Role == UserRole.Company)
-        {
-            user.Company = new Company
-            {
-                CompanyName = dto.CompanyName!.Trim()
-            };
-        }
-        else if (dto.Role == UserRole.Candidate)
-        {
-            user.Candidate = new Candidate();
-        }
+ 
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
