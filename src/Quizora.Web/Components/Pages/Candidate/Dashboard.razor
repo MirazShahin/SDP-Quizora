@@ -3,6 +3,8 @@
 @using Quizora.Application.DTOs.Invitations
 @using Quizora.Domain.Enums
 @using Quizora.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthState
 @inject InvitationService InvitationService
 @inject NavigationManager Navigation
 @inject HttpClient Http
@@ -10,7 +12,9 @@
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Candidate Workspace</h2>
+            <h2 class="fw-bold mb-1">
+                @(string.IsNullOrWhiteSpace(userName) ? "Candidate Workspace" : $"Hi, {userName}")
+            </h2>
             <p class="text-muted mb-0 small">Your tests, results &amp; interview updates</p>
         </div>
     </div>
@@ -178,6 +182,7 @@
 </style>
 
 @code {
+    private string userName = "";
     private List<InvitationDto>? invitations;
     private bool isLoading = true;
     private string? errorMessage;
@@ -199,7 +204,23 @@
             StateHasChanged();
         }
     }
-
+    protected override async Task OnInitializedAsync()
+    { 
+        try
+        {
+            var state = await AuthState.GetAuthenticationStateAsync();
+            var user = state.User;
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                userName =
+                    user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value
+                    ?? user.Identity?.Name
+                    ?? user.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                    ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                    ?? "";
+            }
+        } 
+    }
     private async Task LoadInvitations()
     {
         try
