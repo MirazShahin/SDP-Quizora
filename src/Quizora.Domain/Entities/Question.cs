@@ -7,7 +7,7 @@ public class Question : BaseEntity
     public Guid TestId { get; set; }
     public string Text { get; set; } = string.Empty;
 
-    /// <summary>MCQ | ShortAnswer | Coding</summary>
+  
     public string QuestionType { get; set; } = "MCQ";
 
     public int Order { get; set; }
