@@ -34,7 +34,8 @@
                     <EditForm Model="model" OnValidSubmit="HandleCreate">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Contest Title *</label>
-                            <InputText class="form-control" @bind-Value="model.Title" placeholder="e.g. Weekly Coding Challenge #12" />
+                            <InputText class="form-control" @bind-Value="model.Title"
+                                       placeholder="e.g. Weekly Coding Challenge #12" />
                         </div>
 
                         <div class="mb-3">
@@ -50,15 +51,23 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Start Time</label>
-                                <input type="datetime-local" class="form-control" @bind="startLocal" @bind:format="yyyy-MM-ddTHH:mm" />
+                                <input type="datetime-local"
+                                       class="form-control"
+                                       value="@FormatForInput(startLocal)"
+                                       @onchange="OnStartChanged" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">End Time</label>
-                                <input type="datetime-local" class="form-control" @bind="endLocal" @bind:format="yyyy-MM-ddTHH:mm" />
+                                <input type="datetime-local"
+                                       class="form-control"
+                                       value="@FormatForInput(endLocal)"
+                                       @onchange="OnEndChanged" />
                             </div>
                         </div>
+
                         <p class="small text-muted mb-3">
-                            Times are in <strong>your</strong> local timezone@(tzOffsetMinutes.HasValue ? $" (UTC{FormatOffset(tzOffsetMinutes.Value)})" : "")
+                            Times are in <strong>your</strong> local timezone
+                            @(tzOffsetMinutes.HasValue ? $" (UTC{FormatOffset(tzOffsetMinutes.Value)})" : "")
                             and stored correctly regardless of where the server runs.
                         </p>
 
@@ -108,7 +117,8 @@
                         }
 
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary px-4" disabled="@(isLoading || selectedIds.Count == 0)">
+                            <button type="submit" class="btn btn-primary px-4"
+                                    disabled="@(isLoading || selectedIds.Count == 0)">
                                 @(isLoading ? "Creating..." : "Create Contest")
                             </button>
                             <a href="/company/dashboard" class="btn btn-outline-secondary">Cancel</a>
@@ -128,6 +138,7 @@
     private bool loadingProblems = true;
     private string? errorMessage;
     private string? successMessage;
+
     private DateTime? startLocal;
     private DateTime? endLocal;
     private int? tzOffsetMinutes;
@@ -135,6 +146,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
+
         try
         {
             tzOffsetMinutes = await JS.InvokeAsync<int>("quizoraTime.getOffsetMinutes");
@@ -142,7 +154,7 @@
         }
         catch
         {
-            // JS interop unavailable (e.g. prerendering) — falls back to UTC entry.
+            // JS interop not available during prerender
         }
     }
 
@@ -150,7 +162,19 @@
     {
         try
         {
-            var result = await Http.GetFromJsonAsync<Result<List<CodingProblemDto>>>("api/CodingProblems");
+            var response = await Http.GetAsync("api/CodingProblems");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                errorMessage = response.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                    ? "You are not authorized. Please login again."
+                    : $"Failed to load problems (HTTP {(int)response.StatusCode}). {Truncate(body, 120)}";
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<Result<List<CodingProblemDto>>>();
+
             if (result?.IsSuccess == true && result.Data != null)
             {
                 problems = result.Data
@@ -189,6 +213,9 @@
 
     private async Task HandleCreate()
     {
+        errorMessage = null;
+        successMessage = null;
+
         if (string.IsNullOrWhiteSpace(model.Title))
         {
             errorMessage = "Contest title is required.";
@@ -208,18 +235,15 @@
         }
 
         isLoading = true;
-        errorMessage = null;
-        successMessage = null;
 
         model.CodingProblemIds = selectedIds.ToList();
 
-        // Convert using the visitor's REAL browser offset, not the server's
-        // local time — the server (e.g. Render) may run in a different
-        // timezone than whoever is creating the contest.
         var offset = tzOffsetMinutes ?? 0;
+
         model.ContestStartAt = startLocal.HasValue
             ? startLocal.Value.ToUtcFromClientLocal(offset)
             : null;
+
         model.ContestEndAt = endLocal.HasValue
             ? endLocal.Value.ToUtcFromClientLocal(offset)
             : null;
@@ -227,18 +251,39 @@
         try
         {
             var response = await Http.PostAsJsonAsync("api/contests", model);
-            var result = await response.Content.ReadFromJsonAsync<Result<ContestDetailDto>>();
+
+            // Always read the body as string first so we never explode on empty/non-JSON
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = $"Failed to create contest (HTTP {(int)response.StatusCode}). {Truncate(body, 200)}";
+                return;
+            }
+
+            Result<ContestDetailDto>? result = null;
+            try
+            {
+                result = System.Text.Json.JsonSerializer.Deserialize<Result<ContestDetailDto>>(
+                    body,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch
+            {
+                errorMessage = "Server returned an unexpected response.";
+                return;
+            }
 
             if (result?.IsSuccess == true && result.Data != null)
             {
                 successMessage = "Contest created successfully!";
                 StateHasChanged();
-                await Task.Delay(500);
+                await Task.Delay(600);
                 Navigation.NavigateTo($"/contests/{result.Data.Id}");
             }
             else
             {
-                errorMessage = result?.Message ?? $"Failed to create contest (HTTP {(int)response.StatusCode})";
+                errorMessage = result?.Message ?? "Failed to create contest.";
             }
         }
         catch (Exception ex)
@@ -251,11 +296,44 @@
         }
     }
 
+    // ---------- Date helpers (more reliable than @bind on DateTime?) ----------
+
+    private static string FormatForInput(DateTime? value)
+        => value.HasValue ? value.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty;
+
+    private void OnStartChanged(ChangeEventArgs e)
+    {
+        startLocal = ParseDateTimeLocal(e.Value?.ToString());
+    }
+
+    private void OnEndChanged(ChangeEventArgs e)
+    {
+        endLocal = ParseDateTimeLocal(e.Value?.ToString());
+    }
+
+    private static DateTime? ParseDateTimeLocal(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (DateTime.TryParse(value, out var dt))
+            return dt;
+
+        return null;
+    }
+
     private static string FormatOffset(int minutes)
     {
         var sign = minutes >= 0 ? "+" : "-";
         var abs = Math.Abs(minutes);
         return $"{sign}{abs / 60}:{abs % 60:D2}";
+    }
+
+    private static string Truncate(string? text, int max)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        text = text.Trim();
+        return text.Length <= max ? text : text[..max] + "...";
     }
 
     private static string DifficultyBadge(string? d) => d switch
