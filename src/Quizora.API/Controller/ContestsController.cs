@@ -308,63 +308,86 @@ public class ContestsController : ControllerBase
     [Authorize(Roles = "Company")]
     public async Task<ActionResult<Result<ContestDetailDto>>> CreateContest([FromBody] CreateContestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Title))
-            return Ok(Result<ContestDetailDto>.Failure("Title is required"));
-        if (dto.DurationInMinutes < 15)
-            return Ok(Result<ContestDetailDto>.Failure("Duration must be at least 15 minutes"));
-        if (dto.CodingProblemIds == null || dto.CodingProblemIds.Count == 0)
-            return Ok(Result<ContestDetailDto>.Failure("Select at least one coding problem"));
-
-        var userId = GetUserId();
-        var user = await _db.Users
-            .Include(u => u.Company)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user?.Company == null)
-            return Ok(Result<ContestDetailDto>.Failure("Company profile not found"));
-
-        var distinctIds = dto.CodingProblemIds.Distinct().ToList();
-        var problems = await _db.CodingProblems
-            .Where(p => distinctIds.Contains(p.Id) && p.IsActive)
-            .ToListAsync();
-
-        if (problems.Count != distinctIds.Count)
-            return Ok(Result<ContestDetailDto>.Failure("One or more problems not found or inactive"));
-
-        var test = new Test
+        try
         {
-            Id = Guid.NewGuid(),
-            CompanyId = user.Company.Id,
-            Title = dto.Title.Trim(),
-            Description = dto.Description?.Trim(),
-            DurationInMinutes = dto.DurationInMinutes,
-            IsContest = true,
-            IsPublic = true,
-            Status = TestStatus.Active,
-            ContestStartAt = dto.ContestStartAt?.ToUniversalTime(),
-            ContestEndAt = dto.ContestEndAt?.ToUniversalTime(),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return Ok(Result<ContestDetailDto>.Failure("Title is required"));
 
-        _db.Tests.Add(test);
+            if (dto.DurationInMinutes < 15)
+                return Ok(Result<ContestDetailDto>.Failure("Duration must be at least 15 minutes"));
 
-        for (int i = 0; i < dto.CodingProblemIds.Count; i++)
-        {
-            var points = (dto.Points != null && i < dto.Points.Count) ? dto.Points[i] : 100;
-            _db.TestCodingProblems.Add(new TestCodingProblem
+            if (dto.CodingProblemIds == null || dto.CodingProblemIds.Count == 0)
+                return Ok(Result<ContestDetailDto>.Failure("Select at least one coding problem"));
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Ok(Result<ContestDetailDto>.Failure("Invalid user identity"));
+
+            var user = await _db.Users
+                .Include(u => u.Company)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user?.Company == null)
+                return Ok(Result<ContestDetailDto>.Failure("Company profile not found"));
+
+            var distinctIds = dto.CodingProblemIds.Distinct().ToList();
+
+            var problems = await _db.CodingProblems
+                .Where(p => distinctIds.Contains(p.Id) && p.IsActive)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            if (problems.Count != distinctIds.Count)
+                return Ok(Result<ContestDetailDto>.Failure("One or more problems not found or inactive"));
+
+            var test = new Test
             {
                 Id = Guid.NewGuid(),
-                TestId = test.Id,
-                CodingProblemId = dto.CodingProblemIds[i],
-                Order = i + 1,
-                Points = points,
-                CreatedAt = DateTime.UtcNow
-            });
-        }
+                CompanyId = user.Company.Id,
+                Title = dto.Title.Trim(),
+                Description = dto.Description?.Trim(),
+                DurationInMinutes = dto.DurationInMinutes,
+                IsContest = true,
+                IsPublic = true,
+                Status = TestStatus.Active,
+                ContestStartAt = dto.ContestStartAt.HasValue
+                    ? DateTime.SpecifyKind(dto.ContestStartAt.Value, DateTimeKind.Utc)
+                    : null,
+                ContestEndAt = dto.ContestEndAt.HasValue
+                    ? DateTime.SpecifyKind(dto.ContestEndAt.Value, DateTimeKind.Utc)
+                    : null,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-        await _db.SaveChangesAsync();
-        return await GetContest(test.Id);
+            _db.Tests.Add(test);
+
+            for (int i = 0; i < distinctIds.Count; i++)
+            {
+                var points = (dto.Points != null && i < dto.Points.Count) ? dto.Points[i] : 100;
+                _db.TestCodingProblems.Add(new TestCodingProblem
+                {
+                    Id = Guid.NewGuid(),
+                    TestId = test.Id,
+                    CodingProblemId = distinctIds[i],
+                    Order = i + 1,
+                    Points = points,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            await _db.SaveChangesAsync();
+            return await GetContest(test.Id);
+        }
+        catch (DbUpdateException dbEx)
+        {
+            var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+            return Ok(Result<ContestDetailDto>.Failure($"Database error: {inner}"));
+        }
+        catch (Exception ex)
+        {
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            return Ok(Result<ContestDetailDto>.Failure($"Server error: {msg}"));
+        }
     }
     [HttpPost("{id:guid}/register")]
     [Authorize(Roles = "Candidate")]

@@ -37,6 +37,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CodingSubmission> CodingSubmissions => Set<CodingSubmission>();
     public DbSet<TestCodingProblem> TestCodingProblems => Set<TestCodingProblem>();
     public DbSet<ContestRegistration> ContestRegistrations => Set<ContestRegistration>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -275,10 +276,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<TestCodingProblem>(e =>
         {
             e.HasIndex(x => new { x.TestId, x.CodingProblemId }).IsUnique();
+
             e.HasOne(x => x.Test)
-             .WithMany(t => t.CodingProblems)
+             .WithMany(t => t.CodingProblems)          // ← আগে WithMany() খালি ছিল
              .HasForeignKey(x => x.TestId)
              .OnDelete(DeleteBehavior.Cascade);
+
             e.HasOne(x => x.Problem)
              .WithMany()
              .HasForeignKey(x => x.CodingProblemId)

@@ -4,7 +4,6 @@
 @using Quizora.Application.Common
 @using Quizora.Application.DTOs.Contest
 @using Quizora.Application.DTOs.Coding
-@using Quizora.Web.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -14,6 +13,7 @@
         <div class="col-lg-9">
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
+
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             <h3 class="mb-1">Create Coding Contest</h3>
@@ -108,7 +108,9 @@
                                                 <span class="badge @(DifficultyBadge(p.Difficulty))">
                                                     @p.Difficulty
                                                 </span>
-                                                <span class="ms-2 text-muted">@p.TestCaseCount test cases · @p.TimeLimitMs ms</span>
+                                                <span class="ms-2 text-muted">
+                                                    @p.TestCaseCount test cases · @p.TimeLimitMs ms
+                                                </span>
                                             </div>
                                         </div>
                                     </label>
@@ -124,6 +126,7 @@
                             <a href="/company/dashboard" class="btn btn-outline-secondary">Cancel</a>
                         </div>
                     </EditForm>
+
                 </div>
             </div>
         </div>
@@ -154,7 +157,7 @@
         }
         catch
         {
-            // JS interop not available during prerender
+            // JS interop unavailable during prerender
         }
     }
 
@@ -201,7 +204,7 @@
     private void ToggleProblem(Guid id, ChangeEventArgs e)
     {
         var isChecked = e.Value is bool b && b
-                        || (e.Value?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false);
+                     || (e.Value?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false);
 
         if (isChecked)
             selectedIds.Add(id);
@@ -251,13 +254,12 @@
         try
         {
             var response = await Http.PostAsJsonAsync("api/contests", model);
-
-            // Always read the body as string first so we never explode on empty/non-JSON
             var body = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                errorMessage = $"Failed to create contest (HTTP {(int)response.StatusCode}). {Truncate(body, 200)}";
+                // Backend এখন try-catch দিয়ে real message পাঠাবে
+                errorMessage = $"Failed to create contest (HTTP {(int)response.StatusCode}). {Truncate(body, 300)}";
                 return;
             }
 
@@ -296,30 +298,20 @@
         }
     }
 
-    // ---------- Date helpers (more reliable than @bind on DateTime?) ----------
-
+    // ---------------- Date helpers ----------------
     private static string FormatForInput(DateTime? value)
         => value.HasValue ? value.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty;
 
     private void OnStartChanged(ChangeEventArgs e)
-    {
-        startLocal = ParseDateTimeLocal(e.Value?.ToString());
-    }
+        => startLocal = ParseDateTimeLocal(e.Value?.ToString());
 
     private void OnEndChanged(ChangeEventArgs e)
-    {
-        endLocal = ParseDateTimeLocal(e.Value?.ToString());
-    }
+        => endLocal = ParseDateTimeLocal(e.Value?.ToString());
 
     private static DateTime? ParseDateTimeLocal(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return null;
-
-        if (DateTime.TryParse(value, out var dt))
-            return dt;
-
-        return null;
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        return DateTime.TryParse(value, out var dt) ? dt : null;
     }
 
     private static string FormatOffset(int minutes)
