@@ -45,14 +45,27 @@
             </div>
         </div>
     }
+    else if (kickedForTabSwitch && isSubmitting)
+    {
+        <div class="text-center py-5">
+            <div class="alert alert-warning d-inline-block px-5 py-4 text-start shadow-sm">
+                <h4 class="mb-2">Tab limit reached</h4>
+                <p class="mb-2 text-danger small">
+                    You left the test tab twice. Closing this attempt…
+                </p>
+                <p class="text-muted small mb-0">Please wait — submitting your answers.</p>
+                <div class="spinner-border spinner-border-sm text-secondary mt-3"></div>
+            </div>
+        </div>
+    }
     else if (kickedForTabSwitch && !string.IsNullOrEmpty(errorMessage))
     {
         <div class="text-center py-5">
             <div class="alert alert-danger d-inline-block px-5 py-4 text-start">
-                <h4 class="mb-2">Could not close test properly</h4>
+                <h4 class="mb-2">Could not save test</h4>
                 <p class="mb-2 small">@FriendlyError(errorMessage)</p>
                 <p class="text-muted small mb-3">
-                    Tab limit reached, but server did not save the attempt. Contact support or try Submit again if still open.
+                    Tab limit reached, but the server could not save the attempt.
                 </p>
                 <a href="/candidate/dashboard" class="btn btn-primary">Back to Dashboard</a>
             </div>
@@ -227,11 +240,12 @@
     private bool timeUp;
     private bool kickedForTabSwitch;
     private string? errorMessage;
+
     private int remainingSeconds = 45 * 60;
     private System.Threading.Timer? timer;
+
     private int totalQuestions => questions?.Count ?? 0;
     private int attemptedCount;
-
     private int tabSwitches;
     private bool antiCheatActive;
 
@@ -313,6 +327,10 @@
         dotNetRef = null;
     }
 
+    /// <summary>
+    /// 1st tab leave = warning
+    /// 2nd = show message 10s, then submit. NO auto-redirect to dashboard.
+    /// </summary>
     [JSInvokable]
     public async Task OnVisibilityHidden()
     {
@@ -326,18 +344,18 @@
             return;
         }
 
-        // 2nd leave → show reason, submit, go dashboard only if saved
+        // 2nd leave
         kickedForTabSwitch = true;
         await InvokeAsync(StateHasChanged);
-        await Task.Delay(1200);
+
+        // ★ Message on screen ~10 seconds
+        await Task.Delay(10000);
 
         await SubmitTest(auto: true);
         await DisableAntiCheatAsync();
 
-        if (isSubmitted)
-            Navigation.NavigateTo("/candidate/dashboard", forceLoad: true);
-        else
-            await InvokeAsync(StateHasChanged);
+        // Stay on success / error UI — user clicks "Back to Dashboard"
+        await InvokeAsync(StateHasChanged);
     }
 
     [JSInvokable] public Task OnWindowBlur() => Task.CompletedTask;
@@ -456,7 +474,6 @@
             }
             else
             {
-                // IMPORTANT: do NOT force isSubmitted on failure
                 errorMessage = result?.Message ?? "Failed to submit test";
             }
         }
