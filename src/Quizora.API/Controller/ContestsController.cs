@@ -108,11 +108,6 @@ public class ContestsController : ControllerBase
         return Ok(Result<ContestDetailDto>.Success(dto));
     }
 
-    /// <summary>
-    /// ICPC-style standings for a contest.
-    /// Rank by solved desc, then penalty asc.
-    /// Penalty = minutes to first AC + 20 * wrong tries before AC (CE ignored).
-    /// </summary>
     [HttpGet("{id:guid}/standings")]
     [AllowAnonymous]
     public async Task<IActionResult> GetStandings(Guid id)
@@ -139,7 +134,6 @@ public class ContestsController : ControllerBase
 
             var contestStart = test.ContestStartAt ?? test.CreatedAt;
 
-            // Submissions in this contest only
             var subs = await _db.CodingSubmissions
                 .AsNoTracking()
                 .Include(s => s.User)
@@ -147,7 +141,6 @@ public class ContestsController : ControllerBase
                 .OrderBy(s => s.CreatedAt)
                 .ToListAsync();
 
-            // Fallback if ContestId not backfilled yet: all subs on contest problems (optional — comment out if noisy)
             if (subs.Count == 0)
             {
                 subs = await _db.CodingSubmissions
@@ -173,7 +166,7 @@ public class ContestsController : ControllerBase
                                 .ToList();
 
                     var ac = list.FirstOrDefault(s => IsAccepted(s.Verdict));
-                    // wrong tries before AC (skip pure CE if you want)
+                    
                     var wrongBefore = 0;
                     foreach (var s in list)
                     {

@@ -51,8 +51,7 @@ public class AuthController : ControllerBase
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email.Trim().ToLower());
         if (existingUser != null)
             return Result<AuthResponseDto>.Failure("Email already exists");
-
-        // Public register = always Candidate (Company = admin, separate)
+ 
         var user = new User
         {
             FullName = dto.FullName.Trim(),

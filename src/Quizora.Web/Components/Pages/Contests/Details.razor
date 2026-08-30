@@ -18,7 +18,7 @@
     }
     else if (contest != null)
     {
-        <div class="d-flex justify-content-between align-items-start mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
             <div>
                 <a href="/contests" class="text-muted small text-decoration-none">← All Contests</a>
                 <h2 class="mt-1 mb-1">@contest.Title</h2>
@@ -37,9 +37,83 @@
                             · End: @contest.ContestEndAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
                         </span>
                     }
+                    @if (registeredCount > 0)
+                    {
+                        <span class="text-muted small">· @registeredCount registered</span>
+                    }
                 </div>
             </div>
+
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                @if (isRegistered)
+                {
+                    <span class="badge bg-success fs-6 px-3 py-2">✓ Registered</span>
+                }
+                else if (registrationOpen)
+                {
+                    <button type="button" class="btn btn-primary" disabled="@regBusy" @onclick="RegisterAsync">
+                        @(regBusy ? "Registering…" : "Register for contest")
+                    </button>
+                }
+            </div>
         </div>
+
+        @* Status banners *@
+        @if (contest.Status == "Ended")
+        {
+            <div class="alert alert-secondary py-2">
+                <strong>Contest ended.</strong>
+                Problems remain open for practice — new solves do not affect standings.
+            </div>
+        }
+        else if (contest.Status == "Upcoming")
+        {
+            @if (registrationOpen)
+            {
+                <div class="alert alert-info py-2">
+                    <strong>Registration open.</strong>
+                    @if (registrationClosesAt.HasValue)
+                    {
+                        <span>
+                            Closes @registrationClosesAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            (5 minutes before start).
+                        </span>
+                    }
+                    @if (!isRegistered)
+                    {
+                        <span class="d-block small mt-1">Register to participate when the contest starts.</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning py-2">
+                    <strong>Registration closed.</strong>
+                    Only registered participants can enter when the contest starts.
+                </div>
+            }
+        }
+        else if (contest.Status == "Running")
+        {
+            @if (isRegistered)
+            {
+                <div class="alert alert-success py-2">
+                    <strong>Live contest.</strong> Your submissions count on the standings.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger py-2">
+                    <strong>Not registered.</strong> You cannot submit for rank during this contest.
+                    After it ends, you may still practice the problems.
+                </div>
+            }
+        }
+
+        @if (!string.IsNullOrEmpty(regMessage))
+        {
+            <div class="alert @(regOk ? "alert-success" : "alert-warning") py-2">@regMessage</div>
+        }
 
         @* Tabs *@
         <div class="d-flex gap-2 mb-3">
@@ -67,8 +141,50 @@
                 {
                     <div class="list-group-item text-muted">No problems in this contest.</div>
                 }
+                else if (contest.Status == "Upcoming")
+                {
+                    <div class="list-group-item text-muted">
+                        Problems unlock when the contest starts.
+                        @if (!isRegistered && registrationOpen)
+                        {
+                            <span>Register above to be eligible.</span>
+                        }
+                    </div>
+                    @* Optional: show titles only, no solve *@
+                    @foreach (var p in contest.Problems)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center opacity-75">
+                            <div>
+                                <span class="fw-bold me-2">@p.Letter.</span>
+                                <span>@p.Title</span>
+                                <div class="problem-meta mt-1">
+                                    <span class="badge @(DifficultyBadge(p.Difficulty))">@p.Difficulty</span>
+                                    <span class="ms-2 text-muted small">@p.Points pts</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-secondary">Locked</span>
+                        </div>
+                    }
+                }
+                else if (contest.Status == "Running" && !isRegistered)
+                {
+                    <div class="list-group-item text-muted">
+                        You are not registered. Solving is disabled until the contest ends (then practice mode).
+                    </div>
+                    @foreach (var p in contest.Problems)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center opacity-75">
+                            <div>
+                                <span class="fw-bold me-2">@p.Letter.</span>
+                                <span>@p.Title</span>
+                            </div>
+                            <span class="badge bg-secondary">Registered only</span>
+                        </div>
+                    }
+                }
                 else
                 {
+                    @* Running + registered, or Ended (practice) *@
                     @foreach (var p in contest.Problems)
                     {
                         <a href="@($"/candidate/coding/solve/{p.CodingProblemId}?contestId={Id}")"
@@ -77,13 +193,13 @@
                                 <span class="fw-bold me-2">@p.Letter.</span>
                                 <span class="problem-title">@p.Title</span>
                                 <div class="problem-meta mt-1">
-                                    <span class="badge @(DifficultyBadge(p.Difficulty))">
-                                        @p.Difficulty
-                                    </span>
+                                    <span class="badge @(DifficultyBadge(p.Difficulty))">@p.Difficulty</span>
                                     <span class="ms-2">@p.Points pts · @p.TimeLimitMs ms</span>
                                 </div>
                             </div>
-                            <span class="text-primary">Solve →</span>
+                            <span class="text-primary">
+                                @(contest.Status == "Ended" ? "Practice →" : "Solve →")
+                            </span>
                         </a>
                     }
                 }
@@ -99,13 +215,29 @@
     private bool loading = true;
     private string? error;
 
-    protected override async Task OnInitializedAsync()
+    private bool isRegistered;
+    private bool registrationOpen;
+    private DateTime? registrationClosesAt;
+    private int registeredCount;
+    private bool regBusy;
+    private string? regMessage;
+    private bool regOk;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
     {
+        loading = true;
+        error = null;
+        regMessage = null;
         try
         {
             var result = await Http.GetFromJsonAsync<Result<ContestDetailDto>>($"api/contests/{Id}");
             if (result?.IsSuccess == true && result.Data != null)
+            {
                 contest = result.Data;
+                ApplyRegistrationFields(result.Data);
+            }
             else
                 error = result?.Message ?? "Contest not found";
         }
@@ -116,6 +248,77 @@
         finally
         {
             loading = false;
+        }
+    }
+
+    /// <summary>
+    /// Reads extra registration fields if API sends them (JSON extension).
+    /// Until backend is ready, computes client-side fallback from start time.
+    /// </summary>
+    private void ApplyRegistrationFields(ContestDetailDto c)
+    {
+        // Prefer API fields via dynamic re-fetch raw JSON if you add them to DTO.
+        // Fallback logic (same rules as backend):
+        var start = c.ContestStartAt;
+        if (start.HasValue)
+        {
+            registrationClosesAt = start.Value.AddMinutes(-5);
+            registrationOpen = DateTime.UtcNow < registrationClosesAt.Value
+                               && c.Status != "Ended";
+        }
+        else
+        {
+            registrationClosesAt = null;
+            registrationOpen = false;
+        }
+
+        // These stay false/0 until API returns them — add to ContestDetailDto:
+        // IsRegistered, RegistrationOpen, RegistrationClosesAt, RegisteredCount
+        isRegistered = GetExtraBool(c, "IsRegistered");
+        registeredCount = GetExtraInt(c, "RegisteredCount");
+        if (GetExtraBool(c, "RegistrationOpen") || registrationOpen)
+        {
+            // if DTO has property use it; else keep fallback
+        }
+    }
+
+    // Temporary: when you add properties to ContestDetailDto, replace helpers with direct access:
+    // isRegistered = c.IsRegistered; etc.
+    private static bool GetExtraBool(ContestDetailDto c, string _) => false;
+    private static int GetExtraInt(ContestDetailDto c, string _) => 0;
+
+    private async Task RegisterAsync()
+    {
+        regBusy = true;
+        regMessage = null;
+        try
+        {
+            var resp = await Http.PostAsync($"api/contests/{Id}/register", null);
+            var raw = await resp.Content.ReadAsStringAsync();
+            var api = System.Text.Json.JsonSerializer.Deserialize<Result<object>>(raw,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (api?.IsSuccess == true)
+            {
+                regOk = true;
+                regMessage = api.Message ?? "Registered successfully";
+                isRegistered = true;
+                await LoadAsync();
+            }
+            else
+            {
+                regOk = false;
+                regMessage = api?.Message ?? "Registration failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            regOk = false;
+            regMessage = ex.Message;
+        }
+        finally
+        {
+            regBusy = false;
         }
     }
 

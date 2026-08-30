@@ -17,8 +17,7 @@ public class MockTestController : ControllerBase
     {
         _mockRepo = mockRepo;
     }
-
-    // সব অ্যাকটিভ মক টেস্ট
+ 
     [HttpGet]
     public async Task<ActionResult<Result<object>>> GetAll()
     {
@@ -35,8 +34,7 @@ public class MockTestController : ControllerBase
 
         return Result<object>.Success(result);
     }
-
-    // মক টেস্টের প্রশ্নগুলো (সঠিক উত্তর ছাড়া)
+     
     [HttpGet("{id}/questions")]
     [Authorize]
     public async Task<ActionResult<Result<object>>> GetQuestions(Guid id)
@@ -65,8 +63,7 @@ public class MockTestController : ControllerBase
             Questions = questions
         });
     }
-
-    // মক টেস্ট সাবমিট
+     
     [HttpPost("submit")]
     [Authorize]
     public async Task<ActionResult<Result<object>>> Submit([FromBody] MockSubmitDto dto)
@@ -112,8 +109,7 @@ public class MockTestController : ControllerBase
             TimeTakenInSeconds = dto.TimeTakenInSeconds
         }, "Mock test submitted");
     }
-
-    // লিডারবোর্ড
+     
     [HttpGet("{id}/leaderboard")]
     public async Task<ActionResult<Result<object>>> GetLeaderboard(Guid id)
     {
@@ -132,8 +128,7 @@ public class MockTestController : ControllerBase
 
         return Result<object>.Success(result);
     }
-
-    // নিজের মক টেস্ট হিস্ট্রি
+     
     [HttpGet("my-attempts")]
     [Authorize]
     public async Task<ActionResult<Result<object>>> GetMyAttempts()

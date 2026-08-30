@@ -28,8 +28,7 @@ public class PracticeController : ControllerBase
         _quizApi = quizApi;
         _db = db;
     }
-
-    // ───────── DB categories ─────────
+     
     [HttpGet("categories")]
     public async Task<ActionResult<Result<object>>> GetCategories()
     {
@@ -108,9 +107,7 @@ public class PracticeController : ControllerBase
         }, "Practice submitted successfully");
     }
 
-    /// <summary>
-    /// QuizAPI Mock / Practice score → save for Weak Topics analysis
-    /// </summary>
+ 
     [HttpPost("record-session")]
     [Authorize(Roles = "Candidate")]
     public async Task<IActionResult> RecordSession([FromBody] RecordSessionDto dto)
@@ -184,8 +181,7 @@ public class PracticeController : ControllerBase
         });
         return Result<object>.Success(result);
     }
-
-    // ───────── QuizAPI.io (IT) ─────────
+     
     [HttpGet("quizapi")]
     [AllowAnonymous]
     public async Task<IActionResult> GetFromQuizApi(

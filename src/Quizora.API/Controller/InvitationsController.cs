@@ -22,8 +22,7 @@ public class InvitationsController : ControllerBase
 
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-    // Candidate: নিজের সব invitation
+     
     [HttpGet("my")]
     [Authorize(Roles = "Candidate")]
     public async Task<ActionResult<Result<List<InvitationDto>>>> GetMyInvitations()
@@ -35,8 +34,7 @@ public class InvitationsController : ControllerBase
 
         return Ok(result);
     }
-
-    // Company: candidate কে invite করা
+     
     [HttpPost]
     [Authorize(Roles = "Company")]
     public async Task<ActionResult<Result>> Invite(InviteCandidateDto dto)

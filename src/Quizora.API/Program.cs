@@ -14,8 +14,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Render / cloud: PORT env
+ 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
 {
@@ -79,9 +78,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
-
-// Rate limiting — protects auth endpoints from brute-force / credential-stuffing.
-// Keyed per client IP so one abusive caller can't exhaust the limit for everyone.
+ 
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -110,8 +107,7 @@ builder.Services.AddRateLimiter(options =>
         }, cancellationToken);
     };
 });
-
-// CORS — local + Render frontend URL (env থেকে)
+ 
 var blazorOrigins = builder.Configuration["Cors:BlazorOrigins"]
     ?? "https://localhost:7102,https://localhost:7002,http://localhost:5065,http://localhost:5001";
 var origins = blazorOrigins
@@ -136,8 +132,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Quizora API v1");
     c.RoutePrefix = "swagger";
 });
-
-// Render এ HTTPS proxy পেছনে — redirection কখনো সমস্যা করে
+ 
 if (!app.Environment.IsProduction())
 {
     app.UseHttpsRedirection();
@@ -148,8 +143,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-// Auto migrate + seed
+ 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -160,12 +154,11 @@ using (var scope = app.Services.CreateScope())
     }
     catch
     {
-        // log if needed
+         
     }
 
     await QuestionBankSeeder.SeedAsync(db);
-    await CodingProblemSeeder.SeedAsync(db);
-    // Default Company account (acts as Admin) — no separate Admin role
+    await CodingProblemSeeder.SeedAsync(db); 
     if (!db.Users.Any(u => u.Email == "admin@quizora.local"))
     {
         var adminUser = new User

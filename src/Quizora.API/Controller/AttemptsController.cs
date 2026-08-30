@@ -22,8 +22,7 @@ public class AttemptsController : ControllerBase
 
     private Guid GetUserId() =>
         Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-    // প্রশ্নগুলো পাওয়া (সঠিক উত্তর ছাড়া)
+     
     [HttpGet("{invitationId}/questions")]
     public async Task<ActionResult<Result<List<QuestionDto>>>> GetQuestions(Guid invitationId)
     {
@@ -34,8 +33,7 @@ public class AttemptsController : ControllerBase
 
         return Ok(result);
     }
-
-    // টেস্ট সাবমিট
+     
     [HttpPost("{invitationId}/submit")]
     public async Task<ActionResult<Result<ResultDto>>> Submit(Guid invitationId, SubmitTestDto dto)
     {

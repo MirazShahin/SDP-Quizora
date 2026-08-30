@@ -29,8 +29,7 @@ public class CodingPracticeController : ControllerBase
 
     private static string Norm(string? s) =>
         (s ?? "").Replace("\r\n", "\n").TrimEnd('\r', '\n', ' ', '\t');
-
-    // Problem list
+     
     [HttpGet("problems")]
     public async Task<IActionResult> List()
     {
@@ -46,8 +45,7 @@ public class CodingPracticeController : ControllerBase
                     p.TimeLimitMs
                 })
                 .ToListAsync();
-
-            // submissions optional — table না থাকলে status "—"
+             
             Dictionary<Guid, string> statusMap = new();
             try
             {
@@ -67,7 +65,7 @@ public class CodingPracticeController : ControllerBase
             }
             catch
             {
-                // table missing — ignore
+                
             }
 
             var result = problems.Select(p => new
@@ -85,8 +83,7 @@ public class CodingPracticeController : ControllerBase
             return Ok(Result<object>.Failure(ex.InnerException?.Message ?? ex.Message));
         }
     }
-
-    // Statement + samples only
+     
     [HttpGet("problems/{id:guid}")]
     public async Task<IActionResult> Get(Guid id)
     {
@@ -109,8 +106,7 @@ public class CodingPracticeController : ControllerBase
             Samples = samples
         }));
     }
-
-    // Submit all tests
+     
     [HttpPost("problems/{id:guid}/submit")]
     public async Task<IActionResult> Submit(Guid id, [FromBody] SubmitDto dto, CancellationToken ct)
     {
@@ -136,7 +132,26 @@ public class CodingPracticeController : ControllerBase
             long maxTime = 0;
             string? compileOut = null;
             string verdict = "Accepted";
+            Guid? contestIdToSave = null;
+            if (dto.ContestId.HasValue)
+            {
+                var contest = await _db.Tests.AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Id == dto.ContestId && t.IsContest, ct);
 
+                if (contest != null)
+                {
+                    var now = DateTime.UtcNow;
+                    bool running =
+                        contest.ContestStartAt.HasValue && now >= contest.ContestStartAt.Value &&
+                        (!contest.ContestEndAt.HasValue || now <= contest.ContestEndAt.Value);
+
+                    bool registered = await _db.ContestRegistrations
+                        .AnyAsync(r => r.ContestId == dto.ContestId && r.UserId == UserId, ct);
+
+                    if (dto.ContestId.HasValue && running && !registered)
+                        return Ok(Result.Failure("You are not registered for this contest."));
+                }
+            }
             foreach (var (tc, i) in cases.Select((t, i) => (t, i)))
             {
                 var run = await _runner.RunAsync(new CodeRunRequestDto
@@ -195,6 +210,7 @@ public class CodingPracticeController : ControllerBase
             {
                 UserId = UserId,
                 CodingProblemId = id,
+                ContestId = dto.ContestId,
                 Language = lang,
                 SourceCode = dto.SourceCode,
                 Verdict = verdict,
@@ -229,5 +245,6 @@ public class CodingPracticeController : ControllerBase
     {
         public string Language { get; set; } = "cpp";
         public string SourceCode { get; set; } = "";
+        public Guid? ContestId { get; set; }
     }
 }

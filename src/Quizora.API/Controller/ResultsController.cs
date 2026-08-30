@@ -75,8 +75,7 @@ public class ResultsController : ControllerBase
             return Ok(Result<List<ResultDto>>.Failure($"Server error: {ex.Message}"));
         }
     }
-
-    /// <summary>Score notification → Candidate dashboard</summary>
+     
     [HttpPost("send-email/{invitationId}")]
     public async Task<IActionResult> SendResultNotification(Guid invitationId)
     {
@@ -121,8 +120,7 @@ public class ResultsController : ControllerBase
             return Ok(Result.Failure(ex.Message));
         }
     }
-
-    /// <summary>Interview call notification (35/50 or 70%+) → Candidate dashboard</summary>
+     
     [HttpPost("send-interview-call/{invitationId}")]
     public async Task<IActionResult> SendInterviewCallNotification(Guid invitationId)
     {

@@ -123,16 +123,14 @@ public class CodingProblemsController : ControllerBase
             entity.TimeLimitMs = dto.TimeLimitMs <= 0 ? 3000 : dto.TimeLimitMs;
             entity.IsActive = dto.IsActive;
             entity.UpdatedAt = DateTime.UtcNow;
-
-            // 1) পুরনো test cases মুছো, আগে save
+             
             if (entity.TestCases.Count > 0)
             {
                 _db.CodingTestCases.RemoveRange(entity.TestCases.ToList());
                 entity.TestCases.Clear();
                 await _db.SaveChangesAsync();
             }
-
-            // 2) নতুন test cases add (FK explicit)
+             
             foreach (var (t, i) in dto.TestCases.Select((t, i) => (t, i)))
             {
                 _db.CodingTestCases.Add(new CodingTestCase
@@ -150,8 +148,7 @@ public class CodingProblemsController : ControllerBase
             return Ok(Result.Success("Updated"));
         }
         catch (Exception ex)
-        {
-            // client-এ empty 500 না দিয়ে message পাঠাও
+        { 
             return Ok(Result.Failure(ex.InnerException?.Message ?? ex.Message));
         }
     }

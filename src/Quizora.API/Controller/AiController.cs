@@ -80,9 +80,7 @@ public class AiController : ControllerBase
         public List<ChatMsg>? History { get; set; }
     }
 
-    /// <summary>
-    /// Own algorithm: Practice + Mock + Coding submissions (not hardcoded AI list).
-    /// </summary>
+ 
     [HttpGet("weak-topics")]
     public async Task<IActionResult> WeakTopics()
     {
@@ -147,9 +145,7 @@ public class AiController : ControllerBase
                     Source = "Mock"
                 });
             }
-
-            // ── Coding / Problem Solving ──
-            // Score = Accepted count, Total = submissions for that problem
+             
             foreach (var g in coding.GroupBy(s => s.CodingProblemId))
             {
                 var title = g.First().Problem?.Title ?? "Coding problem";
@@ -169,8 +165,7 @@ public class AiController : ControllerBase
                     Source = "Coding"
                 });
             }
-
-            // Weak = enough attempts + low accuracy
+ 
             var weak = rows
                 .Where(x =>
                     (x.Source != "Coding" && x.Total >= 3 && x.Accuracy < 60) ||
@@ -178,8 +173,7 @@ public class AiController : ControllerBase
                 .OrderBy(x => x.Accuracy)
                 .Take(10)
                 .ToList();
-
-            // Fallback: show lowest few if nothing under threshold
+ 
             if (weak.Count == 0 && rows.Count > 0)
                 weak = rows.OrderBy(x => x.Accuracy).Take(3).ToList();
 
@@ -192,7 +186,7 @@ public class AiController : ControllerBase
             {
                 PracticeSessions = practice.Count,
                 MockSessions = mocks.Count,
-                CodingSessions = coding.Count, // DTO-তে property যোগ করো (নিচে)
+                CodingSessions = coding.Count, 
                 AvgAccuracy = avg,
                 WeakCount = weak.Count(w => w.Accuracy < 60),
                 StrongestTopic = strongest,
