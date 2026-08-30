@@ -141,11 +141,7 @@ public class CodingPracticeController : ControllerBase
             string? compileOut = null;
             string verdict = "Accepted";
             Guid? contestIdToSave = null;
-
-            // Find any contest — running OR upcoming — that this problem currently
-            // belongs to, regardless of whether the caller passed a ContestId.
-            // Without this lookup, someone could bypass the registration check
-            // entirely by simply omitting ContestId from the request body.
+             
             var now = DateTime.UtcNow;
             var lockingContest = await _db.Tests.AsNoTracking()
                 .Where(t => t.IsContest &&
@@ -157,8 +153,7 @@ public class CodingPracticeController : ControllerBase
             if (lockingContest != null)
             {
                 bool running = now >= lockingContest.ContestStartAt!.Value;
-
-                // Must reference the actual locking contest, not an unrelated one.
+ 
                 if (dto.ContestId != lockingContest.Id)
                     return Ok(Result.Failure(running
                         ? "This problem is part of a live contest. Please solve it from the contest page."
@@ -173,8 +168,7 @@ public class CodingPracticeController : ControllerBase
                         return Ok(Result.Failure("You are not registered for this contest."));
                 }
                 else
-                {
-                    // Contest hasn't started yet — nobody may submit, registered or not.
+                { 
                     return Ok(Result.Failure("This contest hasn't started yet."));
                 }
             }

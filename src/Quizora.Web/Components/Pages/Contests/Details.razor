@@ -3,8 +3,10 @@
 @using System.Net.Http.Json
 @using Quizora.Application.Common
 @using Quizora.Application.DTOs.Contest
+@using Quizora.Web.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container mt-4">
     @if (loading)
@@ -28,13 +30,13 @@
                     @if (contest.ContestStartAt.HasValue)
                     {
                         <span class="text-muted small">
-                            · Start: @contest.ContestStartAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            · Start: @contest.ContestStartAt.Value.ToClientLocal(tzOffsetMinutes).ToString("dd MMM yyyy HH:mm")
                         </span>
                     }
                     @if (contest.ContestEndAt.HasValue)
                     {
                         <span class="text-muted small">
-                            · End: @contest.ContestEndAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            · End: @contest.ContestEndAt.Value.ToClientLocal(tzOffsetMinutes).ToString("dd MMM yyyy HH:mm")
                         </span>
                     }
                     @if (registeredCount > 0)
@@ -84,7 +86,7 @@
                     @if (registrationClosesAt.HasValue)
                     {
                         <span>
-                            Closes @registrationClosesAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            Closes @registrationClosesAt.Value.ToClientLocal(tzOffsetMinutes).ToString("dd MMM yyyy HH:mm")
                             (5 minutes before start).
                         </span>
                     }
@@ -231,8 +233,16 @@
     private bool regBusy;
     private string? regMessage;
     private bool regOk;
+    private int? tzOffsetMinutes;
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try { tzOffsetMinutes = await JS.InvokeAsync<int>("quizoraTime.getOffsetMinutes"); StateHasChanged(); }
+        catch { /* JS interop unavailable — falls back to UTC display */ }
+    }
 
     private async Task LoadAsync()
     {

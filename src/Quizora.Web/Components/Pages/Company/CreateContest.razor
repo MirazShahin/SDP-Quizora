@@ -7,6 +7,7 @@
 @using Quizora.Web.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -56,6 +57,10 @@
                                 <input type="datetime-local" class="form-control" @bind="endLocal" @bind:format="yyyy-MM-ddTHH:mm" />
                             </div>
                         </div>
+                        <p class="small text-muted mb-3">
+                            Times are in <strong>your</strong> local timezone@(tzOffsetMinutes.HasValue ? $" (UTC{FormatOffset(tzOffsetMinutes.Value)})" : "")
+                            and stored correctly regardless of where the server runs.
+                        </p>
 
                         <hr class="my-4" />
 
@@ -125,6 +130,21 @@
     private string? successMessage;
     private DateTime? startLocal;
     private DateTime? endLocal;
+    private int? tzOffsetMinutes;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            tzOffsetMinutes = await JS.InvokeAsync<int>("quizoraTime.getOffsetMinutes");
+            StateHasChanged();
+        }
+        catch
+        {
+            // JS interop unavailable (e.g. prerendering) — falls back to UTC entry.
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -192,11 +212,16 @@
         successMessage = null;
 
         model.CodingProblemIds = selectedIds.ToList();
+
+        // Convert using the visitor's REAL browser offset, not the server's
+        // local time — the server (e.g. Render) may run in a different
+        // timezone than whoever is creating the contest.
+        var offset = tzOffsetMinutes ?? 0;
         model.ContestStartAt = startLocal.HasValue
-            ? DateTime.SpecifyKind(startLocal.Value, DateTimeKind.Local).ToUniversalTime()
+            ? startLocal.Value.ToUtcFromClientLocal(offset)
             : null;
         model.ContestEndAt = endLocal.HasValue
-            ? DateTime.SpecifyKind(endLocal.Value, DateTimeKind.Local).ToUniversalTime()
+            ? endLocal.Value.ToUtcFromClientLocal(offset)
             : null;
 
         try
@@ -224,6 +249,13 @@
         {
             isLoading = false;
         }
+    }
+
+    private static string FormatOffset(int minutes)
+    {
+        var sign = minutes >= 0 ? "+" : "-";
+        var abs = Math.Abs(minutes);
+        return $"{sign}{abs / 60}:{abs % 60:D2}";
     }
 
     private static string DifficultyBadge(string? d) => d switch

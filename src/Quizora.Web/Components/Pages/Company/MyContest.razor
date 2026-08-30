@@ -1,8 +1,10 @@
 ﻿@page "/company/contests"
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using Quizora.Web.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -42,7 +44,7 @@
                                 @c.ProblemCount problem(s) · @(c.DurationInMinutes ?? 0) min
                                 @if (c.ContestStartAt.HasValue)
                                 {
-                                    <span> · Starts @c.ContestStartAt.Value.ToLocalTime().ToString("g")</span>
+                                    <span> · Starts @c.ContestStartAt.Value.ToClientLocal(tzOffsetMinutes).ToString("g")</span>
                                 }
                             </div>
                         </div>
@@ -58,12 +60,16 @@
     private List<Item> items = new();
     private bool loading = true;
     private string? error;
+    private int? tzOffsetMinutes;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
         try
         {
+            try { tzOffsetMinutes = await JS.InvokeAsync<int>("quizoraTime.getOffsetMinutes"); }
+            catch { /* JS interop unavailable — falls back to UTC display */ }
+
             var resp = await Http.GetAsync("api/contests/my");
             var raw = await resp.Content.ReadAsStringAsync();
 

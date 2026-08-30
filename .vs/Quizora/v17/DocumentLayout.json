@@ -3,20 +3,59 @@
   "WorkspaceRootPath": "D:\\SDP\\QuizoraWeb\\Quizora\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.api\\controller\\contestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|solutionrelative:src\\quizora.api\\controller\\contestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\company\\mycontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\company\\mycontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\contests\\details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\contests\\details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\company\\createcontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\company\\createcontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\contests\\index.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\contests\\index.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\contests\\details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\contests\\details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\services\\clienttimeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\services\\clienttimeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\services\\codeclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\services\\codeclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\CreateContest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.application\\services\\attemptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|solutionrelative:src\\quizora.application\\services\\attemptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.api\\controller\\codingpracticecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|solutionrelative:src\\quizora.api\\controller\\codingpracticecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.api\\controller\\contestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BEC7475D-1AF2-43CF-A13E-29129F304484}|src\\Quizora.API\\Quizora.API.csproj|solutionrelative:src\\quizora.api\\controller\\contestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.application\\dtos\\contest\\createcontestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|solutionrelative:src\\quizora.application\\dtos\\contest\\createcontestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{C3CDC740-9437-4297-B703-E78B4E8E4E21}|src\\Quizora.Infrastructure\\Quizora.Infrastructure.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.infrastructure\\persistence\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -147,10 +186,6 @@
       "RelativeMoniker": "D:0:0:{4553D538-F3A6-48F9-B958-D1A0AA27520E}|src\\Quizora.Domain\\Quizora.Domain.csproj|solutionrelative:src\\quizora.domain\\entities\\candidate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\company\\mycontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\company\\mycontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\MyContests.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
@@ -214,10 +249,6 @@
       "RelativeMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|solutionrelative:src\\quizora.application\\interfaces\\iattemptrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.application\\services\\attemptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|solutionrelative:src\\quizora.application\\services\\attemptservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{C3CDC740-9437-4297-B703-E78B4E8E4E21}|src\\Quizora.Infrastructure\\Quizora.Infrastructure.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.infrastructure\\repositories\\attemptrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C3CDC740-9437-4297-B703-E78B4E8E4E21}|src\\Quizora.Infrastructure\\Quizora.Infrastructure.csproj|solutionrelative:src\\quizora.infrastructure\\repositories\\attemptrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -274,10 +305,6 @@
       "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\services\\quizapiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\services\\codeclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\services\\codeclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\services\\aiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\services\\aiclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -326,19 +353,8 @@
       "RelativeMoniker": "D:0:0:{4553D538-F3A6-48F9-B958-D1A0AA27520E}|src\\Quizora.Domain\\Quizora.Domain.csproj|solutionrelative:src\\quizora.domain\\entities\\test.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.web\\components\\pages\\company\\createcontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{565D62CA-6012-4EFE-B1C9-0D2B19E247D5}|src\\Quizora.Web\\Quizora.Web.csproj|solutionrelative:src\\quizora.web\\components\\pages\\company\\createcontest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\CreateContest.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{4553D538-F3A6-48F9-B958-D1A0AA27520E}|src\\Quizora.Domain\\Quizora.Domain.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.domain\\entities\\testcodingproblem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4553D538-F3A6-48F9-B958-D1A0AA27520E}|src\\Quizora.Domain\\Quizora.Domain.csproj|solutionrelative:src\\quizora.domain\\entities\\testcodingproblem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.application\\dtos\\contest\\createcontestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|solutionrelative:src\\quizora.application\\dtos\\contest\\createcontestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{24F21D23-5BBC-4EB1-8533-F40A0C2424AB}|src\\Quizora.Application\\Quizora.Application.csproj|d:\\sdp\\quizoraweb\\quizora\\src\\quizora.application\\dtos\\contest\\contestdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -556,11 +572,81 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 44,
+          "SelectedChildIndex": 45,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
+              "Title": "ClientTimeExtensions.cs",
+              "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\ClientTimeExtensions.cs",
+              "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\ClientTimeExtensions.cs",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\ClientTimeExtensions.cs*",
+              "RelativeToolTip": "src\\Quizora.Web\\Services\\ClientTimeExtensions.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-30T21:14:40.615Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MyContest.razor",
+              "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
+              "ToolTip": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
+              "ViewState": "AgIAAFYAAAAAAAAAAAAuwH8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-30T21:10:27.215Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Details.razor",
+              "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ToolTip": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ViewState": "AgIAACMBAAAAAAAAAAAuwEwBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-30T21:09:56.419Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Index.razor",
+              "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
+              "ToolTip": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes (1)\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
+              "ViewState": "AgIAAFwAAAAAAAAAAAAuwIUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-30T21:09:11.368Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Details.razor",
+              "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAAAEwBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-30T21:00:43.195Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Details.razor",
+              "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ToolTip": "C:\\Users\\Shahin\\Downloads\\quizora_contest_fixes\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
+              "ViewState": "AgIAABkBAAAAAAAAAAAuwEIBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-08-30T21:00:30.218Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "ContestRegistration.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\ContestRegistration.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\ContestRegistration.cs",
@@ -568,12 +654,11 @@
               "RelativeToolTip": "src\\Quizora.Domain\\Entities\\ContestRegistration.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T20:36:05.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T20:36:05.104Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 21,
               "Title": "Standings.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Standings.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Contests\\Standings.razor",
@@ -581,12 +666,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Contests\\Standings.razor",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAKoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-30T20:07:33.522Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T20:07:33.522Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 26,
               "Title": "TestsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\TestsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\TestsController.cs",
@@ -594,12 +678,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\TestsController.cs",
               "ViewState": "AgIAAGEAAAAAAAAAAAAcwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:29:01.911Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:29:01.911Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 24,
               "Title": "NotificationsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\NotificationsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\NotificationsController.cs",
@@ -607,12 +690,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\NotificationsController.cs",
               "ViewState": "AgIAACkAAAAAAAAAAAAwwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:28:21.211Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:28:21.211Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 22,
               "Title": "InvitationsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\InvitationsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\InvitationsController.cs",
@@ -620,12 +702,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\InvitationsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACQAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:27:55.805Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:27:55.805Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 34,
               "Title": "AttemptsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\AttemptsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\AttemptsController.cs",
@@ -633,12 +714,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\AttemptsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:26:41.702Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:26:41.702Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 37,
               "Title": "TriviaModels.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Models\\Trivia\\TriviaModels.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Models\\Trivia\\TriviaModels.cs",
@@ -646,12 +726,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Models\\Trivia\\TriviaModels.cs",
               "ViewState": "AgIAACIAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:22:16.656Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:22:16.656Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 23,
               "Title": "MockTestController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\MockTestController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\MockTestController.cs",
@@ -659,12 +738,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\MockTestController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T19:03:02.137Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T19:03:02.137Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 41,
               "Title": "questions.json",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\SeedData\\questions.json",
               "RelativeDocumentMoniker": "src\\Quizora.API\\SeedData\\questions.json",
@@ -672,12 +750,11 @@
               "RelativeToolTip": "src\\Quizora.API\\SeedData\\questions.json",
               "ViewState": "AgIAAMMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-08-30T17:29:39.785Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T17:29:39.785Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 44,
               "Title": "AuthService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\AuthService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Services\\AuthService.cs",
@@ -685,12 +762,11 @@
               "RelativeToolTip": "src\\Quizora.Application\\Services\\AuthService.cs",
               "ViewState": "AgIAAEcAAAAAAAAAAAAwwCcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-30T16:54:42.522Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-30T16:54:42.522Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 51,
               "Title": "CaptchaBox.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Shared\\CaptchaBox.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Shared\\CaptchaBox.razor",
@@ -702,7 +778,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 54,
               "Title": "MainLayout.razor.css",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Layout\\MainLayout.razor.css",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Layout\\MainLayout.razor.css",
@@ -714,7 +790,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 11,
+              "Title": "AttemptService.cs",
+              "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\AttemptService.cs",
+              "RelativeDocumentMoniker": "src\\Quizora.Application\\Services\\AttemptService.cs",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\AttemptService.cs",
+              "RelativeToolTip": "src\\Quizora.Application\\Services\\AttemptService.cs",
+              "ViewState": "AgIAAMsAAAAAAAAAAAAcwN8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-11T19:22:30.012Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 57,
               "Title": "Option.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\Option.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\Option.cs",
@@ -726,7 +815,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 62,
               "Title": "IAttemptRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Interfaces\\IAttemptRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Interfaces\\IAttemptRepository.cs",
@@ -738,7 +827,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 51,
+              "DocumentIndex": 61,
               "Title": "IInvitationRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Interfaces\\IInvitationRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Interfaces\\IInvitationRepository.cs",
@@ -750,7 +839,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
+              "DocumentIndex": 60,
               "Title": "InvitationRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Repositories\\InvitationRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Repositories\\InvitationRepository.cs",
@@ -762,7 +851,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 63,
               "Title": "AttemptRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Repositories\\AttemptRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Repositories\\AttemptRepository.cs",
@@ -774,7 +863,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 65,
               "Title": "anticheat.js",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\wwwroot\\js\\anticheat.js",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\wwwroot\\js\\anticheat.js",
@@ -786,7 +875,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 58,
+              "DocumentIndex": 67,
               "Title": "ApiErrors.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\ApiErrors.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\ApiErrors.cs",
@@ -798,7 +887,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 60,
+              "DocumentIndex": 69,
               "Title": "TestAttempt.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\TestAttempt.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\TestAttempt.cs",
@@ -810,7 +899,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 61,
+              "DocumentIndex": 70,
               "Title": "SubmitTestDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Attempts\\SubmitTestDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Attempts\\SubmitTestDto.cs",
@@ -822,7 +911,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 62,
+              "DocumentIndex": 71,
               "Title": "ResultDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Attempts\\ResultDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Attempts\\ResultDto.cs",
@@ -834,7 +923,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 63,
+              "DocumentIndex": 72,
               "Title": "CheatSummaryDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Attempts\\CheatSummaryDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Attempts\\CheatSummaryDto.cs",
@@ -846,7 +935,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 56,
               "Title": "MainLayout.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Layout\\MainLayout.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Layout\\MainLayout.razor",
@@ -858,7 +947,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 65,
+              "DocumentIndex": 74,
               "Title": "Routes.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Routes.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Routes.razor",
@@ -870,7 +959,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 66,
+              "DocumentIndex": 75,
               "Title": "_Imports.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\_Imports.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\_Imports.razor",
@@ -882,7 +971,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 67,
+              "DocumentIndex": 76,
               "Title": "QuizApiClient.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\QuizApiClient.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\QuizApiClient.cs",
@@ -894,7 +983,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 70,
+              "DocumentIndex": 78,
               "Title": "AttemptService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\AttemptService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\AttemptService.cs",
@@ -906,7 +995,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 71,
+              "DocumentIndex": 79,
               "Title": "InvitationService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\InvitationService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\InvitationService.cs",
@@ -918,7 +1007,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 72,
+              "DocumentIndex": 80,
               "Title": "TestService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\TestService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\TestService.cs",
@@ -930,7 +1019,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 59,
+              "DocumentIndex": 68,
               "Title": "InterviewService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\InterviewService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\InterviewService.cs",
@@ -942,7 +1031,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 57,
+              "DocumentIndex": 66,
               "Title": "AuthService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\AuthService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\AuthService.cs",
@@ -954,7 +1043,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 64,
+              "DocumentIndex": 73,
               "Title": "CustomAuthStateProvider.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Auth\\CustomAuthStateProvider.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Auth\\CustomAuthStateProvider.cs",
@@ -966,7 +1055,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 74,
+              "DocumentIndex": 82,
               "Title": "FriendlyErrorFallback.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Shared\\FriendlyErrorFallback.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Shared\\FriendlyErrorFallback.razor",
@@ -978,7 +1067,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 75,
+              "DocumentIndex": 83,
               "Title": "FriendlyError.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\FriendlyError.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\FriendlyError.cs",
@@ -990,7 +1079,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 77,
+              "DocumentIndex": 85,
               "Title": "Quizora.Web.csproj.Backup.tmp",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Quizora.Web.csproj.Backup.tmp",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Quizora.Web.csproj.Backup.tmp",
@@ -1002,7 +1091,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 79,
+              "DocumentIndex": 87,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\appsettings.Development.json",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\appsettings.Development.json",
@@ -1014,104 +1103,93 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Details.razor",
-              "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
-              "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
-              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
-              "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Contests\\Details.razor",
-              "ViewState": "AgIAAD4BAAAAAAAAAAAswFQBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-25T10:33:37.72Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
               "Title": "Index.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
-              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
-              "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAnAAAAAAAAAA==",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor*",
+              "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Contests\\Index.razor*",
+              "ViewState": "AgIAAHIAAAAAAAAAAAAAAEgAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-08-25T10:33:16.005Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 0,
               "Title": "MyContest.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
               "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Company\\MyContest.razor",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAswHkAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAACEAAAAAAAAAAAAuwCkAAABDAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-08-25T07:41:02.952Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 47,
               "Title": "MyContests.razor",
               "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\MyContests.razor",
               "ToolTip": "C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\MyContests.razor",
               "ViewState": "AgIAABsAAAAAAAAAAAAAAC8AAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-25T07:40:42.005Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-25T07:40:42.005Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 81,
+              "DocumentIndex": 1,
               "Title": "CreateContest.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\CreateContest.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\CreateContest.razor",
               "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\CreateContest.razor",
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Company\\CreateContest.razor",
-              "ViewState": "AgIAAM0AAAAAAAAAAADwv+sAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAALkAAAAAAAAAAAAuwNwAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-25T07:40:17.039Z"
+              "WhenOpened": "2026-08-25T07:40:17.039Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 82,
+              "DocumentIndex": 9,
               "Title": "CreateContest.razor",
               "DocumentMoniker": "C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\CreateContest.razor",
               "ToolTip": "C:\\Users\\Shahin\\Downloads\\ContestModule\\ContestModule\\Web\\Pages\\Company\\CreateContest.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAAJIAAAAAAAAAAAAuwLsAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-25T07:37:49.512Z"
+              "WhenOpened": "2026-08-25T07:37:49.512Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 84,
+              "DocumentIndex": 14,
               "Title": "CreateContestDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs",
-              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs",
-              "RelativeToolTip": "src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMAAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs*",
+              "RelativeToolTip": "src\\Quizora.Application\\DTOs\\Contest\\CreateContestDto.cs*",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAzwAgAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-25T06:58:26.691Z"
+              "WhenOpened": "2026-08-25T06:58:26.691Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 13,
               "Title": "ContestsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\ContestsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\ContestsController.cs",
               "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\ContestsController.cs",
               "RelativeToolTip": "src\\Quizora.API\\Controller\\ContestsController.cs",
-              "ViewState": "AgIAAJABAAAAAAAAAAAYwKMBAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAALsBAAAAAAAAAAAuwNcBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-08-25T06:57:16.157Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 86,
+              "DocumentIndex": 91,
               "Title": "ThemeService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\ThemeService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\ThemeService.cs",
@@ -1123,7 +1201,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 31,
               "Title": "InterviewController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\InterviewController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\InterviewController.cs",
@@ -1131,12 +1209,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\InterviewController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-25T04:52:01.542Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-25T04:52:01.542Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 89,
+              "DocumentIndex": 94,
               "Title": "Quiz.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Practice\\Quiz.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Practice\\Quiz.razor",
@@ -1148,7 +1225,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 95,
+              "DocumentIndex": 100,
               "Title": "AuthorizedHandler.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\AuthorizedHandler.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\AuthorizedHandler.cs",
@@ -1160,7 +1237,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 96,
+              "DocumentIndex": 101,
               "Title": "ResetPassword.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\ResetPassword.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\ResetPassword.razor",
@@ -1172,7 +1249,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 97,
+              "DocumentIndex": 102,
               "Title": "Error.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Error.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Error.razor",
@@ -1184,7 +1261,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 49,
               "Title": "Login.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Login.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Login.razor",
@@ -1196,7 +1273,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 98,
+              "DocumentIndex": 103,
               "Title": "EmailService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Services\\EmailService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Services\\EmailService.cs",
@@ -1208,7 +1285,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 55,
               "Title": "IEmailService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Interfaces\\IEmailService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Interfaces\\IEmailService.cs",
@@ -1220,7 +1297,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 90,
+              "DocumentIndex": 95,
               "Title": "ForgotPassword.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\ForgotPassword.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\ForgotPassword.razor",
@@ -1232,7 +1309,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 99,
+              "DocumentIndex": 104,
               "Title": "UserRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Repositories\\UserRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Repositories\\UserRepository.cs",
@@ -1244,7 +1321,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 100,
+              "DocumentIndex": 105,
               "Title": "IUserRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Interfaces\\IUserRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Interfaces\\IUserRepository.cs",
@@ -1256,7 +1333,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 101,
+              "DocumentIndex": 106,
               "Title": "ForgotPasswordDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Auth\\ForgotPasswordDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Auth\\ForgotPasswordDto.cs",
@@ -1268,7 +1345,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 102,
+              "DocumentIndex": 107,
               "Title": "User.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\User.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\User.cs",
@@ -1280,7 +1357,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 40,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\appsettings.Development.json",
               "RelativeDocumentMoniker": "src\\Quizora.API\\appsettings.Development.json",
@@ -1288,12 +1365,11 @@
               "RelativeToolTip": "src\\Quizora.API\\appsettings.Development.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-08-14T20:36:50.634Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-14T20:36:50.634Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 88,
+              "DocumentIndex": 93,
               "Title": "Assistant.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\Assistant.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\Assistant.razor",
@@ -1305,7 +1381,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 103,
+              "DocumentIndex": 108,
               "Title": "AiService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Services\\AiService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Services\\AiService.cs",
@@ -1317,7 +1393,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 106,
+              "DocumentIndex": 111,
               "Title": "IAiService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\IAiService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Services\\IAiService.cs",
@@ -1329,7 +1405,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 73,
+              "DocumentIndex": 81,
               "Title": "Quizora.Web.csproj",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Quizora.Web.csproj",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Quizora.Web.csproj",
@@ -1341,7 +1417,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 18,
               "Title": "CodingSolve.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\CodingSolve.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\CodingSolve.razor",
@@ -1349,12 +1425,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Candidate\\CodingSolve.razor",
               "ViewState": "AgIAAA8BAAAAAAAAAAAswB0BAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-13T18:11:29.594Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T18:11:29.594Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 87,
+              "DocumentIndex": 92,
               "Title": "CodingList.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\CodingList.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\CodingList.razor",
@@ -1366,20 +1441,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 12,
               "Title": "CodingPracticeController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\CodingPracticeController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\CodingPracticeController.cs",
-              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\CodingPracticeController.cs",
-              "RelativeToolTip": "src\\Quizora.API\\Controller\\CodingPracticeController.cs",
-              "ViewState": "AgIAAHsAAAAAAAAAAAAuwJcAAABeAAAAAAAAAA==",
+              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\CodingPracticeController.cs*",
+              "RelativeToolTip": "src\\Quizora.API\\Controller\\CodingPracticeController.cs*",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAcwKoAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-08-13T18:10:28.124Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 85,
+              "DocumentIndex": 90,
               "Title": "ContestDtos.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Contest\\ContestDtos.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Contest\\ContestDtos.cs",
@@ -1391,7 +1466,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 17,
               "Title": "CodingSubmission.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\CodingSubmission.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\CodingSubmission.cs",
@@ -1399,12 +1474,11 @@
               "RelativeToolTip": "src\\Quizora.Domain\\Entities\\CodingSubmission.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-13T17:38:48.83Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T17:38:48.83Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 83,
+              "DocumentIndex": 89,
               "Title": "TestCodingProblem.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\TestCodingProblem.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\TestCodingProblem.cs",
@@ -1416,7 +1490,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 109,
+              "DocumentIndex": 114,
               "Title": ".dockerignore",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\.dockerignore",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\.dockerignore",
@@ -1428,7 +1502,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 111,
+              "DocumentIndex": 116,
               "Title": "CodingProblemSeeder.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Seed\\CodingProblemSeeder.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Seed\\CodingProblemSeeder.cs",
@@ -1440,7 +1514,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 19,
               "Title": "CodingProblems.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\CodingProblems.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\CodingProblems.razor",
@@ -1448,12 +1522,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Company\\CodingProblems.razor",
               "ViewState": "AgIAABMAAAAAAAAAAAAiwB8AAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-13T08:32:23.217Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T08:32:23.217Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 27,
               "Title": "CodingProblemsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\CodingProblemsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\CodingProblemsController.cs",
@@ -1461,12 +1534,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\CodingProblemsController.cs",
               "ViewState": "AgIAAKsAAAAAAAAAAAAmwJYAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-13T08:31:25.781Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T08:31:25.781Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 112,
+              "DocumentIndex": 117,
               "Title": "CodingProblemDtos.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Coding\\CodingProblemDtos.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Coding\\CodingProblemDtos.cs",
@@ -1478,7 +1550,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 113,
+              "DocumentIndex": 118,
               "Title": "Quizora.Application.csproj",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Quizora.Application.csproj",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Quizora.Application.csproj",
@@ -1490,7 +1562,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 15,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Persistence\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Persistence\\ApplicationDbContext.cs",
@@ -1498,12 +1570,11 @@
               "RelativeToolTip": "src\\Quizora.Infrastructure\\Persistence\\ApplicationDbContext.cs",
               "ViewState": "AgIAABIBAAAAAAAAAAAAACUBAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-13T08:27:46.275Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T08:27:46.275Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 114,
+              "DocumentIndex": 119,
               "Title": "CodingTestCase.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\CodingTestCase.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\CodingTestCase.cs",
@@ -1515,7 +1586,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 115,
+              "DocumentIndex": 120,
               "Title": "CodingProblem.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\CodingProblem.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\CodingProblem.cs",
@@ -1527,19 +1598,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 68,
+              "DocumentIndex": 5,
               "Title": "CodeClient.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\CodeClient.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\CodeClient.cs",
               "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\CodeClient.cs",
               "RelativeToolTip": "src\\Quizora.Web\\Services\\CodeClient.cs",
-              "ViewState": "AgIAAB0AAAAAAAAAAAAuwEUAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAIwDcAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-13T06:00:43.139Z"
+              "WhenOpened": "2026-08-13T06:00:43.139Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 105,
+              "DocumentIndex": 110,
               "Title": "DependencyInjection.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\DependencyInjection.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\DependencyInjection.cs",
@@ -1551,7 +1623,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 32,
               "Title": "CodeController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\CodeController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\CodeController.cs",
@@ -1559,12 +1631,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\CodeController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-13T05:39:02.051Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-13T05:39:02.051Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 107,
+              "DocumentIndex": 112,
               "Title": "CodeExecutionService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Services\\CodeExecutionService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Services\\CodeExecutionService.cs",
@@ -1576,7 +1647,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 116,
+              "DocumentIndex": 121,
               "Title": "ICodeExecutionService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Interfaces\\ICodeExecutionService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Interfaces\\ICodeExecutionService.cs",
@@ -1588,7 +1659,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 117,
+              "DocumentIndex": 122,
               "Title": "CodeRunDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Code\\CodeRunDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Code\\CodeRunDto.cs",
@@ -1600,7 +1671,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 118,
+              "DocumentIndex": 123,
               "Title": "CreateTest.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\CreateTest.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\CreateTest.razor",
@@ -1612,7 +1683,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 29,
               "Title": "ResultsController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\ResultsController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\ResultsController.cs",
@@ -1620,12 +1691,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\ResultsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAE0AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-11T19:25:47.192Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-11T19:25:47.192Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 119,
+              "DocumentIndex": 124,
               "Title": "QuestionBankSeeder.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Seed\\QuestionBankSeeder.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Seed\\QuestionBankSeeder.cs",
@@ -1637,7 +1707,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 120,
+              "DocumentIndex": 125,
               "Title": "QuestionBankRepository.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Infrastructure\\Repositories\\QuestionBankRepository.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Infrastructure\\Repositories\\QuestionBankRepository.cs",
@@ -1649,7 +1719,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 121,
+              "DocumentIndex": 126,
               "Title": "CreateQuestionDtoValidator.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Validators\\CreateQuestionDtoValidator.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Validators\\CreateQuestionDtoValidator.cs",
@@ -1661,19 +1731,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
-              "Title": "AttemptService.cs",
-              "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\AttemptService.cs",
-              "RelativeDocumentMoniker": "src\\Quizora.Application\\Services\\AttemptService.cs",
-              "ToolTip": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\AttemptService.cs",
-              "RelativeToolTip": "src\\Quizora.Application\\Services\\AttemptService.cs",
-              "ViewState": "AgIAAA4BAAAAAAAAAAAuwDYBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-11T19:22:30.012Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 122,
+              "DocumentIndex": 127,
               "Title": "TestService.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Services\\TestService.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Services\\TestService.cs",
@@ -1685,7 +1743,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 123,
+              "DocumentIndex": 128,
               "Title": "QuestionDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Questions\\QuestionDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Questions\\QuestionDto.cs",
@@ -1697,7 +1755,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 124,
+              "DocumentIndex": 129,
               "Title": "CreateQuestionDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Questions\\CreateQuestionDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Questions\\CreateQuestionDto.cs",
@@ -1709,7 +1767,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 125,
+              "DocumentIndex": 130,
               "Title": "TestDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Tests\\TestDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Tests\\TestDto.cs",
@@ -1721,7 +1779,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 126,
+              "DocumentIndex": 131,
               "Title": "CreateTestDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Tests\\CreateTestDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Tests\\CreateTestDto.cs",
@@ -1733,7 +1791,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 58,
               "Title": "QuestionBank.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\QuestionBank.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\QuestionBank.cs",
@@ -1745,7 +1803,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 80,
+              "DocumentIndex": 88,
               "Title": "Test.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\Test.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\Test.cs",
@@ -1757,7 +1815,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 93,
+              "DocumentIndex": 98,
               "Title": "WeakTopics.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\WeakTopics.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\WeakTopics.razor",
@@ -1769,7 +1827,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 69,
+              "DocumentIndex": 77,
               "Title": "AiClient.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Services\\AiClient.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Services\\AiClient.cs",
@@ -1781,7 +1839,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 94,
+              "DocumentIndex": 99,
               "Title": "WeakTopicDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Questions\\WeakTopicDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Questions\\WeakTopicDto.cs",
@@ -1793,7 +1851,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 128,
+              "DocumentIndex": 133,
               "Title": "Index.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\MockTests\\Index.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\MockTests\\Index.razor",
@@ -1805,7 +1863,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 38,
               "Title": "Take.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\MockTests\\Take.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\MockTests\\Take.razor",
@@ -1813,12 +1871,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\MockTests\\Take.razor",
               "ViewState": "AgIAACUBAAAAAAAAAAAuwNkBAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T18:31:23.738Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T18:31:23.738Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 50,
               "Title": "app.css",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\wwwroot\\app.css",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\wwwroot\\app.css",
@@ -1830,7 +1887,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 129,
+              "DocumentIndex": 134,
               "Title": "Quizora.API.http",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Quizora.API.http",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Quizora.API.http",
@@ -1842,7 +1899,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 78,
+              "DocumentIndex": 86,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\appsettings.json",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\appsettings.json",
@@ -1854,7 +1911,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 39,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\appsettings.json",
               "RelativeDocumentMoniker": "src\\Quizora.API\\appsettings.json",
@@ -1862,12 +1919,11 @@
               "RelativeToolTip": "src\\Quizora.API\\appsettings.json",
               "ViewState": "AgIAAAYAAAAAAAAAAAAAABwAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-08-10T16:57:09.055Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T16:57:09.055Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 76,
+              "DocumentIndex": 84,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Program.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Program.cs",
@@ -1879,7 +1935,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 110,
+              "DocumentIndex": 115,
               "Title": "Dockerfile",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Dockerfile",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Dockerfile",
@@ -1891,7 +1947,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 104,
+              "DocumentIndex": 109,
               "Title": "Dockerfile",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Dockerfile",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Dockerfile",
@@ -1903,7 +1959,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 42,
               "Title": "Register.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Register.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Register.razor",
@@ -1911,12 +1967,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Register.razor",
               "ViewState": "AgIAABcAAAAAAAAAAAAuwCYAAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T16:16:52.886Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T16:16:52.886Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 36,
               "Title": "AiController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\AiController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\AiController.cs",
@@ -1924,12 +1979,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\AiController.cs",
               "ViewState": "AgIAAIAAAAAAAAAAAAAAwJ0AAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T16:10:20.729Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T16:10:20.729Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 33,
               "Title": "AuthController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\AuthController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\AuthController.cs",
@@ -1937,12 +1991,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\AuthController.cs",
               "ViewState": "AgIAACQAAAAAAAAAAAAowDUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T15:57:37.443Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T15:57:37.443Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 45,
               "Title": "RegisterDtoValidator.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\Validators\\RegisterDtoValidator.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\Validators\\RegisterDtoValidator.cs",
@@ -1950,12 +2003,11 @@
               "RelativeToolTip": "src\\Quizora.Application\\Validators\\RegisterDtoValidator.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAEgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T15:56:16.383Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T15:56:16.383Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 43,
               "Title": "RegisterDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Auth\\RegisterDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Auth\\RegisterDto.cs",
@@ -1963,12 +2015,11 @@
               "RelativeToolTip": "src\\Quizora.Application\\DTOs\\Auth\\RegisterDto.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T15:55:23.355Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T15:55:23.355Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 130,
+              "DocumentIndex": 135,
               "Title": "InterviewData.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Data\\InterviewData.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Data\\InterviewData.cs",
@@ -1980,7 +2031,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 20,
               "Title": "TakeTest.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\TakeTest.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\TakeTest.razor",
@@ -1988,12 +2039,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Candidate\\TakeTest.razor",
               "ViewState": "AgIAADIBAAAAAAAAAAAAAFsBAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T15:42:07.469Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T15:42:07.469Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 131,
+              "DocumentIndex": 136,
               "Title": "Answer.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\Answer.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\Answer.cs",
@@ -2005,7 +2055,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 59,
               "Title": "Question.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\Question.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\Question.cs",
@@ -2017,7 +2067,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 132,
+              "DocumentIndex": 137,
               "Title": "QuestionType.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Enums\\QuestionType.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Enums\\QuestionType.cs",
@@ -2029,7 +2079,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 133,
+              "DocumentIndex": 138,
               "Title": "InvitationStatus.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Enums\\InvitationStatus.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Enums\\InvitationStatus.cs",
@@ -2041,7 +2091,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 127,
+              "DocumentIndex": 132,
               "Title": "UserRole.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Enums\\UserRole.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Enums\\UserRole.cs",
@@ -2053,7 +2103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 134,
+              "DocumentIndex": 139,
               "Title": "TestStatus.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Enums\\TestStatus.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Enums\\TestStatus.cs",
@@ -2065,7 +2115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 64,
               "Title": "Home.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Home.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Home.razor",
@@ -2077,7 +2127,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 52,
               "Title": "App.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\App.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\App.razor",
@@ -2089,7 +2139,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 28,
               "Title": "Dashboard.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\Dashboard.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\Dashboard.razor",
@@ -2097,12 +2147,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Pages\\Candidate\\Dashboard.razor",
               "ViewState": "AgIAAIEAAAAAAAAAAAAAAHsAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T15:07:47.294Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T15:07:47.294Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 108,
+              "DocumentIndex": 113,
               "Title": "MyCv.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Candidate\\MyCv.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Candidate\\MyCv.razor",
@@ -2114,7 +2163,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 91,
+              "DocumentIndex": 96,
               "Title": "Dashboard.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\Dashboard.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\Dashboard.razor",
@@ -2126,7 +2175,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 92,
+              "DocumentIndex": 97,
               "Title": "Results.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\Results.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\Results.razor",
@@ -2138,7 +2187,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 48,
               "Title": "NavMenu.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Layout\\NavMenu.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Layout\\NavMenu.razor",
@@ -2146,12 +2195,11 @@
               "RelativeToolTip": "src\\Quizora.Web\\Components\\Layout\\NavMenu.razor",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0BAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-08-10T14:41:52.042Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:41:52.042Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 135,
+              "DocumentIndex": 140,
               "Title": "CandidateCvs.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Company\\CandidateCvs.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Company\\CandidateCvs.razor",
@@ -2163,7 +2211,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 53,
               "Title": "Profile.razor",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Web\\Components\\Pages\\Profile.razor",
               "RelativeDocumentMoniker": "src\\Quizora.Web\\Components\\Pages\\Profile.razor",
@@ -2175,7 +2223,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 35,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Program.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Program.cs",
@@ -2183,12 +2231,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Program.cs",
               "ViewState": "AgIAAKUAAAAAAAAAAAAAAKAAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T14:36:03.874Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:36:03.874Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 30,
               "Title": "ProfileController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\ProfileController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\ProfileController.cs",
@@ -2196,12 +2243,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\ProfileController.cs",
               "ViewState": "AgIAAFQBAAAAAAAAAAAAAFQBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T14:30:38.474Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:30:38.474Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 25,
               "Title": "PracticeController.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.API\\Controller\\PracticeController.cs",
               "RelativeDocumentMoniker": "src\\Quizora.API\\Controller\\PracticeController.cs",
@@ -2209,12 +2255,11 @@
               "RelativeToolTip": "src\\Quizora.API\\Controller\\PracticeController.cs",
               "ViewState": "AgIAAPUAAAAAAAAAAAAAwLcAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T14:30:37.736Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:30:37.736Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 136,
+              "DocumentIndex": 141,
               "Title": "ChangePasswordDto.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Application\\DTOs\\Auth\\ChangePasswordDto.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Application\\DTOs\\Auth\\ChangePasswordDto.cs",
@@ -2226,7 +2271,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 46,
               "Title": "Candidate.cs",
               "DocumentMoniker": "D:\\SDP\\QuizoraWeb\\Quizora\\src\\Quizora.Domain\\Entities\\Candidate.cs",
               "RelativeDocumentMoniker": "src\\Quizora.Domain\\Entities\\Candidate.cs",
@@ -2234,8 +2279,7 @@
               "RelativeToolTip": "src\\Quizora.Domain\\Entities\\Candidate.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T14:26:48.384Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-10T14:26:48.384Z"
             }
           ]
         }
