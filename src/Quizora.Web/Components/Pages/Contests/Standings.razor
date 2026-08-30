@@ -1,0 +1,171 @@
+﻿@page "/contests/{ContestId:guid}/standings"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <a href="@($"/contests/{ContestId}")" class="btn btn-sm btn-outline-secondary mb-2">← Contest</a>
+            <h2 class="fw-bold mb-0">Standings</h2>
+            @if (!string.IsNullOrEmpty(title))
+            {
+                <p class="text-muted small mb-0">@title</p>
+            }
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm" disabled="@loading" @onclick="Load">
+            @(loading ? "Refreshing…" : "Refresh")
+        </button>
+    </div>
+
+    @if (loading && rows == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    else if (rows == null || rows.Count == 0)
+    {
+        <div class="alert alert-info">No submissions yet. Be the first on the board.</div>
+    }
+    else
+    {
+        <div class="table-responsive card border-0 shadow-sm">
+            <table class="table table-hover align-middle mb-0 standings-table">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:3rem">#</th>
+                        <th>Who</th>
+                        <th class="text-center">Solved</th>
+                        <th class="text-center">Penalty</th>
+                        @foreach (var p in problems)
+                        {
+                            <th class="text-center">@p.Letter</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in rows)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@r.Rank</td>
+                            <td>@r.Name</td>
+                            <td class="text-center fw-semibold">@r.Solved</td>
+                            <td class="text-center text-muted">@r.Penalty</td>
+                            @foreach (var c in r.Cells)
+                            {
+                                <td class="text-center">
+                                    @if (c.IsAccepted)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">@c.Status</span>
+                                    }
+                                    else if (!string.IsNullOrEmpty(c.Status))
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">@c.Status</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">·</span>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="small text-muted mt-2 mb-0">
+            ICPC-style: rank by solved, then penalty (minutes to AC + 20 × wrong tries).
+        </p>
+    }
+</div>
+
+<style>
+    .standings-table th, .standings-table td {
+        white-space: nowrap;
+    }
+</style>
+
+@code {
+    [Parameter] public Guid ContestId { get; set; }
+
+    private bool loading = true;
+    private string? error;
+    private string? title;
+    private List<ProblemCol> problems = new();
+    private List<StandingRow> rows = new();
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        loading = true;
+        error = null;
+        try
+        {
+            var res = await Http.GetFromJsonAsync<ApiResult<StandingsPayload>>(
+                $"api/Contests/{ContestId}/standings");
+
+            if (res == null || !res.IsSuccess || res.Data == null)
+            {
+                error = res?.Message ?? "Failed to load standings";
+                rows = new();
+                return;
+            }
+
+            title = res.Data.Title;
+            problems = res.Data.Problems ?? new();
+            rows = res.Data.Standings ?? new();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private class StandingsPayload
+    {
+        public Guid ContestId { get; set; }
+        public string? Title { get; set; }
+        public List<ProblemCol>? Problems { get; set; }
+        public List<StandingRow>? Standings { get; set; }
+    }
+
+    private class ProblemCol
+    {
+        public Guid CodingProblemId { get; set; }
+        public string Letter { get; set; } = "";
+    }
+
+    private class StandingRow
+    {
+        public int Rank { get; set; }
+        public Guid UserId { get; set; }
+        public string Name { get; set; } = "";
+        public int Solved { get; set; }
+        public int Penalty { get; set; }
+        public List<Cell> Cells { get; set; } = new();
+    }
+
+    private class Cell
+    {
+        public string Letter { get; set; } = "";
+        public string Status { get; set; } = "";
+        public bool IsAccepted { get; set; }
+    }
+
+    private class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
+    }
+}

@@ -327,10 +327,7 @@
         dotNetRef = null;
     }
 
-    /// <summary>
-    /// 1st tab leave = warning
-    /// 2nd = show message 10s, then submit. NO auto-redirect to dashboard.
-    /// </summary>
+  
     [JSInvokable]
     public async Task OnVisibilityHidden()
     {
@@ -347,14 +344,12 @@
         // 2nd leave
         kickedForTabSwitch = true;
         await InvokeAsync(StateHasChanged);
-
-        // ★ Message on screen ~10 seconds
-        await Task.Delay(10000);
+         
+        await Task.Delay(5000);
 
         await SubmitTest(auto: true);
         await DisableAntiCheatAsync();
-
-        // Stay on success / error UI — user clicks "Back to Dashboard"
+         
         await InvokeAsync(StateHasChanged);
     }
 
