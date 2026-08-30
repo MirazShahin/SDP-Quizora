@@ -95,10 +95,38 @@
         }
         else
         {
-            errorMessage = result?.Message ?? "Login failed";
+            var rawMessage = result?.Message ?? "Login failed";
+             
+            if (rawMessage.Contains("\"message\":"))
+            {
+                try
+                {
+                    var jsonDoc = System.Text.Json.JsonDocument.Parse(rawMessage.Contains("Error") && rawMessage.Contains("{")
+                        ? rawMessage.Substring(rawMessage.IndexOf('{'))
+                        : rawMessage);
+
+                    if (jsonDoc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        errorMessage = msgProp.GetString();
+                    }
+                    else
+                    {
+                        errorMessage = rawMessage;
+                    }
+                }
+                catch
+                {
+                    errorMessage = rawMessage;
+                }
+            }
+            else
+            {
+                errorMessage = rawMessage;
+            }
+
             var m = errorMessage.ToLowerInvariant();
             isServerIssue = m.Contains("server") || m.Contains("unavailable") || m.Contains("reach")
-                            || m.Contains("timeout") || m.Contains("sleeping") || m.Contains("suspended");
+                        || m.Contains("timeout") || m.Contains("sleeping") || m.Contains("suspended");
         }
 
         isLoading = false;
