@@ -1,55 +1,122 @@
-﻿@inherits LayoutComponentBase
+﻿@page "/company/contests"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-0">My Contests</h3>
+            <p class="text-muted small mb-0">Coding contests created by your company</p>
+        </div>
+        <a href="/company/contests/create" class="btn btn-primary btn-sm">+ Create Contest</a>
     </div>
 
-    <main>
-        <div class="top-row px-4 d-flex align-items-center justify-content-end gap-3">
-            <ThemeToggle />
-            <a href="/about" class="top-link">About</a>
-        </div>
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
 
-        <article class="content px-4">
-            <ErrorBoundary @ref="_errorBoundary">
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent>
-                    <FriendlyErrorFallback OnRecover="RecoverFromError" />
-                </ErrorContent>
-            </ErrorBoundary>
-        </article>
-    </main>
-</div>
-
-<div id="blazor-error-ui" data-nosnippet>
-    <div class="quizora-banner-inner">
-        <span class="quizora-banner-icon">📡</span>
-        <div class="quizora-banner-text">
-            <strong>Connection to the server was lost.</strong>
-            <span>Please reload the page to reconnect.</span>
+    @if (loading)
+    {
+        <p class="text-muted">Loading...</p>
+    }
+    else if (items.Count == 0)
+    {
+        <div class="alert alert-info mb-0">
+            No contests yet.
+            <a href="/company/contests/create">Create your first contest</a>
         </div>
-        <a href="." class="reload">Reload</a>
-        <span class="dismiss" title="Dismiss">🗙</span>
-    </div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var c in items)
+            {
+                <a href="/contests/@c.Id" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="fw-semibold">@c.Title</div>
+                            <div class="small text-muted">
+                                @c.ProblemCount problem(s) · @(c.DurationInMinutes ?? 0) min
+                                @if (c.ContestStartAt.HasValue)
+                                {
+                                    <span> · Starts @c.ContestStartAt.Value.ToLocalTime().ToString("g")</span>
+                                }
+                            </div>
+                        </div>
+                        <span class="badge @Badge(c.Status)">@c.Status</span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
 </div>
 
 @code {
-    private ErrorBoundary? _errorBoundary;
+    private List<Item> items = new();
+    private bool loading = true;
+    private string? error;
 
-    // Lets the "Try again" button in FriendlyErrorFallback reset the boundary
-    // and re-render the page instead of leaving the user stuck on the error card.
-    private void RecoverFromError()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _errorBoundary?.Recover();
+        if (!firstRender) return;
+        try
+        {
+            var resp = await Http.GetAsync("api/contests/my");
+            var raw = await resp.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                error = $"Empty response (HTTP {(int)resp.StatusCode})";
+                return;
+            }
+
+            var api = System.Text.Json.JsonSerializer.Deserialize<ApiResult<List<Item>>>(raw,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (api?.IsSuccess == true)
+                items = api.Data ?? new();
+            else
+                error = api?.Message ?? $"Failed (HTTP {(int)resp.StatusCode})";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
     }
 
-    protected override void OnParametersSet()
+    private static string Badge(string s) => s switch
     {
-        // Reset the boundary on every navigation so a previous page's error
-        // doesn't stick around when the user moves to a different page.
-        _errorBoundary?.Recover();
+        "Running" => "bg-success",
+        "Upcoming" => "bg-primary",
+        "Ended" => "bg-secondary",
+        "Draft" => "bg-warning text-dark",
+        _ => "bg-info text-dark"
+    };
+
+    public class Item
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string? Description { get; set; }
+        public int? DurationInMinutes { get; set; }
+        public DateTime? ContestStartAt { get; set; }
+        public DateTime? ContestEndAt { get; set; }
+        public int ProblemCount { get; set; }
+        public string Status { get; set; } = "";
+    }
+
+    public class ApiResult<T>
+    {
+        public bool IsSuccess { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
     }
 }
