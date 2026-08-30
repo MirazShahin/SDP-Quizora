@@ -10,6 +10,8 @@ using Quizora.Infrastructure;
 using Quizora.Infrastructure.Persistence;
 using Quizora.Infrastructure.Seed;
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +80,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 10 * 1024 * 1024);
 
+// Rate limiting — protects auth endpoints from brute-force / credential-stuffing.
+// Keyed per client IP so one abusive caller can't exhaust the limit for everyone.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("AuthPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        var retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var ra)
+            ? (int)ra.TotalSeconds
+            : 60;
+        context.HttpContext.Response.Headers.RetryAfter = retryAfter.ToString();
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            isSuccess = false,
+            message = $"Too many attempts. Please wait {retryAfter} seconds and try again."
+        }, cancellationToken);
+    };
+});
+
 // CORS — local + Render frontend URL (env থেকে)
 var blazorOrigins = builder.Configuration["Cors:BlazorOrigins"]
     ?? "https://localhost:7102,https://localhost:7002,http://localhost:5065,http://localhost:5001";
@@ -111,6 +144,7 @@ if (!app.Environment.IsProduction())
 }
 
 app.UseCors("AllowBlazor");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

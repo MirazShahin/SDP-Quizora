@@ -48,6 +48,8 @@
                                 </div>
                             </div>
 
+                            <CaptchaBox @ref="captchaBox" />
+
                             <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
                                 @(isLoading ? "Registering..." : "Register")
                             </button>
@@ -68,6 +70,7 @@
     private bool isLoading;
     private string? errorMessage;
     private string? successMessage;
+    private CaptchaBox? captchaBox;
 
     private async Task HandleRegister()
     {
@@ -77,6 +80,12 @@
         if (clientError != null)
         {
             errorMessage = clientError;
+            return;
+        }
+
+        if (captchaBox is not null && !captchaBox.Validate())
+        {
+            errorMessage = "Please solve the verification challenge correctly.";
             return;
         }
 

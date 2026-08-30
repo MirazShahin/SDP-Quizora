@@ -49,6 +49,8 @@
                         <a href="/forgot-password" class="small">Forgot Password?</a>
                     </div>
 
+                    <CaptchaBox @ref="captchaBox" />
+
                     <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
                         @(isLoading ? "Logging in..." : "Login")
                     </button>
@@ -67,12 +69,20 @@
     private string? errorMessage;
     private bool isLoading;
     private bool isServerIssue;
+    private CaptchaBox? captchaBox;
 
     private async Task HandleLogin()
     {
-        isLoading = true;
         errorMessage = null;
         isServerIssue = false;
+
+        if (captchaBox is not null && !captchaBox.Validate())
+        {
+            errorMessage = "Please solve the verification challenge correctly.";
+            return;
+        }
+
+        isLoading = true;
 
         var result = await AuthService.Login(loginModel);
 

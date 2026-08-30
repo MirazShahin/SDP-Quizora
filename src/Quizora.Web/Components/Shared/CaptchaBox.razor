@@ -1,0 +1,66 @@
+﻿@* 
+    Simple server-side math CAPTCHA.
+    The correct answer only ever lives in this component's server-side state
+    (Blazor Interactive Server keeps a persistent circuit), so it is never
+    sent to the browser — unlike a client-computed challenge, it can't be
+    read from page source or bypassed via devtools.
+*@
+
+<div class="captcha-box">
+    <div class="captcha-row">
+        <div class="captcha-question">
+            <span aria-hidden="true">🔒</span>
+            <span>@Num1 + @Num2 =</span>
+        </div>
+        <input type="number"
+               class="form-control captcha-input"
+               placeholder="?"
+               @bind-value="UserAnswer"
+               @bind-value:event="oninput"
+               aria-label="Captcha answer" />
+        <button type="button" class="captcha-refresh" title="Get a new challenge" @onclick="Regenerate">↻</button>
+    </div>
+    @if (ShowError)
+    {
+        <div class="captcha-error">That's not quite right — try the new challenge above.</div>
+    }
+</div>
+
+@code {
+    private int Num1;
+    private int Num2;
+    private int CorrectAnswer;
+    private string? UserAnswer;
+    private bool ShowError;
+
+    protected override void OnInitialized() => Regenerate();
+
+    private void Regenerate()
+    {
+        var rnd = Random.Shared;
+        Num1 = rnd.Next(1, 10);
+        Num2 = rnd.Next(1, 10);
+        CorrectAnswer = Num1 + Num2;
+        UserAnswer = null;
+        ShowError = false;
+    }
+
+    /// <summary>
+    /// Call from the parent's submit handler before proceeding.
+    /// Returns true only if the answer is correct; on failure it
+    /// shows an inline error and issues a fresh challenge so a bot
+    /// can't just retry the same guess.
+    /// </summary>
+    public bool Validate()
+    {
+        if (int.TryParse(UserAnswer, out var value) && value == CorrectAnswer)
+        {
+            ShowError = false;
+            return true;
+        }
+
+        ShowError = true;
+        Regenerate();
+        return false;
+    }
+}

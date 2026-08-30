@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Quizora.API.Controllers;
 
@@ -27,6 +28,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<ActionResult<Result<AuthResponseDto>>> Register(RegisterDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.FullName))
@@ -88,6 +90,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<ActionResult<Result<AuthResponseDto>>> Login(LoginDto dto)
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email.ToLower());
@@ -182,6 +185,7 @@ public class AuthController : ControllerBase
         return null;
     }
     [HttpPost("forgot-password")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<ActionResult<Result>> ForgotPassword(ForgotPasswordDto dto)
     {
         const string msg = "If this email exists, a password reset link has been sent.";
