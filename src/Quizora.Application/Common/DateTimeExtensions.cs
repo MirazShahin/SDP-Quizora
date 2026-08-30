@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Quizora.Application.Common;
 
-namespace Quizora.Application.Common
+public static class DateTimeExtensions
 {
-    internal class DateTimeExtensions
+    public static DateTime ToUtcFromClientLocal(this DateTime local, int offsetMinutes)
     {
+        var utc = local.AddMinutes(-offsetMinutes);
+        return DateTime.SpecifyKind(utc, DateTimeKind.Utc);
     }
 }
